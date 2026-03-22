@@ -195,15 +195,7 @@ const ilanData = await cevap.json();
                 addCustomerBtn.textContent = "Sisteme Kaydediliyor...";
                 addCustomerBtn.disabled = true;
 
-                await addDoc(collection(db, "users"), {
-                    passcode: passcode,
-                    role: "customer",
-                    isActive: true,
-                    expireDate: expireDateStr, // DD.MM.YYYY
-                    banMessage: defaultBanMessage, // YENİ: Özel Mesaj Alanı
-                    createdAt: new Date().getTime(),
-                    createdDateStr: new Date().toLocaleDateString('tr-TR')
-                });
+        
                 
                 document.getElementById('newPasscode').value = '';
                 msgElement.textContent = "Müşteri başarıyla oluşturuldu!";
@@ -225,27 +217,17 @@ const ilanData = await cevap.json();
             const tbody = document.getElementById('customerTableBody');
             
             try {
-                const q = query(collection(db, "users"), where("role", "==", "customer"));
-                const querySnapshot = await getDocs(q);
+                
+                
                 
                 let total = 0; let active = 0; let passive = 0;
                 globalCustomers = [];
                 tbody.innerHTML = ''; 
 
-                if(querySnapshot.empty) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Kayıtlı müşteri bulunmuyor.</td></tr>';
-                    document.getElementById('statTotal').innerText = "0";
-                    document.getElementById('statActive').innerText = "0";
-                    document.getElementById('statPassive').innerText = "0";
-                    return;
-                }
+                
 
                 // Verileri diziye alıp tarihe göre sıralayalım (en yeniler üstte)
-                querySnapshot.forEach(doc => {
-                    const data = doc.data();
-                    data.docId = doc.id;
-                    globalCustomers.push(data);
-                });
+                
                 globalCustomers.sort((a, b) => b.createdAt - a.createdAt);
 
                 globalCustomers.forEach((data) => {
@@ -278,47 +260,11 @@ const ilanData = await cevap.json();
                 document.getElementById('statActive').innerText = active;
                 document.getElementById('statPassive').innerText = passive;
 
-                // AKTİF/PASİF TIKLAMA OLAYI
-                document.querySelectorAll('.status-toggle').forEach(toggle => {
-                    toggle.addEventListener('change', async (e) => {
-                        const id = e.target.getAttribute('data-id');
-                        const yeniDurum = e.target.checked;
-                        try {
-                            await updateDoc(doc(db, "users", id), { isActive: yeniDurum });
-                            // Sadece rakamları anlık güncelle, tabloyu baştan çizmeye gerek yok
-                            if(yeniDurum) { active++; passive--; } else { active--; passive++; }
-                            document.getElementById('statActive').innerText = active;
-                            document.getElementById('statPassive').innerText = passive;
-                        } catch(err) {
-                            alert("Durum güncellenemedi!");
-                            e.target.checked = !yeniDurum; // Hatada eski haline döndür
-                        }
-                    });
-                });
+                
 
-                // SİLME TIKLAMA OLAYI
-                document.querySelectorAll('.delete-btn').forEach(btn => {
-                    btn.addEventListener('click', async (e) => {
-                        const id = e.target.getAttribute('data-id');
-                        if(confirm("Müşteriyi komple silmek istediğinize emin misiniz? Sistemdeki yetkisi anında biter.")) {
-                            await deleteDoc(doc(db, "users", id));
-                            loadCustomers(); 
-                        }
-                    });
-                });
+                
 
-                // DÜZENLE TIKLAMA OLAYI
-                document.querySelectorAll('.edit-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const id = e.target.getAttribute('data-id');
-                        openEditModal(id);
-                    });
-                });
-
-            } catch (error) {
-                console.error("Listeleme hatası:", error);
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Veritabanı bağlantı hatası.</td></tr>';
-            }
+         
         }
 
         // 3. DÜZENLEME MODALI SİSTEMİ
