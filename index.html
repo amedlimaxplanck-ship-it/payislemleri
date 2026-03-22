@@ -100,75 +100,64 @@
     </div>
 
     <script type="module">
-        // index.html içindeki login butonunun yeni hali (Örnek)
+        const loginBtn = document.getElementById('loginBtn');
+const accessCodeInput = document.getElementById('accessCode');
+const errorMessage = document.getElementById('error-message');
+
+// Hata mesajını ekrana basan fonksiyon
+function showError(msg) {
+    errorMessage.textContent = msg;
+    errorMessage.style.display = 'block';
+}
+
+// Butona tıklandığında çalışacak TEK ve TEMİZ kod
 loginBtn.addEventListener('click', async () => {
     const code = accessCodeInput.value.trim();
+    errorMessage.style.display = 'none';
     
-    // ARTIK BURASI ÇALIŞACAK: Vercel Backend'ine soruyoruz
-    const cevap = await fetch(`https://payislemlerim.vercel.app/api/login?code=${code}`);
-    const sonuc = await cevap.json();
+    if (code === "") {
+        showError("Lütfen erişim kodunuzu girin!");
+        return;
+    }
 
-    if (sonuc.success) {
-        localStorage.setItem("userId", sonuc.user.id);
-        localStorage.setItem("userRole", sonuc.user.role);
-        // Panele yönlendir...
-    } else {
-        showError(sonuc.message);
+    loginBtn.textContent = "Bağlanıyor...";
+    loginBtn.disabled = true;
+
+    try {
+        // Vercel'deki Node.js sunucuna (Backend) soruyoruz
+        const cevap = await fetch(`https://payislemlerim.vercel.app/api/login?code=${code}`);
+        const sonuc = await cevap.json();
+
+        // Eğer sunucudan "Giriş Başarılı" cevabı gelirse:
+        if (sonuc.success) {
+            localStorage.setItem("userId", sonuc.user.id);
+            localStorage.setItem("userRole", sonuc.user.role);
+            
+            // Yetkiye göre sayfa yönlendirmesi
+            if (sonuc.user.role === "god") {
+                window.location.href = "god-panel.html"; 
+            } else if (sonuc.user.role === "customer") {
+                if (sonuc.user.isActive === true) {
+                    window.location.href = "musteri-panel.html"; 
+                } else {
+                    const ozelMesaj = sonuc.user.banMessage || "Abonelik süreniz dolmuş veya askıya alınmıştır. Lütfen yönetici ile iletişime geçiniz.";
+                    showError(ozelMesaj);
+                }
+            } else {
+                showError("Sistem hatası: Bu şifrenin yetkisi tanımlanmamış.");
+            }
+        } else {
+            // Sunucudan hata dönerse (Örn: Şifre yanlış)
+            showError(sonuc.message || "Giriş başarısız. Şifreyi kontrol edin.");
+        }
+    } catch (error) {
+        showError("Sunucu bağlantı hatası. Vercel uykuda veya internet yok.");
+    } finally {
+        loginBtn.textContent = "Giriş Yap";
+        loginBtn.disabled = false;
     }
 });
 
-const loginBtn = document.getElementById('loginBtn');
-        const accessCodeInput = document.getElementById('accessCode');
-        const errorMessage = document.getElementById('error-message');
-
-        loginBtn.addEventListener('click', async () => {
-            const code = accessCodeInput.value.trim();
-            errorMessage.style.display = 'none';
-            
-            if (code === "") {
-                showError("Lütfen erişim kodunuzu girin!");
-                return;
-            }
-
-            loginBtn.textContent = "Bağlanıyor...";
-            loginBtn.disabled = true;
-
-            try {
-                const usersRef = collection(db, "users");
-                const q = query(usersRef, where("passcode", "==", code));
-
-if (userData.role === "god") {
-                            localStorage.setItem("userId", doc.id);
-                            localStorage.setItem("userRole", "god");
-                            window.location.href = "god-panel.html"; 
-                        } 
-                        else if (userData.role === "customer") {
-                            if (userData.isActive === true) {
-                                localStorage.setItem("userId", doc.id);
-                                localStorage.setItem("userRole", "customer");
-                                window.location.href = "musteri-panel.html"; 
-                            } else {
-                                // YENİ: God Panel'den yazdığın özel mesajı buraya çeker
-                                const ozelMesaj = userData.banMessage || "Abonelik süreniz dolmuş veya askıya alınmıştır. Lütfen yönetici ile iletişime geçiniz.";
-                                showError(ozelMesaj);
-                            }
-                        } else {
-                            showError("Sistem hatası: Bu şifrenin yetkisi tanımlanmamış.");
-                        }
-                    });
-                }
-            } catch (error) {
-                showError("Sunucu bağlantı hatası. Lütfen internetinizi kontrol edin.");
-            } finally {
-                loginBtn.textContent = "Giriş Yap";
-                loginBtn.disabled = false;
-            }
-        });
-
-        function showError(msg) {
-            errorMessage.textContent = msg;
-            errorMessage.style.display = 'block';
-        }
     </script>
 </body>
 </html>
