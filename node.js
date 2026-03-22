@@ -21,6 +21,26 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
 
+// server.js içine eklenecek "Giriş Kontrol" kapısı
+app.get('/api/login', async (req, res) => {
+    const code = req.query.code;
+    try {
+        const q = query(collection(db, "users"), where("passcode", "==", code));
+        const querySnapshot = await getDocs(q);
+        
+        if (querySnapshot.empty) {
+            res.json({ success: false, message: "Kod bulunamadı!" });
+        } else {
+            const userDoc = querySnapshot.docs[0];
+            res.json({ success: true, user: { id: userDoc.id, ...userDoc.data() } });
+        }
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Sunucu hatası" });
+    }
+});
+
+
+
 // --- 1. İLAN GETİRME KAPISI (GET) ---
 app.get('/api/ilan/:id', async (req, res) => {
     try {
@@ -35,6 +55,7 @@ app.get('/api/ilan/:id', async (req, res) => {
         res.status(500).json({ hata: "Sunucu hatası" });
     }
 });
+
 
 // --- 2. LOG TUTMA KAPISI (POST) ---
 app.post('/api/log-ekle', async (req, res) => {
