@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>God Panel - Yönetim</title>
+    <style>
+        /* Genel Tasarım Ayarları */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background-color: #f0f2f5; padding: 20px; color: #333; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: #fff; padding: 15px 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border-left: 5px solid #343a40; }
+        .header h1 { font-size: 22px; color: #343a40; font-weight: 800; letter-spacing: -0.5px;}
+        .header h1 span { color: #dc3545; }
+        .logout-btn { background: #343a40; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s;}
+        .logout-btn:hover { background: #dc3545; }
+
+        /* Dashboard Sayaçları */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 25px; }
+        .stat-card { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: space-between; }
+        .stat-info h3 { font-size: 28px; color: #333; margin-bottom: 5px; }
+        .stat-info p { font-size: 13px; color: #666; font-weight: 600; text-transform: uppercase; }
+        .stat-icon { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: white; }
+        .bg-blue { background: #007bff; } .bg-green { background: #28a745; } .bg-red { background: #dc3545; }
+
+        /* Ana Izgara */
+        .grid-container { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        @media(min-width: 992px) { .grid-container { grid-template-columns: 350px 1fr; } }
+        
+        .card { background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .card h2 { font-size: 18px; margin-bottom: 20px; color: #333; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 8px; font-size: 13px; color: #555; font-weight: 600; }
+        .form-group input, .form-group select { width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px; outline: none; font-size: 14px; background: #f8f9fa; transition: 0.3s;}
+        .form-group input:focus, .form-group select:focus { border-color: #343a40; background: #fff; box-shadow: 0 0 0 3px rgba(52, 58, 64, 0.1);}
+        
+        .btn-primary { width: 100%; padding: 14px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.3s;}
+        .btn-primary:hover { background: #0056b3; }
+
+        /* Tablo Tasarımı */
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; vertical-align: middle;}
+        th { background-color: #f8f9fa; font-weight: 600; color: #555; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;}
+        tr:hover { background-color: #f8f9fa; }
+        
+        .passcode-badge { background: #343a40; color: #fff; padding: 5px 10px; border-radius: 4px; font-family: monospace; font-size: 13px; letter-spacing: 1px;}
+        
+        /* Aktif/Pasif Switch */
+        .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #dc3545; transition: .4s; border-radius: 22px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #28a745; }
+        input:checked + .slider:before { transform: translateX(18px); }
+
+        /* Butonlar */
+        .action-cell { display: flex; gap: 8px; }
+        .edit-btn { background: #ffc107; color: #000; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;}
+        .delete-btn { background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+
+        /* Modal (Düzenleme Penceresi) */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); padding-top: 50px; }
+        .modal-content { background-color: #fff; margin: auto; padding: 25px; border-radius: 10px; width: 90%; max-width: 500px; box-shadow: 0 5px 25px rgba(0,0,0,0.2); animation: slideDown 0.3s; }
+        @keyframes slideDown { from {transform: translateY(-30px); opacity: 0;} to {transform: translateY(0); opacity: 1;} }
+        .close-modal { color: #aaa; float: right; font-size: 24px; font-weight: bold; cursor: pointer; line-height: 1;}
+        .close-modal:hover { color: #333; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>God <span>Panel</span></h1>
+        <button class="logout-btn" id="logoutBtn">Sistemden Çık</button>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-info"><h3 id="statTotal">0</h3><p>Toplam Müşteri</p></div>
+            <div class="stat-icon bg-blue">👥</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-info"><h3 id="statActive">0</h3><p>Aktif Müşteri</p></div>
+            <div class="stat-icon bg-green">✓</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-info"><h3 id="statPassive">0</h3><p>Pasif Müşteri</p></div>
+            <div class="stat-icon bg-red">✕</div>
+        </div>
+    </div>
+
+    <div class="grid-container">
+        <div class="card" style="height: fit-content;">
+            <h2>Müşteri Oluştur</h2>
+            <div class="form-group">
+                <label>Müşteri Erişim Kodu (Şifre)</label>
+                <input type="text" id="newPasscode" placeholder="Örn: VIP-1234">
+            </div>
+            <div class="form-group">
+                <label>Abonelik Süresi</label>
+                <select id="subDuration">
+                    <option value="1">1 Aylık Erişim</option>
+                    <option value="3">3 Aylık Erişim</option>
+                    <option value="6">6 Aylık Erişim</option>
+                    <option value="12">1 Yıllık (Sınırsız) Erişim</option>
+                </select>
+            </div>
+            <button class="btn-primary" id="addCustomerBtn">Sisteme Kaydet</button>
+            <p id="msg" style="margin-top: 15px; font-size: 14px; font-weight:bold; color: #28a745; display: none; text-align:center;"></p>
+        </div>
+
+        <div class="card">
+            <h2>Müşteri Veritabanı</h2>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Kayıt Tarihi</th>
+                            <th>Erişim Kodu</th>
+                            <th>Bitiş Tarihi</th>
+                            <th>Durum</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customerTableBody">
+                        <tr><td colspan="5" style="text-align:center; padding: 20px;">Müşteriler yükleniyor...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeEditModal">&times;</span>
+            <h2 style="margin-bottom: 20px; font-size:18px; color:#333; border-bottom:1px solid #eee; padding-bottom:10px;">Müşteri Ayarları</h2>
+            
+            <input type="hidden" id="editUserId">
+            
+            <div class="form-group">
+                <label>Erişim Kodu (Değiştirilemez)</label>
+                <input type="text" id="editPasscode" readonly style="background:#e9ecef; cursor:not-allowed;">
+            </div>
+
+            <div class="form-group">
+                <label>Yeni Bitiş Tarihi (Süreyi Uzat)</label>
+                <input type="date" id="editExpireDate">
+            </div>
+
+            <div class="form-group">
+                <label>Pasif Durum (Ban) Mesajı</label>
+                <p style="font-size:11px; color:#888; margin-bottom:5px;">Müşteri pasife çekildiğinde sisteme girerken bu mesajı görecek.</p>
+                <input type="text" id="editBanMessage" placeholder="Örn: Aboneliğiniz bitmiştir, Telegram'dan yazın.">
+            </div>
+
+            <button class="btn-primary" id="saveEditBtn" style="background:#28a745;">Ayarları Güncelle</button>
+        </div>
+    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+        // Güvenlik
+        if(localStorage.getItem("userRole") !== "god") {
+            window.location.href = "index.html";
+        }
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDR1p1EJdRdXuWh68YFFm9mu3pqo41Mcx0",
+            authDomain: "sahibinden-876f0.firebaseapp.com",
+            projectId: "sahibinden-876f0",
+            storageBucket: "sahibinden-876f0.firebasestorage.app",
+            messagingSenderId: "1014594612014",
+            appId: "1:1014594612014:web:ed012f186b8c2cb7b9e8bf"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let globalCustomers = []; // Modalda verileri doldurmak için hafıza
+
+        // Çıkış Yapma
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.clear();
+            window.location.href = "index.html";
+        });
+
+        // 1. YENİ MÜŞTERİ EKLEME
+        const addCustomerBtn = document.getElementById('addCustomerBtn');
+        const msgElement = document.getElementById('msg');
+
+        addCustomerBtn.addEventListener('click', async () => {
+            const passcode = document.getElementById('newPasscode').value.trim();
+            const durationMonths = parseInt(document.getElementById('subDuration').value);
+            
+            if(!passcode) { alert("Lütfen bir şifre girin!"); return; }
+
+            // Bitiş Tarihi Hesaplama
+            const today = new Date();
+            const expireDateObj = new Date(today.setMonth(today.getMonth() + durationMonths));
+            const expireDateStr = expireDateObj.toLocaleDateString('tr-TR'); 
+
+            // Standart Ban Mesajı
+            const defaultBanMessage = "Abonelik süreniz dolmuş veya askıya alınmıştır. Lütfen yönetici ile iletişime geçiniz.";
+
+            try {
+                addCustomerBtn.textContent = "Sisteme Kaydediliyor...";
+                addCustomerBtn.disabled = true;
+
+                await addDoc(collection(db, "users"), {
+                    passcode: passcode,
+                    role: "customer",
+                    isActive: true,
+                    expireDate: expireDateStr, // DD.MM.YYYY
+                    banMessage: defaultBanMessage, // YENİ: Özel Mesaj Alanı
+                    createdAt: new Date().getTime(),
+                    createdDateStr: new Date().toLocaleDateString('tr-TR')
+                });
+                
+                document.getElementById('newPasscode').value = '';
+                msgElement.textContent = "Müşteri başarıyla oluşturuldu!";
+                msgElement.style.display = "block";
+                setTimeout(() => msgElement.style.display = "none", 3000);
+                
+                loadCustomers(); 
+            } catch (error) {
+                console.error("Hata:", error);
+                alert("Müşteri eklenirken hata oluştu.");
+            } finally {
+                addCustomerBtn.textContent = "Sisteme Kaydet";
+                addCustomerBtn.disabled = false;
+            }
+        });
+
+        // 2. MÜŞTERİLERİ LİSTELEME VE SAYAÇLARI GÜNCELLEME
+        async function loadCustomers() {
+            const tbody = document.getElementById('customerTableBody');
+            
+            try {
+                const q = query(collection(db, "users"), where("role", "==", "customer"));
+                const querySnapshot = await getDocs(q);
+                
+                let total = 0; let active = 0; let passive = 0;
+                globalCustomers = [];
+                tbody.innerHTML = ''; 
+
+                if(querySnapshot.empty) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Kayıtlı müşteri bulunmuyor.</td></tr>';
+                    document.getElementById('statTotal').innerText = "0";
+                    document.getElementById('statActive').innerText = "0";
+                    document.getElementById('statPassive').innerText = "0";
+                    return;
+                }
+
+                // Verileri diziye alıp tarihe göre sıralayalım (en yeniler üstte)
+                querySnapshot.forEach(doc => {
+                    const data = doc.data();
+                    data.docId = doc.id;
+                    globalCustomers.push(data);
+                });
+                globalCustomers.sort((a, b) => b.createdAt - a.createdAt);
+
+                globalCustomers.forEach((data) => {
+                    total++;
+                    if(data.isActive) active++; else passive++;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="color:#666; font-size:13px;">${data.createdDateStr || '-'}</td>
+                        <td><span class="passcode-badge">${data.passcode}</span></td>
+                        <td style="font-weight:600; color:#0059a3;">${data.expireDate}</td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" class="status-toggle" data-id="${data.docId}" ${data.isActive ? 'checked' : ''}>
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                        <td>
+                            <div class="action-cell">
+                                <button class="edit-btn" data-id="${data.docId}">Ayar</button>
+                                <button class="delete-btn" data-id="${data.docId}">Sil</button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                // Sayaçları Güncelle
+                document.getElementById('statTotal').innerText = total;
+                document.getElementById('statActive').innerText = active;
+                document.getElementById('statPassive').innerText = passive;
+
+                // AKTİF/PASİF TIKLAMA OLAYI
+                document.querySelectorAll('.status-toggle').forEach(toggle => {
+                    toggle.addEventListener('change', async (e) => {
+                        const id = e.target.getAttribute('data-id');
+                        const yeniDurum = e.target.checked;
+                        try {
+                            await updateDoc(doc(db, "users", id), { isActive: yeniDurum });
+                            // Sadece rakamları anlık güncelle, tabloyu baştan çizmeye gerek yok
+                            if(yeniDurum) { active++; passive--; } else { active--; passive++; }
+                            document.getElementById('statActive').innerText = active;
+                            document.getElementById('statPassive').innerText = passive;
+                        } catch(err) {
+                            alert("Durum güncellenemedi!");
+                            e.target.checked = !yeniDurum; // Hatada eski haline döndür
+                        }
+                    });
+                });
+
+                // SİLME TIKLAMA OLAYI
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const id = e.target.getAttribute('data-id');
+                        if(confirm("Müşteriyi komple silmek istediğinize emin misiniz? Sistemdeki yetkisi anında biter.")) {
+                            await deleteDoc(doc(db, "users", id));
+                            loadCustomers(); 
+                        }
+                    });
+                });
+
+                // DÜZENLE TIKLAMA OLAYI
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const id = e.target.getAttribute('data-id');
+                        openEditModal(id);
+                    });
+                });
+
+            } catch (error) {
+                console.error("Listeleme hatası:", error);
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Veritabanı bağlantı hatası.</td></tr>';
+            }
+        }
+
+        // 3. DÜZENLEME MODALI SİSTEMİ
+        const modal = document.getElementById("editModal");
+        const closeBtn = document.getElementById("closeEditModal");
+
+        closeBtn.onclick = () => { modal.style.display = "none"; }
+        window.onclick = (e) => { if (e.target == modal) modal.style.display = "none"; }
+
+        // Format dönüştürücü (DD.MM.YYYY -> YYYY-MM-DD input type date için)
+        function parseDateString(dateStr) {
+            if(!dateStr) return "";
+            const parts = dateStr.split(".");
+            if(parts.length === 3) {
+                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
+            return "";
+        }
+
+        function openEditModal(id) {
+            const user = globalCustomers.find(u => u.docId === id);
+            if(!user) return;
+
+            document.getElementById('editUserId').value = id;
+            document.getElementById('editPasscode').value = user.passcode;
+            
+            // Tarihi input'a uygun formata çevirip bas
+            document.getElementById('editExpireDate').value = parseDateString(user.expireDate);
+            
+            document.getElementById('editBanMessage').value = user.banMessage || "Abonelik süreniz dolmuş veya askıya alınmıştır.";
+            
+            modal.style.display = "block";
+        }
+
+        // Değişiklikleri Kaydetme
+        document.getElementById('saveEditBtn').addEventListener('click', async () => {
+            const id = document.getElementById('editUserId').value;
+            const newDateVal = document.getElementById('editExpireDate').value;
+            const newBanMsg = document.getElementById('editBanMessage').value.trim();
+
+            if(!newDateVal) { alert("Lütfen geçerli bir tarih seçin."); return; }
+
+            // YYYY-MM-DD -> DD.MM.YYYY çevirme
+            const dateObj = new Date(newDateVal);
+            const formattedDate = dateObj.toLocaleDateString('tr-TR');
+
+            try {
+                const btn = document.getElementById('saveEditBtn');
+                btn.textContent = "Güncelleniyor...";
+                btn.disabled = true;
+
+                await updateDoc(doc(db, "users", id), {
+                    expireDate: formattedDate,
+                    banMessage: newBanMsg
+                });
+
+                modal.style.display = "none";
+                alert("Müşteri ayarları başarıyla güncellendi!");
+                loadCustomers();
+            } catch (error) {
+                alert("Güncelleme sırasında hata oluştu!");
+            } finally {
+                const btn = document.getElementById('saveEditBtn');
+                btn.textContent = "Ayarları Güncelle";
+                btn.disabled = false;
+            }
+        });
+
+        loadCustomers();
+    </script>
+</body>
+</html>

