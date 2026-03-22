@@ -57,6 +57,48 @@ app.get('/api/ilan/:id', async (req, res) => {
 });
 
 
+// --- MÜŞTERİ YÖNETİMİ KAPILARI ---
+
+// Tüm Müşterileri Getir
+app.get('/api/users', async (req, res) => {
+    try {
+        const q = query(collection(db, "users"));
+        const snapshot = await getDocs(q);
+        const users = snapshot.docs.map(doc => ({ docId: doc.id, ...doc.data() }));
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ hata: "Müşteriler getirilemedi" });
+    }
+});
+
+// Yeni Müşteri Ekle
+app.post('/api/users/ekle', async (req, res) => {
+    try {
+        const yeniMusteri = req.body;
+        const docRef = await addDoc(collection(db, "users"), {
+            ...yeniMusteri,
+            createdAt: new Date().getTime(),
+            isActive: true
+        });
+        res.json({ success: true, id: docRef.id });
+    } catch (error) {
+        res.status(500).json({ hata: "Ekleme başarısız" });
+    }
+});
+
+// Müşteri Güncelle (Tarih, Ban Mesajı veya Durum)
+app.patch('/api/users/guncelle/:id', async (req, res) => {
+    try {
+        const userRef = doc(db, "users", req.params.id);
+        await updateDoc(userRef, req.body);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ hata: "Güncelleme başarısız" });
+    }
+});
+
+
+
 // --- 2. LOG TUTMA KAPISI (POST) ---
 app.post('/api/log-ekle', async (req, res) => {
     try {
