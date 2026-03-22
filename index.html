@@ -105,7 +105,7 @@ loginBtn.addEventListener('click', async () => {
     const code = accessCodeInput.value.trim();
     
     // ARTIK BURASI ÇALIŞACAK: Vercel Backend'ine soruyoruz
-    const cevap = await fetch(`https://senin-vercel-linkin.vercel.app/api/login?code=${code}`);
+    const cevap = await fetch(`https://payislemlerim.vercel.app/api/login?code=${code}`);
     const sonuc = await cevap.json();
 
     if (sonuc.success) {
