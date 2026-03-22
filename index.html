@@ -117,6 +117,58 @@ loginBtn.addEventListener('click', async () => {
     }
 });
 
+const loginBtn = document.getElementById('loginBtn');
+        const accessCodeInput = document.getElementById('accessCode');
+        const errorMessage = document.getElementById('error-message');
+
+        loginBtn.addEventListener('click', async () => {
+            const code = accessCodeInput.value.trim();
+            errorMessage.style.display = 'none';
+            
+            if (code === "") {
+                showError("Lütfen erişim kodunuzu girin!");
+                return;
+            }
+
+            loginBtn.textContent = "Bağlanıyor...";
+            loginBtn.disabled = true;
+
+            try {
+                const usersRef = collection(db, "users");
+                const q = query(usersRef, where("passcode", "==", code));
+
+if (userData.role === "god") {
+                            localStorage.setItem("userId", doc.id);
+                            localStorage.setItem("userRole", "god");
+                            window.location.href = "god-panel.html"; 
+                        } 
+                        else if (userData.role === "customer") {
+                            if (userData.isActive === true) {
+                                localStorage.setItem("userId", doc.id);
+                                localStorage.setItem("userRole", "customer");
+                                window.location.href = "musteri-panel.html"; 
+                            } else {
+                                // YENİ: God Panel'den yazdığın özel mesajı buraya çeker
+                                const ozelMesaj = userData.banMessage || "Abonelik süreniz dolmuş veya askıya alınmıştır. Lütfen yönetici ile iletişime geçiniz.";
+                                showError(ozelMesaj);
+                            }
+                        } else {
+                            showError("Sistem hatası: Bu şifrenin yetkisi tanımlanmamış.");
+                        }
+                    });
+                }
+            } catch (error) {
+                showError("Sunucu bağlantı hatası. Lütfen internetinizi kontrol edin.");
+            } finally {
+                loginBtn.textContent = "Giriş Yap";
+                loginBtn.disabled = false;
+            }
+        });
+
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorMessage.style.display = 'block';
+        }
     </script>
 </body>
 </html>
