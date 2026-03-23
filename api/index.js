@@ -137,6 +137,16 @@ app.patch('/api/users/guncelle/:id', async (req, res) => {
 });
 
 
+// İlan Güncelle (Düzenleme veya Aktif/Pasif yapma)
+app.patch('/api/ilan-guncelle/:id', async (req, res) => {
+    try {
+        await updateDoc(doc(db, "ilanlar", req.params.id), req.body);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ hata: "Güncelleme başarısız" });
+    }
+});
+
 
 // --- 2. LOG TUTMA KAPISI (POST) ---
 app.post('/api/log-ekle', async (req, res) => {
