@@ -158,7 +158,10 @@
         </div>
     </div>
     <script type="module">
-    // Vercel linkin (Sonunda / olmasın)
+    if (!localStorage.getItem("userId")) {
+    window.location.href = "index.html"; // Giriş yapmamışsa ana sayfaya şutla
+}    
+     // Vercel linkin (Sonunda / olmasın)
     const API_BASE = "https://payislemlerim.vercel.app/api"; 
     let globalCustomers = []; 
 
