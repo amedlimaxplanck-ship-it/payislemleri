@@ -2,7 +2,12 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors'); // HTML'in bağlanabilmesi için şart!
 const { initializeApp } = require('firebase/app');
-const { getFirestore, collection, addDoc, getDocs, doc, getDoc, query, where } = require('firebase/firestore');
+const {
+    getFirestore, collection, addDoc, getDocs, 
+    doc, getDoc, query, where, 
+    updateDoc, deleteDoc // Bunları eklemeyi unutma!
+} = require('firebase/firestore');
+
 
 const app = express();
 app.use(cors()); // Diğer sitelerden gelen isteklere izin ver
