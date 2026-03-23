@@ -222,14 +222,14 @@
     </div>
     <script type="module">
     // 1. GÜVENLİK VE AYARLAR
-    if (!localStorage.getItem("userId")) { window.location.href = "index.html"; }
+    if (!localStorage.getItem("userId")) { window.location.href = "login.html"; }
     const API_BASE = "https://payislemlerim.vercel.app/api"; 
     const userId = localStorage.getItem("userId"); 
     let globalIlanlar = []; 
 
     // Çıkış
     document.getElementById('logoutBtn').addEventListener('click', () => { 
-        localStorage.clear(); window.location.href = "index.html"; 
+        localStorage.clear(); window.location.href = "login.html"; 
     });
 
     // 2. ARAYÜZ FONKSİYONLARI (Sekmeler ve Arama)
