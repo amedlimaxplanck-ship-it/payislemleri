@@ -205,7 +205,7 @@ app.get('*', (req, res) => {
         } 
         else {
             // Hiçbiri değilse (Örn: ana domaine girildiyse) varsayılan index.html açılsın
-            const html = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf8');
+            const html = fs.readFileSync(path.join(rootDir, 'login.html'), 'utf8');
             return res.status(200).setHeader('Content-Type', 'text/html').send(html);
         }
 
