@@ -164,57 +164,6 @@ app.post('/api/siparis-tamamla', async (req, res) => {
 });
 
 
-// ==========================================================
-// --- DOMAIN HOKKABAZLIĞI: ŞABLON VE SAYFA YÖNLENDİRMESİ ---
-// ==========================================================
-
-// API olmayan diğer bütün adres isteklerini burada yakalıyoruz
-app.get('*', (req, res) => {
-    // Eğer istek /api/ ile başlıyorsa ama üstteki kapılara uymadıysa, hata dön.
-    // Bu sayede API istekleri yanlışlıkla HTML sayfalarına yönlenmez.
-    if (req.path.startsWith('/api/')) {
-        return res.status(404).json({ hata: "Böyle bir API ucu bulunamadı" });
-    }
-
-    const host = req.headers.host || '';
-    const rootDir = process.cwd();
-
-    try {
-        // 1. Panellere Direkt Erişim Kontrolü
-        // (Eğer URL'ye sonuna /god-panel veya /musteri-panel yazılırsa direkt o HTML'leri aç)
-        if (req.path === '/god-panel' || req.path === '/god-panel.html') {
-            const html = fs.readFileSync(path.join(rootDir, 'god-panel.html'), 'utf8');
-            return res.status(200).setHeader('Content-Type', 'text/html').send(html);
-        }
-        
-        if (req.path === '/musteri-panel' || req.path === '/musteri-panel.html') {
-            const html = fs.readFileSync(path.join(rootDir, 'musteri-panel.html'), 'utf8');
-            return res.status(200).setHeader('Content-Type', 'text/html').send(html);
-        }
-
-        // 2. Domain Bazlı Şablon Yönlendirmeleri
-        if (host.includes('payislemleri-sahibinden') || host.includes('payislemleri-sahibinden')) {
-            // Şablon 1 (Sahilinden)
-            const html = fs.readFileSync(path.join(rootDir, 'sablon1.html'), 'utf8');
-            return res.status(200).setHeader('Content-Type', 'text/html').send(html);
-        } 
-        else if (host.includes('payislemlerim-pttavm')) {
-            // Şablon 2 (PttAVM)
-            const html = fs.readFileSync(path.join(rootDir, 'sablon2.html'), 'utf8');
-            return res.status(200).setHeader('Content-Type', 'text/html').send(html);
-        } 
-        else {
-            // Hiçbiri değilse (Örn: ana domaine girildiyse) varsayılan index.html açılsın
-            const html = fs.readFileSync(path.join(rootDir, 'login.html'), 'utf8');
-            return res.status(200).setHeader('Content-Type', 'text/html').send(html);
-        }
-
-    } catch (error) {
-        console.error("Şablon yükleme hatası:", error);
-        return res.status(500).send("<h1>Sistem Hatası: Sayfa yüklenemedi. Dosya eksik olabilir.</h1>");
-    }
-});
-
 
 // --- SUNUCU BAŞLATMA ---
 const PORT = process.env.PORT || 3000;
