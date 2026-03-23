@@ -9,7 +9,7 @@
       "has": [
         {
           "type": "host",
-          "value": "payislemlerim-sahilinden.vercel.app"
+          "value": "payislemleri-sahibinden.vercel.app"
         }
       ],
       "destination": "/sablon1.html"
