@@ -124,7 +124,7 @@
             try {
                 // HATA BURADAYDI: Başına // ekledik, artık kod bozulmaz.
                 // Node.js sunucuna (Backend) soruyoruz
-                const cevap = await fetch(`https://payislemlerim.vercel.app/api/login`, {
+                const cevap = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ code: code }) 
