@@ -157,108 +157,209 @@
             <button class="btn-primary" id="saveEditBtn" style="background:#28a745;">Ayarları Güncelle</button>
         </div>
     </div>
-    <script type="module">
-    if (!localStorage.getItem("userId")) {
-    window.location.href = "index.html"; // Giriş yapmamışsa ana sayfaya şutla
-}    
-     // Vercel linkin (Sonunda / olmasın)
-    const API_BASE = "https://payislemlerim.vercel.app/api"; 
-    let globalCustomers = []; 
-
-    // 1. MÜŞTERİLERİ LİSTELEME
-    async function loadCustomers() {
-        const tbody = document.getElementById('customerTableBody');
-        try {
-            const cevap = await fetch(`${API_BASE}/users`);
-            globalCustomers = await cevap.json();
-            
-            tbody.innerHTML = ''; 
-            let total = 0, active = 0, passive = 0;
-
-            // En yeni en üstte
-            globalCustomers.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-
-            globalCustomers.forEach((data) => {
-                total++;
-                if(data.isActive) active++; else passive++;
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="color:#666; font-size:13px;">${data.expireDate || '-'}</td>
-                    <td><span class="passcode-badge">${data.passcode}</span></td>
-                    <td style="font-weight:600; color:#0059a3;">${data.expireDate}</td>
-                    <td>
-                        <label class="switch">
-                            <input type="checkbox" class="status-toggle" onchange="toggleStatus('${data.docId}', this.checked)" ${data.isActive ? 'checked' : ''}>
-                            <span class="slider"></span>
-                        </label>
-                    </td>
-                    <td>
-                        <button onclick="openEditModal('${data.docId}')" class="edit-btn">Ayar</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            document.getElementById('statTotal').innerText = total;
-            document.getElementById('statActive').innerText = active;
-            document.getElementById('statPassive').innerText = passive;
-        } catch (error) {
-            console.error("Listeleme hatası:", error);
+        <script type="module">
+        // 1. GÜVENLİK VE YETKİ KONTROLÜ
+        if (!localStorage.getItem("userId") || localStorage.getItem("userRole") !== "god") {
+            alert("Bu alana giriş yetkiniz yok!");
+            window.location.href = "index.html"; 
         }
-    }
 
-    // 2. YENİ MÜŞTERİ EKLEME
-    document.getElementById('addCustomerBtn').addEventListener('click', async () => {
-        const passcode = document.getElementById('newPasscode').value.trim();
-        const durationMonths = parseInt(document.getElementById('subDuration').value);
-        
-        if(!passcode) return alert("Şifre girin!");
+        const API_BASE = "https://payislemlerim.vercel.app/api"; 
+        let globalCustomers = []; 
 
-        const expireDate = new Date();
-        expireDate.setMonth(expireDate.getMonth() + durationMonths);
+        // SİSTEMDEN ÇIKIŞ FONKSİYONU
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.clear();
+            window.location.href = "index.html";
+        });
 
-        const musteriVerisi = {
-            passcode: passcode,
-            expireDate: expireDate.toLocaleDateString('tr-TR'),
-            banMessage: "Abonelik süreniz dolmuş veya askıya alınmıştır."
+        // 2. MÜŞTERİLERİ LİSTELEME
+        async function loadCustomers() {
+            const tbody = document.getElementById('customerTableBody');
+            try {
+                const cevap = await fetch(`${API_BASE}/users`);
+                globalCustomers = await cevap.json();
+                
+                tbody.innerHTML = ''; 
+                let total = 0, active = 0, passive = 0;
+
+                // En yeni müşteriler üstte görünsün
+                globalCustomers.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+                globalCustomers.forEach((data) => {
+                    // Yönetici hesabını (god) listede göstermemek için filtre
+                    if(data.role === "customer") {
+                        total++;
+                        if(data.isActive) active++; else passive++;
+
+                        // Tarih hesaplama (Hem eski hem yeni verilere uyumlu)
+                        let kayitTarihi = data.createdDateStr || "-";
+                        if (data.createdAt && !data.createdDateStr) {
+                            kayitTarihi = new Date(data.createdAt).toLocaleDateString('tr-TR');
+                        }
+
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td style="color:#666; font-size:13px;">${kayitTarihi}</td>
+                            <td><span class="passcode-badge">${data.passcode}</span></td>
+                            <td style="font-weight:600; color:#0059a3;">${data.expireDate || '-'}</td>
+                            <td>
+                                <label class="switch">
+                                    <input type="checkbox" onchange="toggleStatus('${data.docId}', this.checked)" ${data.isActive ? 'checked' : ''}>
+                                    <span class="slider"></span>
+                                </label>
+                            </td>
+                            <td>
+                                <div class="action-cell">
+                                    <button onclick="openEditModal('${data.docId}')" class="edit-btn">Ayar</button>
+                                </div>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    }
+                });
+
+                // Sayaçları Güncelle
+                document.getElementById('statTotal').innerText = total;
+                document.getElementById('statActive').innerText = active;
+                document.getElementById('statPassive').innerText = passive;
+            } catch (error) {
+                console.error("Listeleme hatası:", error);
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Veriler çekilemedi. Bağlantıyı kontrol edin.</td></tr>';
+            }
+        }
+
+        // 3. YENİ MÜŞTERİ EKLEME
+        document.getElementById('addCustomerBtn').addEventListener('click', async () => {
+            const passcode = document.getElementById('newPasscode').value.trim();
+            const durationMonths = parseInt(document.getElementById('subDuration').value);
+            const msgElement = document.getElementById('msg');
+            const btn = document.getElementById('addCustomerBtn');
+            
+            if(!passcode) return alert("Lütfen bir şifre girin!");
+
+            const today = new Date();
+            const expireDateObj = new Date(today.setMonth(today.getMonth() + durationMonths));
+            
+            // Backend'e gönderilecek veri paketi
+            const musteriVerisi = {
+                passcode: passcode,
+                role: "customer", // ÇOK ÖNEMLİ: Müşteri yetkisi veriyoruz
+                expireDate: expireDateObj.toLocaleDateString('tr-TR'),
+                createdDateStr: new Date().toLocaleDateString('tr-TR'),
+                banMessage: "Abonelik süreniz dolmuş veya askıya alınmıştır."
+            };
+
+            try {
+                btn.textContent = "Kaydediliyor...";
+                btn.disabled = true;
+
+                const res = await fetch(`${API_BASE}/users/ekle`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(musteriVerisi)
+                });
+
+                if(res.ok) {
+                    document.getElementById('newPasscode').value = '';
+                    msgElement.textContent = "Müşteri başarıyla oluşturuldu!";
+                    msgElement.style.display = "block";
+                    setTimeout(() => msgElement.style.display = "none", 3000);
+                    loadCustomers();
+                } else {
+                    alert("Ekleme başarısız oldu.");
+                }
+            } catch (e) { 
+                alert("Hata oluştu, Vercel bağlantısını kontrol edin."); 
+            } finally {
+                btn.textContent = "Sisteme Kaydet";
+                btn.disabled = false;
+            }
+        });
+
+        // 4. DURUM (AKTİF/PASİF) GÜNCELLEME
+        window.toggleStatus = async (id, status) => {
+            try {
+                await fetch(`${API_BASE}/users/guncelle/${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ isActive: status })
+                });
+            } catch (e) {
+                alert("Durum güncellenemedi!");
+                loadCustomers(); // Hata olursa switch'i eski haline döndür
+            }
         };
 
-        try {
-            const res = await fetch(`${API_BASE}/users/ekle`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(musteriVerisi)
-            });
-            if(res.ok) {
-                alert("Müşteri eklendi!");
+        // 5. MODAL (AYARLAR) İŞLEMLERİ
+        const modal = document.getElementById("editModal");
+        
+        // Modal Kapatma Olayları (Eksikti, eklendi)
+        document.getElementById("closeEditModal").onclick = () => { modal.style.display = "none"; }
+        window.onclick = (e) => { if (e.target == modal) modal.style.display = "none"; }
+
+        // Tarih dönüştürücü (Ekranda gösterilen DD.MM.YYYY formatını, input'un istediği YYYY-MM-DD formatına çevirir)
+        function parseDateString(dateStr) {
+            if(!dateStr) return "";
+            const parts = dateStr.split(".");
+            if(parts.length === 3) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            return "";
+        }
+
+        // Modalı Aç ve Verileri Doldur
+        window.openEditModal = (id) => {
+            const user = globalCustomers.find(u => u.docId === id);
+            if(!user) return;
+            
+            document.getElementById('editUserId').value = id;
+            document.getElementById('editPasscode').value = user.passcode;
+            document.getElementById('editExpireDate').value = parseDateString(user.expireDate);
+            document.getElementById('editBanMessage').value = user.banMessage || "Abonelik süreniz dolmuş veya askıya alınmıştır.";
+            
+            modal.style.display = "block";
+        };
+
+        // Ayarları Kaydetme (Eksikti, eklendi)
+        document.getElementById('saveEditBtn').addEventListener('click', async () => {
+            const id = document.getElementById('editUserId').value;
+            const newDateVal = document.getElementById('editExpireDate').value;
+            const newBanMsg = document.getElementById('editBanMessage').value.trim();
+            const btn = document.getElementById('saveEditBtn');
+
+            if(!newDateVal) return alert("Lütfen geçerli bir tarih seçin.");
+
+            // YYYY-MM-DD -> DD.MM.YYYY çevirme
+            const dateObj = new Date(newDateVal);
+            const formattedDate = dateObj.toLocaleDateString('tr-TR');
+
+            try {
+                btn.textContent = "Güncelleniyor...";
+                btn.disabled = true;
+
+                await fetch(`${API_BASE}/users/guncelle/${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        expireDate: formattedDate,
+                        banMessage: newBanMsg
+                    })
+                });
+
+                modal.style.display = "none";
+                alert("Ayarlar başarıyla güncellendi!");
                 loadCustomers();
+            } catch (error) {
+                alert("Güncelleme sırasında hata oluştu!");
+            } finally {
+                btn.textContent = "Ayarları Güncelle";
+                btn.disabled = false;
             }
-        } catch (e) { alert("Hata oluştu!"); }
-    });
-
-    // 3. DURUM GÜNCELLEME (Toggle)
-    window.toggleStatus = async (id, status) => {
-        await fetch(`${API_BASE}/users/guncelle/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ isActive: status })
         });
+
+        // Sayfa açıldığında verileri yükle
         loadCustomers();
-    };
+    </script>
 
-    // Modal ve Düzenleme işlemleri için openEditModal fonksiyonunu window'a bağla
-    window.openEditModal = (id) => {
-        const user = globalCustomers.find(u => u.docId === id);
-        if(!user) return;
-        document.getElementById('editUserId').value = id;
-        document.getElementById('editPasscode').value = user.passcode;
-        document.getElementById('editModal').style.display = "block";
-    };
-
-    // İlk açılışta verileri çek
-    loadCustomers();
-</script>
 
 </body>
 </html>
