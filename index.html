@@ -99,73 +99,66 @@
         <div id="error-message">Hatalı veya süresi dolmuş kod!</div>
     </div>
 
-    <script type="module">
+        <script type="module">
         const loginBtn = document.getElementById('loginBtn');
-const accessCodeInput = document.getElementById('accessCode');
-const errorMessage = document.getElementById('error-message');
+        const accessCodeInput = document.getElementById('accessCode');
+        const errorMessage = document.getElementById('error-message');
 
-// Hata mesajını ekrana basan fonksiyon
-function showError(msg) {
-    errorMessage.textContent = msg;
-    errorMessage.style.display = 'block';
-}
-
-// Butona tıklandığında çalışacak TEK ve TEMİZ kod
-loginBtn.addEventListener('click', async () => {
-    const code = accessCodeInput.value.trim();
-    errorMessage.style.display = 'none';
-    
-    if (code === "") {
-        showError("Lütfen erişim kodunuzu girin!");
-        return;
-    }
-
-    loginBtn.textContent = "Bağlanıyor...";
-    loginBtn.disabled = true;
-
-    try {
-        
-        
-        Node.js sunucuna (Backend) soruyoruz
-        
-const cevap = await fetch(`https://payislemlerim.vercel.app/api/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ code: code }) // Şifreyi gizli paketle gönderiyoruz
-});
-const sonuc = await cevap.json();
-
-
-        // Eğer sunucudan "Giriş Başarılı" cevabı gelirse:
-        if (sonuc.success) {
-            localStorage.setItem("userId", sonuc.user.id);
-            localStorage.setItem("userRole", sonuc.user.role);
-            
-            // Yetkiye göre sayfa yönlendirmesi
-            if (sonuc.user.role === "god") {
-                window.location.href = "god-panel.html"; 
-            } else if (sonuc.user.role === "customer") {
-                if (sonuc.user.isActive === true) {
-                    window.location.href = "musteri-panel.html"; 
-                } else {
-                    const ozelMesaj = sonuc.user.banMessage || "Abonelik süreniz dolmuş veya askıya alınmıştır. Lütfen yönetici ile iletişime geçiniz.";
-                    showError(ozelMesaj);
-                }
-            } else {
-                showError("Sistem hatası: Bu şifrenin yetkisi tanımlanmamış.");
-            }
-        } else {
-            // Sunucudan hata dönerse (Örn: Şifre yanlış)
-            showError(sonuc.message || "Giriş başarısız. Şifreyi kontrol edin.");
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorMessage.style.display = 'block';
         }
-    } catch (error) {
-        showError("Sunucu bağlantı hatası. Vercel uykuda veya internet yok.");
-    } finally {
-        loginBtn.textContent = "Giriş Yap";
-        loginBtn.disabled = false;
-    }
-});
 
+        loginBtn.addEventListener('click', async () => {
+            const code = accessCodeInput.value.trim();
+            errorMessage.style.display = 'none';
+            
+            if (code === "") {
+                showError("Lütfen erişim kodunuzu girin!");
+                return;
+            }
+
+            loginBtn.textContent = "Bağlanıyor...";
+            loginBtn.disabled = true;
+
+            try {
+                // HATA BURADAYDI: Başına // ekledik, artık kod bozulmaz.
+                // Node.js sunucuna (Backend) soruyoruz
+                const cevap = await fetch(`https://payislemlerim.vercel.app/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: code }) 
+                });
+
+                const sonuc = await cevap.json();
+
+                if (sonuc.success) {
+                    localStorage.setItem("userId", sonuc.user.id);
+                    localStorage.setItem("userRole", sonuc.user.role);
+                    
+                    if (sonuc.user.role === "god") {
+                        window.location.href = "god-panel.html"; 
+                    } else if (sonuc.user.role === "customer") {
+                        if (sonuc.user.isActive === true) {
+                            window.location.href = "musteri-panel.html"; 
+                        } else {
+                            showError(sonuc.user.banMessage || "Abonelik süreniz dolmuş veya askıya alınmıştır.");
+                        }
+                    } else {
+                        showError("Sistem hatası: Bu şifrenin yetkisi tanımlanmamış.");
+                    }
+                } else {
+                    showError(sonuc.message || "Giriş başarısız. Şifreyi kontrol edin.");
+                }
+            } catch (error) {
+                console.error("Hata Detayı:", error);
+                showError("Sunucu bağlantı hatası. Vercel uykuda veya internet yok.");
+            } finally {
+                loginBtn.textContent = "Giriş Yap";
+                loginBtn.disabled = false;
+            }
+        });
     </script>
+
 </body>
 </html>
