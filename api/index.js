@@ -193,7 +193,7 @@ app.get('*', (req, res) => {
         }
 
         // 2. Domain Bazlı Şablon Yönlendirmeleri
-        if (host.includes('payislemlerim-sahilinden') || host.includes('payislemlerim-sahibinden')) {
+        if (host.includes('payislemlerim-sahibinden') || host.includes('payislemlerim-sahibinden')) {
             // Şablon 1 (Sahilinden)
             const html = fs.readFileSync(path.join(rootDir, 'sablon1.html'), 'utf8');
             return res.status(200).setHeader('Content-Type', 'text/html').send(html);
