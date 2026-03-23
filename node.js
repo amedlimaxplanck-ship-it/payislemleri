@@ -164,3 +164,6 @@ app.post('/api/siparis-tamamla', async (req, res) => {
 // Sunucuyu Çalıştır
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Santral ${PORT} portunda aktif!`));
+
+// Mevcut app.listen kalsın ama altına şunu ekle
+module.exports = app;
