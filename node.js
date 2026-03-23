@@ -41,6 +41,36 @@ app.post('/api/login', async (req, res) => {
 });
 
 
+// --- İLAN YÖNETİMİ ---
+app.get('/api/ilanlar-getir', async (req, res) => {
+    const { userId } = req.query;
+    const q = query(collection(db, "ilanlar"), where("olusturanMusteri", "==", userId));
+    const snap = await getDocs(q);
+    res.json(snap.docs.map(doc => ({ docId: doc.id, ...doc.data() })));
+});
+
+app.post('/api/ilan-ekle', async (req, res) => {
+    const docRef = await addDoc(collection(db, "ilanlar"), req.body);
+    res.json({ success: true, id: docRef.id });
+});
+
+app.delete('/api/ilan-sil/:id', async (req, res) => {
+    await deleteDoc(doc(db, "ilanlar", req.params.id));
+    res.json({ success: true });
+});
+
+// --- DEKONT VE LOG ---
+app.get('/api/dekontlar-getir', async (req, res) => {
+    const q = query(collection(db, "dekontlar"), where("saticiId", "==", req.query.userId));
+    const snap = await getDocs(q);
+    res.json(snap.docs.map(doc => doc.data()));
+});
+
+app.get('/api/logs-getir', async (req, res) => {
+    const q = query(collection(db, "logs"), where("saticiId", "==", req.query.userId));
+    const snap = await getDocs(q);
+    res.json(snap.docs.map(doc => doc.data()));
+});
 
 
 // --- 1. İLAN GETİRME KAPISI (GET) ---
