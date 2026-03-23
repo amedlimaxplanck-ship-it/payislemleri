@@ -1,0 +1,10 @@
+{
+  "name": "payislemlerim-backend",
+  "version": "1.0.0",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "firebase": "^10.8.0"
+  }
+}
