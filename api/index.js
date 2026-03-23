@@ -40,9 +40,11 @@ app.post('/api/login', async (req, res) => {
         
         const userDoc = querySnapshot.docs[0];
         res.json({ success: true, user: { id: userDoc.id, ...userDoc.data() } });
-    } catch (e) {
+        } catch (e) {
+        console.error("FIREBASE GİRİŞ HATASI DETAYI:", e); // Vercel loglarına hatanın tam sebebini yazdırıyoruz
         res.status(500).json({ success: false, message: "Sunucu hatası" });
     }
+
 });
 
 
