@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Müşteri Paneli - İlan Yönetimi</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         /* Genel Ayarlar */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
@@ -13,7 +14,7 @@
         .header h1 { font-size: 20px; color: #007bff; }
         .logout-btn { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;}
         
-        .dashboard-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        .dashboard-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; } /* Kart sayısı arttı */
         .stat-card { background: #fff; padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-bottom: 4px solid #007bff; }
         .stat-card h3 { font-size: 28px; color: #333; margin-bottom: 5px; }
         .stat-card p { font-size: 14px; color: #666; font-weight: bold; text-transform: uppercase; }
@@ -41,10 +42,12 @@
         .badge-secondary { background-color: #6c757d; box-shadow: 0 2px 5px rgba(108,117,125,0.3); }
         
         .btn-primary { background: #28a745; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 15px; display: inline-block; font-size: 14px;}
+        /* Yeni Dekont Oluştur Butonu */
+        .btn-dekont { background: #6f42c1; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 15px; display: inline-block; font-size: 14px; margin-left: 10px;}
+        
         .action-btn { background: #ffc107; color: #000; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-right: 5px; font-weight: bold;}
         .delete-btn { background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;}
         
-        /* Yeni Kopyala Butonu Tasarımları */
         .link-btn { color: #333; border: 1px solid #ddd; padding: 8px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; width: 100%; margin-bottom:6px; display: flex; align-items: center; justify-content: center; gap: 5px; transition: 0.2s; background: #fff;}
         .link-btn:hover { background: #f8f9fa; border-color: #aaa; }
         .link-btn.sari { border-color: #ffcc00; color: #b38f00; background: #fffdf5;}
@@ -63,12 +66,14 @@
         input:checked + .slider { background-color: #28a745; }
         input:checked + .slider:before { transform: translateX(20px); }
 
+        /* Modallar (Genel) */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); padding-top: 20px; }
         .modal-content { background-color: #fefefe; margin: auto; padding: 20px; border-radius: 10px; width: 95%; max-width: 700px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); animation: fadeIn 0.3s; }
         @keyframes fadeIn { from {opacity: 0; transform: translateY(-20px);} to {opacity: 1; transform: translateY(0);} }
         .close-modal { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
         .close-modal:hover { color: #333; }
         
+        /* İlan Formu Stilleri */
         .form-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 15px; }
         @media(min-width: 600px) { .form-grid { grid-template-columns: 1fr 1fr; } }
         .form-group { display: flex; flex-direction: column; }
@@ -83,6 +88,148 @@
         .image-upload-box { border: 2px dashed #007bff; padding: 20px; text-align: center; border-radius: 8px; background: #f8f9fa; cursor: pointer; margin-top: 10px;}
         .image-preview-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
         .preview-img { width: 80px; height: 80px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd; }
+
+        /* ========================================= */
+        /* YENI EFSANE DEKONT FORMU STİLLERİ (image_0.png bazlı) */
+        /* ========================================= */
+        .dekont-modal-content {
+            background-color: #1a1121; /* Koyu mor/siyah arka plan */
+            color: #fff;
+            max-width: 600px;
+            padding: 0; /* İçeriği biz yöneteceğiz */
+            overflow: hidden;
+        }
+
+        .dekont-header {
+            background: #120916; /* Daha koyu başlık */
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #332142;
+        }
+
+        .dekont-header h2 {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .dekont-form-container {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .dekont-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /*image_0.png'deki kırmızı etiketler */
+        .dekont-group label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #ff3366; /* Parlak kırmızı/pembe etiket */
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .dekont-group input, .dekont-group select {
+            background: #23192e; /* Koyu gri/mor input */
+            border: 1px solid #4a3461; /* Mor sınır */
+            color: #fff;
+            padding: 12px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .dekont-group input:focus, .dekont-group select:focus {
+            border-color: #ff3366; /* Kırmızıya odaklan */
+            background: #2a1e38;
+        }
+
+        .dekont-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        /*image_1.png'deki gradyanlı butonlar */
+        .dekont-btn-container {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: #120916;
+            border-top: 1px solid #332142;
+        }
+
+        .dekont-submit-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            /* Parlak mor gradyan (image_1.png Kaydet butonu) */
+            background: linear-gradient(135deg, #ff00cc 0%, #a100ff 100%);
+            box-shadow: 0 4px 15px rgba(161, 0, 255, 0.4);
+        }
+
+        .dekont-submit-btn:hover {
+            box-shadow: 0 6px 20px rgba(161, 0, 255, 0.6);
+            transform: translateY(-1px);
+        }
+
+        .dekont-pdf-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            /* Kırmızı gradyan (image_1.png PDF Görüntüle butonu) */
+            background: linear-gradient(135deg, #ff3366 0%, #dc3545 100%);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        .dekont-pdf-btn:hover {
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.6);
+            transform: translateY(-1px);
+        }
+
+        .dekont-pdf-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: #fff;
+        }
+
+        /* Geçici PDF Şablon Konteyneri (Gizli) */
+        #temp-pdf-template {
+            display: none;
+        }
+
     </style>
 </head>
 <body>
@@ -96,7 +243,7 @@
         <div class="stat-card"><h3 id="stat-ilan">0</h3><p>Aktif İlan</p></div>
         <div class="stat-card"><h3 id="stat-dekont">0</h3><p>Gelen Dekont</p></div>
         <div class="stat-card"><h3 id="stat-log">0</h3><p>Sistem Logu</p></div>
-    </div>
+        <div class="stat-card" style="border-color: #6f42c1;"><h3 id="stat-pdf">0</h3><p>Oluşturulan PDF</p></div> </div>
 
     <div class="search-container">
         <input type="text" id="searchInput" class="search-input" placeholder="İlan adı, satıcı, aksiyon veya IP ile arama yapın...">
@@ -110,8 +257,7 @@
 
     <div id="ilanlar" class="tab-content active">
         <button class="btn-primary" id="yeniIlanBtn">+ Yeni İlan Oluştur</button>
-        
-        <div class="table-container">
+        <button class="btn-dekont" id="yeniDekontBtn">+ Manuel PDF Dekont Oluştur</button> <div class="table-container">
             <table>
                 <thead>
                     <tr>
@@ -220,16 +366,126 @@
             </form>
         </div>
     </div>
+
+    <div id="dekontModal" class="modal">
+        <div class="modal-content dekont-modal-content">
+            <div class="dekont-header">
+                <h2>Dekont PDF Oluşturma</h2>
+                <span class="close-modal" id="closeDekontModalBtn" style="color:#ff3366;">×</span>
+            </div>
+            
+            <form id="dekontForm">
+                <div class="dekont-form-container">
+                    
+                    <div class="dekont-group">
+                        <label>Banka Seç</label>
+                        <select id="d_banka" required>
+                            <option value="iş">İş Bankası</option>
+                            <option value="ziraat">Ziraat Bankası</option>
+                            <option value="vakif">VakıfBank</option>
+                            <option value="garanti">Garanti BBVA</option>
+                            <option value="yapi">Yapı Kredi</option>
+                            <option value="akbank">Akbank</option>
+                            <option value="papara">Papara</option>
+                        </select>
+                    </div>
+
+                    <div class="dekont-group">
+                        <label>Üst Başlık</label>
+                        <input type="text" id="d_ustBaslik" value="HESAPTAN HESABA HAVALE/EFT" required>
+                    </div>
+
+                    <div style="border: 1px solid #332142; padding: 15px; border-radius: 8px;">
+                        <h4 style="font-size:12px; color:#aaa; text-transform:uppercase; margin-bottom:10px;">Gönderen Bilgileri</h4>
+                        <div class="dekont-form-grid">
+                            <div class="dekont-group"><label>Şube Kodu/Adı</label><input type="text" id="d_g_sube" value="2827/MERKEZ ŞUBESİ" required></div>
+                            <div class="dekont-group"><label>Ad Soyad</label><input type="text" id="d_g_adSoyad" placeholder="Gönderen İsmi" required></div>
+                            <div class="dekont-group"><label>Hesap No</label><input type="text" id="d_g_hesap" placeholder="Gönderen Hesap No" required></div>
+                            <div class="dekont-group"><label>Vergi Dairesi</label><input type="text" id="d_g_vergiDaire" placeholder="Vergi Dairesi"></div>
+                        </div>
+                        <div class="dekont-group" style="margin-top:10px;"><label>Adres</label><input type="text" id="d_g_adres" placeholder="Gönderen Adresi" required></div>
+                        <div class="dekont-group" style="margin-top:10px;"><label>IBAN</label><input type="text" id="d_g_iban" placeholder="TR00 0000..." required></div>
+                        <div class="dekont-group" style="margin-top:10px;"><label>Vergi Kimlik / TC No</label><input type="text" id="d_g_vergiNo" placeholder="TC veya Vergi No" required></div>
+                    </div>
+
+                    <div style="border: 1px solid #332142; padding: 15px; border-radius: 8px;">
+                        <h4 style="font-size:12px; color:#aaa; text-transform:uppercase; margin-bottom:10px;">İşlem ve Alıcı Bilgileri</h4>
+                        <div class="dekont-form-grid">
+                            <div class="dekont-group"><label>İşlem Tarihi / No</label><input type="text" id="d_tarih" placeholder="01.01.2024-12:00:00-ABC" required></div>
+                            <div class="dekont-group"><label>Alıcı Ad Soyad</label><input type="text" id="d_a_adSoyad" placeholder="Alıcı İsmi" required></div>
+                        </div>
+                        <div class="dekont-group" style="margin-top:10px;"><label>Alıcı IBAN</label><input type="text" id="d_a_iban" placeholder="TR00 0000..." required></div>
+                        <div class="dekont-group" style="margin-top:10px;"><label>Açıklama</label><input type="text" id="d_aciklama" placeholder="Ödeme Açıklaması"></div>
+                    </div>
+
+                    <div style="border: 1px solid #332142; padding: 15px; border-radius: 8px;">
+                        <h4 style="font-size:12px; color:#aaa; text-transform:uppercase; margin-bottom:10px;">Tutar Bilgileri (TL)</h4>
+                        <div class="dekont-form-grid">
+                            <div class="dekont-group"><label>Toplam Tutar (Rakamla)</label><input type="text" id="d_tutarRakam" placeholder="100.00" required></div>
+                            <div class="dekont-group"><label>Komisyon (İşlem Ücreti)</label><input type="text" id="d_komisyon" placeholder="0.00" value="0.00"></div>
+                        </div>
+                        <div class="dekont-group" style="margin-top:10px;"><label>Toplam Tutar (Yazıyla)</label><input type="text" id="d_tutarYazi" placeholder="Yüz Türk Lirası" required></div>
+                    </div>
+
+                </div>
+
+                <div class="dekont-btn-container">
+                    <button type="submit" class="dekont-submit-btn">Verileri Kaydet</button>
+                    <button type="button" class="dekont-pdf-btn" id="generatePdfBtn">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5zm4 4h-2v-2h2v2zm0-4h-2V7h2v5z"></path></svg>
+                        PDF Oluştur ve İndir
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="temp-pdf-template">
+        <div style="padding: 40px; background: white; color: black; font-family: Arial, sans-serif; width: 800px; margin: auto;">
+            <h1 style="text-align: center; color: #333; border-bottom: 2px solid #333; padding-bottom: 10px;">TRANSFER DEKONTU</h1>
+            <p style="text-align: center; font-size: 18px; font-weight: bold; margin-top: 10px;" id="p_ustBaslik"></p>
+            <hr style="margin: 20px 0;">
+            
+            <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
+                <div style="width: 48%;">
+                    <h3 style="background: #eee; padding: 5px; color:#000;">GÖNDEREN BİLGİLERİ</h3>
+                    <p><strong>Banka:</strong> <span id="p_banka"></span></p>
+                    <p><strong>Ad Soyad:</strong> <span id="p_g_adSoyad"></span></p>
+                    <p><strong>IBAN:</strong> <span id="p_g_iban"></span></p>
+                    <p><strong>Şube/Hesap:</strong> <span id="p_g_sube"></span> / <span id="p_g_hesap"></span></p>
+                    <p><strong>Vergi/TC No:</strong> <span id="p_g_vergiNo"></span></p>
+                </div>
+                <div style="width: 48%;">
+                    <h3 style="background: #eee; padding: 5px; color:#000;">ALICI BİLGİLERİ</h3>
+                    <p><strong>Ad Soyad:</strong> <span id="p_a_adSoyad"></span></p>
+                    <p><strong>IBAN:</strong> <span id="p_a_iban"></span></p>
+                    <p><strong>Açıklama:</strong> <span id="p_aciklama"></span></p>
+                </div>
+            </div>
+            
+            <div style="border: 2px solid #333; padding: 15px; background: #fafafa; margin-bottom: 30px;">
+                <h3 style="text-align: center; color:#000; margin-bottom: 10px;">İŞLEM DETAYLARI</h3>
+                <p style="text-align: center;"><strong>İşlem Tarihi:</strong> <span id="p_tarih"></span></p>
+                <p style="text-align: center; font-size: 24px; font-weight: bold; color: #28a745; margin: 10px 0;">GÖNDERİLEN TUTAR: <span id="p_tutarRakam"></span> TL</p>
+                <p style="text-align: center; font-style: italic;">( <span id="p_tutarYazi"></span> )</p>
+                <p style="text-align: center; font-size: 12px; color: #666;">İşlem Ücreti (Komisyon): <span id="p_komisyon"></span> TL</p>
+            </div>
+            
+            <p style="text-align: center; font-size: 12px; color: #888; margin-top: 50px;">Bu belge Payİşlemlerim SaaS altyapısı ile oluşturulmuştur. Elektronik olarak üretilmiştir.</p>
+        </div>
+    </div>
+
     <script type="module">
     // 1. GÜVENLİK VE AYARLAR
-    if (!localStorage.getItem("userId")) { window.location.href = "login.html"; }
+    if (!localStorage.getItem("userId")) { window.location.href = "login.html"; } // Burası login.html oldu
     const API_BASE = "https://payislemlerim.vercel.app/api"; 
     const userId = localStorage.getItem("userId"); 
     let globalIlanlar = []; 
+    let createdPdfCount = 0; // PDF sayacı
 
     // Çıkış
     document.getElementById('logoutBtn').addEventListener('click', () => { 
-        localStorage.clear(); window.location.href = "login.html"; 
+        localStorage.clear(); window.location.href = "login.html"; // Burası login.html oldu
     });
 
     // 2. ARAYÜZ FONKSİYONLARI (Sekmeler ve Arama)
@@ -254,12 +510,12 @@
         }
     }
 
-    // --- SİHİRLİ KOPYALA FONKSİYONU ---
+    // --- SİHİRLİ KOPYALA FONKSİYONU (.com'lu sürüme hazır) ---
     window.vitrinLinkiKopyala = function(url, platform) {
         navigator.clipboard.writeText(url).then(() => {
-            alert(platform + " vitrin linkiniz başarıyla kopyalandı!\n\nŞimdi WhatsApp'a gidip müşterinize yapıştırabilirsiniz.\nLink: " + url);
+            alert(platform + " vitrin linkiniz başarıyla kopyalandı!\n\nŞimdi WhatsApp'a gidip müşterinize yapıştırabilirsiniz.");
         }).catch(err => {
-            prompt("Otomatik kopyalama başarısız oldu. Lütfen aşağıdaki linki manuel kopyalayın:", url);
+            prompt("Kopyalama başarısız. Lütfen linki manuel kopyalayın:", url);
         });
     }
 
@@ -275,8 +531,8 @@
 
             tbody.innerHTML = ''; 
             globalIlanlar.forEach((data) => {
-                // DOMAINLERİNİ BURADA İNŞA EDİYORUZ
-                const sahilindenLink = `https://payislemleri-sahibinden.vercel.app/?ilan=${data.docId}`;
+                // DOMAINLERİNİ BURADA İNŞA EDİYORUZ (.vercel.app'li test sürümü)
+                const sahilindenLink = `https://payislemlerim-sahilinden.vercel.app/?ilan=${data.docId}`;
                 const pttavmLink = `https://payislemlerim-pttavm.vercel.app/?ilan=${data.docId}`;
 
                 const tr = document.createElement('tr');
@@ -352,7 +608,7 @@
         } catch (error) {}
     }
 
-    // 4. İLAN SİLME VE DURUM GÜNCELLEME
+    // 4. İLAN SİLME VE DURUM GÜNCELLEME (Aynen korundu)
     window.deleteIlan = async (id) => {
         if(confirm("Silmek istediğinize emin misiniz?")) {
             await fetch(`${API_BASE}/ilan-sil/${id}`, { method: 'DELETE' });
@@ -368,7 +624,9 @@
         });
     };
 
-    // 5. MODAL VE FORM (İLAN EKLEME/DÜZENLEME)
+    // 5. MODAL VE FORM İŞLEMLERİ
+
+    // --- ESKİ İLAN MODALI ---
     const modal = document.getElementById("ilanModal"); 
     const dinamikOzelliklerAlani = document.getElementById("dinamikOzelliklerAlani");
     let secilenResimler = []; 
@@ -393,7 +651,7 @@
         dinamikOzelliklerAlani.appendChild(row);
     });
 
-    // İlan Düzenleme
+    // İlan Düzenleme ve Resim İşlemleri (Aynen korundu)
     window.editIlan = function(id) {
         const data = globalIlanlar.find(i => i.docId === id); if(!data) return;
         document.getElementById("editIlanId").value = id; 
@@ -422,7 +680,6 @@
         secilenResimler = []; modal.style.display = "block";
     }
 
-    // Resim İşlemleri (ImgBB)
     document.getElementById("resimKutusu").addEventListener('click', () => document.getElementById("resimSecici").click());
     document.getElementById("resimSecici").addEventListener('change', (e) => {
         const dosyalar = Array.from(e.target.files);
@@ -442,7 +699,7 @@
         try { const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { method: "POST", body: formData }); const data = await res.json(); if(data.success) return data.data.url; throw new Error(); } catch (e) { return null; }
     }
 
-    // Formu API'ye Gönderme
+    // İlan Kaydetme Formu Submit (Aynen korundu)
     document.getElementById("ilanForm").addEventListener("submit", async (e) => {
         e.preventDefault(); 
         const isEditing = document.getElementById("editIlanId").value !== "";
@@ -502,6 +759,138 @@
         } catch (error) { alert("Hata oluştu!"); } finally { btn.textContent = "İlanı Kaydet"; btn.disabled = false; }
     });
 
+
+    // ==========================================================
+    // --- YENİ EFSANE DEKONT OLUŞTURUCU VE PDF MOTORU ---
+    // ==========================================================
+    
+    const dekontModal = document.getElementById("dekontModal");
+    
+    // Modalı Aç (Manuel PDF Oluştur butonu)
+    document.getElementById("yeniDekontBtn").addEventListener('click', () => { 
+        document.getElementById("dekontForm").reset(); // Formu temizle
+        // Bugünün tarihini image_0.png formatında otomatik yazalım
+        const simdi = new Date();
+        const tarihStr = simdi.toLocaleDateString('tr-TR') + "-" + simdi.toLocaleTimeString('tr-TR') + "-C" + simdi.getTime().toString().slice(-6);
+        document.getElementById("d_tarih").value = tarihStr;
+        dekontModal.style.display = "block"; 
+    });
+
+    // Modalı Kapat
+    document.getElementById("closeDekontModalBtn").addEventListener('click', () => { dekontModal.style.display = "none"; }); 
+    
+    // Dışarı tıklayınca kapatma
+    window.addEventListener('click', (e) => {
+        if (e.target == modal) modal.style.display = "none";
+        if (e.target == dekontModal) dekontModal.style.display = "none";
+    });
+
+    // Banka Verileri (Test amaçlı, image_0.png'deki gibi dolduralım)
+    const bankaVerileri = {
+        'iş': { sube: '2827/MERKEZ ŞUBESİ', iban: 'TR46 0006 7010 0000 0090 6313 17', hesap: '132775418' },
+        'ziraat': { sube: '0123/ANKARA SUBESİ', iban: 'TR12 0001...', hesap: '98765432' },
+        // ... diğer bankalar
+    };
+
+    // Banka seçimi değişince gönderen verilerini doldur
+    document.getElementById("d_banka").addEventListener('change', (e) => {
+        const veri = bankaVerileri[e.target.value];
+        if(veri) {
+            document.getElementById("d_g_sube").value = veri.sube;
+            document.getElementById("d_g_iban").value = veri.iban;
+            document.getElementById("d_g_hesap").value = veri.hesap;
+        }
+    });
+
+    // Verileri Kaydet Butonu (Sadece log tutar, bir şey yapmaz şu an)
+    document.getElementById("dekontForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        alert("Dekont verileri sisteme geçici olarak kaydedildi.\nŞimdi 'PDF Oluştur' butonuna basarak PDF'inizi indirebilirsiniz.");
+    });
+
+
+    // =========================================
+    // --- PDF OLUŞTURMA MOTORU (Olayın Koptuğu Yer) ---
+    // =========================================
+    document.getElementById("generatePdfBtn").addEventListener('click', () => {
+        
+        // Form verilerini oku
+        const bankaSelect = document.getElementById("d_banka");
+        const pdfData = {
+            banka: bankaSelect.options[bankaSelect.selectedIndex].text,
+            ustBaslik: document.getElementById("d_ustBaslik").value,
+            g_sube: document.getElementById("d_g_sube").value,
+            g_adSoyad: document.getElementById("d_g_adSoyad").value,
+            g_hesap: document.getElementById("d_g_hesap").value,
+            g_vergiDaire: document.getElementById("d_g_vergiDaire").value,
+            g_adres: document.getElementById("d_g_adres").value,
+            g_iban: document.getElementById("d_g_iban").value,
+            g_vergiNo: document.getElementById("d_g_vergiNo").value,
+            tarih: document.getElementById("d_tarih").value,
+            a_adSoyad: document.getElementById("d_a_adSoyad").value,
+            a_iban: document.getElementById("d_a_iban").value,
+            aciklama: document.getElementById("d_aciklama").value,
+            tutarRakam: document.getElementById("d_tutarRakam").value,
+            komisyon: document.getElementById("d_komisyon").value,
+            tutarYazi: document.getElementById("d_tutarYazi").value
+        };
+
+        // Form kontrolü
+        if(!pdfData.g_adSoyad || !pdfData.a_adSoyad || !pdfData.tutarRakam) {
+            alert("Lütfen en azından Gönderen, Alıcı ve Tutar alanlarını doldurun."); return;
+        }
+
+        const btn = document.getElementById("generatePdfBtn");
+        btn.innerText = "PDF Hazırlanıyor...";
+        btn.disabled = true;
+
+        // GEÇİCİ PDF ŞABLONUNA VERİLERİ YAZ (Bu kısım motoru test etmek için)
+        document.getElementById("p_banka").innerText = pdfData.banka;
+        document.getElementById("p_ustBaslik").innerText = pdfData.ustBaslik;
+        document.getElementById("p_g_sube").innerText = pdfData.g_sube;
+        document.getElementById("p_g_adSoyad").innerText = pdfData.g_adSoyad;
+        document.getElementById("p_g_hesap").innerText = pdfData.g_hesap;
+        document.getElementById("p_g_vergiNo").innerText = pdfData.g_vergiNo;
+        document.getElementById("p_g_iban").innerText = pdfData.g_iban;
+        document.getElementById("p_tarih").innerText = pdfData.tarih;
+        document.getElementById("p_a_adSoyad").innerText = pdfData.a_adSoyad;
+        document.getElementById("p_a_iban").innerText = pdfData.a_iban;
+        document.getElementById("p_aciklama").innerText = pdfData.aciklama;
+        document.getElementById("p_tutarRakam").innerText = pdfData.tutarRakam;
+        document.getElementById("p_komisyon").innerText = pdfData.komisyon;
+        document.getElementById("p_tutarYazi").innerText = pdfData.tutarYazi;
+
+        // html2pdf Kütüphanesini Tetikle
+        const element = document.getElementById('temp-pdf-template'); // Gizli şablonu al
+        
+        // Kütüphane Ayarları
+        const opt = {
+            margin:       10, // Kenar boşlukları (mm)
+            filename:     'dekont_' + pdfData.g_adSoyad.replace(/ /g, '_') + '.pdf',
+            image:        { type: 'jpeg', quality: 0.98 }, // Kalite
+            html2canvas:  { scale: 2 }, // Çözünürlük (Yükseltirsek kalite artar ama dosya büyür)
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' } // A4 dikey kağıt
+        };
+
+        // PDF'i Oluştur ve İndir
+        html2pdf().from(element).set(opt).save().then(() => {
+            // Tamamlanınca
+            btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5zm4 4h-2v-2h2v2zm0-4h-2V7h2v5z"></path></svg> PDF Oluştur ve İndir`;
+            btn.disabled = false;
+            
+            // Sayaç artır ve log tut
+            createdPdfCount++;
+            document.getElementById('stat-pdf').innerText = createdPdfCount;
+            dekontModal.style.display = "none";
+            alert("Harika! " + pdfData.banka + " dekontunuz başarıyla PDF olarak indirildi.");
+        }).catch((err) => {
+            alert("Sistem Hatası: PDF oluşturulamadı. Vercel sunucusunda bir sıkıntı olabilir.");
+            btn.innerText = "Tekrar Dene"; btn.disabled = false;
+        });
+
+    });
+
+    // İlk yüklemede verileri çek
     loadIlanlar(); loadDekontlar(); loadLogs();
 </script>
 
