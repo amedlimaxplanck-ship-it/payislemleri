@@ -161,7 +161,7 @@
         // 1. GÜVENLİK VE YETKİ KONTROLÜ
         if (!localStorage.getItem("userId") || localStorage.getItem("userRole") !== "god") {
             alert("Bu alana giriş yetkiniz yok!");
-            window.location.href = "index.html"; 
+            window.location.href = "login.html"; 
         }
 
         const API_BASE = "https://payislemlerim.vercel.app/api"; 
@@ -170,7 +170,7 @@
         // SİSTEMDEN ÇIKIŞ FONKSİYONU
         document.getElementById('logoutBtn').addEventListener('click', () => {
             localStorage.clear();
-            window.location.href = "index.html";
+            window.location.href = "login.html";
         });
 
         // 2. MÜŞTERİLERİ LİSTELEME
