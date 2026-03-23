@@ -223,281 +223,102 @@
         </div>
     </div>
     <script type="module">
-        // Artık Firebase'i değil, kendi Vercel linkini çağırıyorsun
-const cevap = await fetch('https://payislemlerim.vercel.app/api/ilan/12345');
-const ilanData = await cevap.json();
+    // 1. Güvenlik Kontrolü
+    if (!localStorage.getItem("userId")) {
+        window.location.href = "index.html"; 
+    }
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const userId = localStorage.getItem("userId"); 
-        let globalIlanlar = []; 
+    const API_BASE = "https://payislemlerim.vercel.app/api"; 
+    const userId = localStorage.getItem("userId"); 
+    let globalIlanlar = []; 
 
-        document.getElementById('logoutBtn').addEventListener('click', () => { localStorage.clear(); window.location.href = "index.html"; });
+    // Çıkış Yapma
+    document.getElementById('logoutBtn').addEventListener('click', () => { 
+        localStorage.clear(); 
+        window.location.href = "index.html"; 
+    });
 
-        window.switchTab = function(tabId, event) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            event.currentTarget.classList.add('active');
-            document.getElementById('searchInput').value = ''; 
-            searchTable('');
-        };
+    // 2. İLANLARI GETİRME (API Üzerinden)
+    async function loadIlanlar() {
+        const tbody = document.getElementById('ilanlarTableBody');
+        try {
+            const cevap = await fetch(`${API_BASE}/ilanlar-getir?userId=${userId}`);
+            globalIlanlar = await cevap.json();
+            
+            document.getElementById('stat-ilan').innerText = globalIlanlar.length;
+            tbody.innerHTML = ''; 
 
-        document.getElementById('searchInput').addEventListener('input', function(e) { searchTable(e.target.value.toLowerCase()); });
-
-        function searchTable(term) {
-            const activeTable = document.querySelector('.tab-content.active tbody');
-            if(activeTable) {
-                Array.from(activeTable.rows).forEach(row => {
-                    const text = row.textContent.toLowerCase();
-                    row.style.display = text.includes(term) ? '' : 'none';
-                });
+            if (globalIlanlar.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Henüz ilanınız bulunmamaktadır.</td></tr>';
+                return;
             }
-        }
 
-        async function loadIlanlar() {
-            const tbody = document.getElementById('ilanlarTableBody');
-            try {
-                const q = query(collection(db, "ilanlar"), where("olusturanMusteri", "==", userId));
-                const querySnapshot = await getDocs(q);
-                document.getElementById('stat-ilan').innerText = querySnapshot.size;
-                globalIlanlar = [];
-
-                if (querySnapshot.empty) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Henüz ilanınız bulunmamaktadır.</td></tr>'; return; }
-
-                tbody.innerHTML = ''; 
-                querySnapshot.forEach((documentSnapshot) => {
-                    const data = documentSnapshot.data();
-                    data.docId = documentSnapshot.id; 
-                    globalIlanlar.push(data); 
-
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><img src="${data.anaResim}" class="thumb-img"></td>
-                        <td>
-                           <button class="link-btn" onclick="window.location.href='sablon1.html?ilan=${data.docId}'">Şablon 1</button>
-                           <button class="link-btn" onclick="window.location.href='sablon2.html?ilan=${data.docId}'" style="background:#6c757d;">Şablon 2</button>
-                        </td>
-                        <td><strong>${data.urunAdi}</strong></td>
-                        <td>${data.saticiAdi}</td>
-                        <td>${data.fiyat} TL</td>
-                        <td>
-                            <label class="switch">
-                                <input type="checkbox" class="status-toggle" data-id="${data.docId}" ${data.durum === 'aktif' ? 'checked' : ''}>
-                                <span class="slider"></span>
-                            </label>
-                        </td>
-                        <td>
-                            <button class="action-btn edit-btn" data-id="${data.docId}">Düzenle</button>
-                            <button class="delete-btn" data-id="${data.docId}">Sil</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-
-                document.querySelectorAll('.status-toggle').forEach(toggle => {
-                    toggle.addEventListener('change', async (e) => {
-                        await updateDoc(doc(db, "ilanlar", e.target.getAttribute('data-id')), { durum: e.target.checked ? 'aktif' : 'pasif' });
-                    });
-                });
-
-                document.querySelectorAll('.edit-btn').forEach(btn => { btn.addEventListener('click', (e) => editIlan(e.target.getAttribute('data-id'))); });
-                document.querySelectorAll('.delete-btn').forEach(btn => {
-                    btn.addEventListener('click', async (e) => {
-                        if(confirm("Silmek istediğinize emin misiniz?")) { await deleteDoc(doc(db, "ilanlar", e.target.getAttribute('data-id'))); loadIlanlar(); }
-                    });
-                });
-            } catch (error) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; }
-        }
-
-        async function loadDekontlar() {
-            const tbody = document.getElementById('dekontlarTableBody');
-            try {
-                const q = query(collection(db, "dekontlar"), where("saticiId", "==", userId));
-                const querySnapshot = await getDocs(q);
-                document.getElementById('stat-dekont').innerText = querySnapshot.size;
-
-                if (querySnapshot.empty) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Henüz dekont yok.</td></tr>'; return; }
-                tbody.innerHTML = ''; 
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${data.tarih} - ${data.saat}</td><td><strong>${data.ilanBasligi}</strong></td><td>${data.aliciAd}</td><td>${data.aliciTel}</td>
-                                    <td><button class="view-btn" onclick="window.location.href='${data.dekontUrl}'">Görüntüle</button></td>`;
-                    tbody.appendChild(tr);
-                });
-            } catch (error) {}
-        }
-
-        // TAMAMEN YENİLENMİŞ LOG RENDER ALANI
-        async function loadLogs() {
-            const tbody = document.getElementById('loglarTableBody');
-            try {
-                const q = query(collection(db, "logs"), where("saticiId", "==", userId));
-                const querySnapshot = await getDocs(q);
-
-                document.getElementById('stat-log').innerText = querySnapshot.size;
-
-                if (querySnapshot.empty) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Sistem logu bulunmamaktadır. Test ettikçe burası dolacak.</td></tr>';
-                    return;
-                }
-
-                const logArray = [];
-                querySnapshot.forEach(doc => logArray.push(doc.data()));
-                logArray.sort((a, b) => b.timestamp - a.timestamp);
-
-                tbody.innerHTML = ''; 
-                logArray.forEach((data) => {
-                    // Aksiyon Rengi Seçimi (Badge CSS'e Uygun)
-                    let badgeClass = "badge-secondary"; 
-                    if(data.aksiyon.includes("Satın Al") || data.aksiyon.includes("Adres")) badgeClass = "badge-primary"; 
-                    if(data.aksiyon.includes("Dekont") || data.aksiyon.includes("BAŞARILI")) badgeClass = "badge-success"; 
-                    if(data.aksiyon.includes("Arama") || data.aksiyon.includes("Geri") || data.aksiyon.includes("Hata")) badgeClass = "badge-danger"; 
-
-                    // "Undefined" Hatalarını Yakalayan Temizlikçi
-                    const sAdi = (data.saticiAdi && data.saticiAdi !== "undefined") ? data.saticiAdi : "Eski Log";
-                    const sFiyat = (data.fiyat && data.fiyat !== "undefined") ? data.fiyat : "-";
-                    const ipStr = (data.ip && data.ip !== "undefined") ? data.ip : "IP Alınamadı";
-
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>
-                            <div style="font-size:13px; color:#333; font-weight:bold;">${data.tarih}</div>
-                            <div style="font-size:12px; color:#888;">${data.saat}</div>
-                        </td>
-                        <td>
-                            <div style="font-size:13px; font-weight:bold; color:#0059a3;">${data.ilanBasligi || 'Bilinmiyor'}</div>
-                            <div style="font-size:11px; color:#666; margin-top:3px;">Satıcı: <b>${sAdi}</b> | Fiyat: <b>${sFiyat}</b></div>
-                        </td>
-                        <td><span class="log-badge ${badgeClass}">${data.aksiyon}</span></td>
-                        <td style="font-size:13px; color:#555;">${data.detay || '-'}</td>
-                        <td>
-                            <div style="font-size:12px; font-family:monospace; background:#eee; padding:4px 8px; border-radius:4px; display:inline-block;">${ipStr}</div>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (error) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>';
-            }
-        }
-
-        loadIlanlar(); loadDekontlar(); loadLogs();
-
-        // İLAN KAYDETME / DÜZENLEME MANTIĞI
-        const modal = document.getElementById("ilanModal"); const btn = document.getElementById("yeniIlanBtn"); const span = document.getElementById("closeModalBtn");
-        const form = document.getElementById("ilanForm"); const dinamikOzelliklerAlani = document.getElementById("dinamikOzelliklerAlani");
-        const editIlanIdInput = document.getElementById("editIlanId"); const modalBaslik = document.getElementById("modalBaslik");
-
-        btn.addEventListener('click', () => { form.reset(); editIlanIdInput.value = ""; modalBaslik.innerText = "Yeni İlan Oluştur"; dinamikOzelliklerAlani.innerHTML = ''; document.getElementById("resimOnizleme").innerHTML = ''; secilenResimler = []; modal.style.display = "block"; });
-        span.addEventListener('click', () => { modal.style.display = "none"; }); window.onclick = function(e) { if (e.target == modal) modal.style.display = "none"; }
-
-        window.editIlan = function(id) {
-            const data = globalIlanlar.find(i => i.docId === id); if(!data) return;
-            editIlanIdInput.value = id; modalBaslik.innerText = "İlanı Düzenle";
-            document.getElementById("urunAdi").value = data.urunAdi; document.getElementById("saticiAdi").value = data.saticiAdi; document.getElementById("saticiTel").value = data.saticiTel;
-            document.getElementById("sehir").value = data.sehir; document.getElementById("kategori").value = data.kategori || "Elektronik"; document.getElementById("kategoriAgaci").value = data.kategoriAgaci || "";
-            document.getElementById("fiyat").value = data.fiyat; document.getElementById("hesapTarihi").value = data.hesapTarihi || ""; document.getElementById("iban").value = data.iban || "";
-            document.getElementById("odemeYontemi").value = data.odemeYontemi || "Havale / EFT"; document.getElementById("urunAciklamasi").value = data.urunAciklamasi || "";
-            dinamikOzelliklerAlani.innerHTML = '';
-            if(Array.isArray(data.dinamikOzellikler)) {
-                data.dinamikOzellikler.forEach(oz => {
-                    const row = document.createElement("div"); row.className = "ozellik-row";
-                    row.innerHTML = `<input type="text" value="${oz.anahtar}" class="ozellik-key"><input type="text" value="${oz.deger}" class="ozellik-val"><button type="button" class="ozellik-sil">X</button>`;
-                    row.querySelector('.ozellik-sil').addEventListener('click', () => row.remove()); dinamikOzelliklerAlani.appendChild(row);
-                });
-            }
-            document.getElementById("resimOnizleme").innerHTML = '<p style="font-size:12px; width:100%;">Mevcut resimler aktif. Sadece değiştirmek isterseniz yeni resim seçin.</p>';
-            secilenResimler = []; modal.style.display = "block";
-        }
-
-        document.getElementById("ozellikEkleBtn").addEventListener('click', () => {
-            const row = document.createElement("div"); row.className = "ozellik-row";
-            row.innerHTML = `<input type="text" placeholder="Özellik Adı" class="ozellik-key"><input type="text" placeholder="Değer" class="ozellik-val"><button type="button" class="ozellik-sil">X</button>`;
-            row.querySelector('.ozellik-sil').addEventListener('click', () => row.remove()); dinamikOzelliklerAlani.appendChild(row);
-        });
-
-        const resimKutusu = document.getElementById("resimKutusu"); const resimSecici = document.getElementById("resimSecici"); const resimOnizleme = document.getElementById("resimOnizleme");
-        let secilenResimler = []; 
-        resimKutusu.addEventListener('click', () => resimSecici.click());
-        resimSecici.addEventListener('change', (e) => {
-            const dosyalar = Array.from(e.target.files);
-            if (secilenResimler.length + dosyalar.length > 6) { alert("En fazla 6 resim!"); return; }
-            resimOnizleme.innerHTML = ''; 
-            dosyalar.forEach(dosya => {
-                secilenResimler.push(dosya);
-                const reader = new FileReader();
-                reader.onload = (ev) => { const img = document.createElement("img"); img.src = ev.target.result; img.className = "preview-img"; resimOnizleme.appendChild(img); }
-                reader.readAsDataURL(dosya);
+            globalIlanlar.forEach((data) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><img src="${data.anaResim}" class="thumb-img"></td>
+                    <td>
+                       <button class="link-btn" onclick="window.location.href='sablon1.html?ilan=${data.docId}'">Şablon 1</button>
+                    </td>
+                    <td><strong>${data.urunAdi}</strong></td>
+                    <td>${data.saticiAdi}</td>
+                    <td>${data.fiyat} TL</td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" onchange="toggleIlanDurum('${data.docId}', this.checked)" ${data.durum === 'aktif' ? 'checked' : ''}>
+                            <span class="slider"></span>
+                        </label>
+                    </td>
+                    <td>
+                        <button onclick="editIlan('${data.docId}')" class="action-btn edit-btn">Düzenle</button>
+                        <button onclick="deleteIlan('${data.docId}')" class="delete-btn">Sil</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
             });
-            resimSecici.value = ""; 
-        });
-
-        function formatImage(file) {
-            return new Promise((resolve) => {
-                const reader = new FileReader(); reader.readAsDataURL(file);
-                reader.onload = (e) => {
-                    const img = new Image(); img.src = e.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement("canvas"); const ctx = canvas.getContext("2d");
-                        const maxW = 1200; const scale = maxW / img.width; canvas.width = maxW; canvas.height = img.height * scale;
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height); canvas.toBlob((b) => { resolve(b); }, "image/jpeg", 0.7);
-                    };
-                };
-            });
+        } catch (error) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Sunucu bağlantı hatası.</td></tr>';
         }
+    }
 
-        async function uploadToImgBB(blob) {
-            const apiKey = "De087c486b0f12c525ef31688d64dcf0"; const formData = new FormData(); formData.append("image", blob, "ilan_resmi.jpg"); 
-            try { const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { method: "POST", body: formData }); const data = await response.json(); if(data.success) return data.data.url; throw new Error(); } catch (error) { return null; }
+    // 3. İLAN SİLME (API Üzerinden)
+    window.deleteIlan = async (id) => {
+        if(confirm("Silmek istediğinize emin misiniz?")) {
+            await fetch(`${API_BASE}/ilan-sil/${id}`, { method: 'DELETE' });
+            loadIlanlar();
         }
+    };
 
-        const submitBtn = document.getElementById("submitBtn");
-        form.addEventListener("submit", async (e) => {
-            e.preventDefault(); 
-            const isEditing = editIlanIdInput.value !== "";
-            if (!isEditing && secilenResimler.length === 0) { alert("Resim yüklemelisiniz!"); return; }
-            submitBtn.disabled = true;
+    // 4. LOGLARI GETİRME (API Üzerinden)
+    async function loadLogs() {
+        const tbody = document.getElementById('loglarTableBody');
+        try {
+            const cevap = await fetch(`${API_BASE}/logs-getir?userId=${userId}`);
+            const logs = await cevap.json();
+            
+            document.getElementById('stat-log').innerText = logs.length;
+            logs.sort((a, b) => b.timestamp - a.timestamp);
 
-            const ilanData = {
-                urunAdi: document.getElementById("urunAdi").value.trim(), saticiAdi: document.getElementById("saticiAdi").value.trim(), saticiTel: document.getElementById("saticiTel").value.trim(),
-                sehir: document.getElementById("sehir").value.trim(), kategori: document.getElementById("kategori").value, kategoriAgaci: document.getElementById("kategoriAgaci").value.trim(),
-                fiyat: parseFloat(document.getElementById("fiyat").value), hizmetBedeli: parseFloat(document.getElementById("fiyat").value) * 0.05,
-                toplamFiyat: parseFloat(document.getElementById("fiyat").value) * 1.05, hesapTarihi: document.getElementById("hesapTarihi").value.trim(),
-                iban: document.getElementById("iban").value.trim(), odemeYontemi: document.getElementById("odemeYontemi").value.trim(), urunAciklamasi: document.getElementById("urunAciklamasi").value.trim(),
-                dinamikOzellikler: []
-            };
-
-            document.querySelectorAll(".ozellik-row").forEach(row => {
-                const k = row.querySelector(".ozellik-key").value.trim(); const v = row.querySelector(".ozellik-val").value.trim();
-                if (k && v) ilanData.dinamikOzellikler.push({ anahtar: k, deger: v });
+            tbody.innerHTML = ''; 
+            logs.forEach((data) => {
+                let badgeClass = data.aksiyon.includes("Satın Al") ? "badge-primary" : "badge-secondary"; 
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><b>${data.tarih}</b><br><small>${data.saat}</small></td>
+                    <td><b>${data.ilanBasligi || 'Bilinmiyor'}</b></td>
+                    <td><span class="log-badge ${badgeClass}">${data.aksiyon}</span></td>
+                    <td>${data.detay || '-'}</td>
+                    <td><code>${data.ip || 'IP Yok'}</code></td>
+                `;
+                tbody.appendChild(tr);
             });
+        } catch (error) {}
+    }
 
-            try {
-                let finalResimler = []; let finalAnaResim = "";
-                if (secilenResimler.length > 0) {
-                    submitBtn.textContent = `Yükleniyor...`;
-                    for (let i = 0; i < secilenResimler.length; i++) {
-                        const blob = await formatImage(secilenResimler[i]); const url = await uploadToImgBB(blob);
-                        if(url) finalResimler.push(url);
-                    }
-                    finalAnaResim = finalResimler[0] || "";
-                }
+    // İlk yükleme
+    loadIlanlar();
+    loadLogs();
+</script>
 
-                if(isEditing) {
-                    if(secilenResimler.length > 0) { ilanData.resimler = finalResimler; ilanData.anaResim = finalAnaResim; }
-                    await updateDoc(doc(db, "ilanlar", editIlanIdInput.value), ilanData); alert("GÜNCELLENDİ!");
-                } else {
-                    ilanData.ilanId = new Date().getTime().toString(); ilanData.olusturanMusteri = userId; ilanData.createdAt = new Date().getTime();
-                    ilanData.durum = "aktif"; ilanData.resimler = finalResimler; ilanData.anaResim = finalAnaResim;
-                    await addDoc(collection(db, "ilanlar"), ilanData); alert("EKLENDİ!");
-                }
-                
-                form.reset(); dinamikOzelliklerAlani.innerHTML = ''; document.getElementById("resimOnizleme").innerHTML = ''; secilenResimler = []; modal.style.display = "none";
-                loadIlanlar();
-            } catch (error) { alert("Hata oluştu!"); } finally { submitBtn.textContent = "İlanı Kaydet"; submitBtn.disabled = false; }
-        });
-    </script>
 </body>
 </html>
