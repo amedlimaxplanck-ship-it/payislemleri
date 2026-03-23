@@ -124,9 +124,17 @@ loginBtn.addEventListener('click', async () => {
     loginBtn.disabled = true;
 
     try {
-        // Vercel'deki Node.js sunucuna (Backend) soruyoruz
-        const cevap = await fetch(`https://payislemlerim.vercel.app/api/login?code=${code}`);
-        const sonuc = await cevap.json();
+        
+        
+        Node.js sunucuna (Backend) soruyoruz
+        
+const cevap = await fetch(`https://payislemlerim.vercel.app/api/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code: code }) // Şifreyi gizli paketle gönderiyoruz
+});
+const sonuc = await cevap.json();
+
 
         // Eğer sunucudan "Giriş Başarılı" cevabı gelirse:
         if (sonuc.success) {
