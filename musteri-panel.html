@@ -868,7 +868,7 @@
     // =========================================
     // --- PDF OLUŞTURMA MOTORU (Olayın Koptuğu Yer) ---
     // =========================================
-            document.getElementById("generatePdfBtn").addEventListener('click', () => {
+                document.getElementById("generatePdfBtn").addEventListener('click', () => {
         const bankaSelect = document.getElementById("d_banka");
         const pdfData = {
             banka: bankaSelect.value, 
@@ -897,7 +897,6 @@
         btn.innerText = "PDF Hazırlanıyor...";
         btn.disabled = true;
 
-        // BEYAZ SAYFA ÇÖZÜMÜ 1: Motor fotoğraf çekerken ekran aşağıda kalmasın diye en tepeye fırlatıyoruz
         window.scrollTo(0, 0); 
 
         const tarihParca = pdfData.tarih.split("-"); 
@@ -944,45 +943,49 @@
 
         const element = document.getElementById('pdf-gercek-sablon');
         
-        // BEYAZ SAYFA ÇÖZÜMÜ 2: Arkaya saklamak yerine en öne (999999) alıyoruz ki duvarın arkasını çekmesin
+        // 1. Şablonu karanlıktan çıkarıp ekranın tam ortasına alıyoruz
         element.style.left = '0px';
         element.style.top = '0px';
         element.style.zIndex = '999999'; 
 
-        const opt = {
-            margin:       0, 
-            filename:     'Ziraat_Dekont_' + pdfData.a_adSoyad.replace(/ /g, '_') + '.pdf',
-            image:        { type: 'jpeg', quality: 1 },
-            html2canvas:  { 
-                scale: 2, 
-                useCORS: true, 
-                backgroundColor: '#ffffff',
-                width: 794, 
-                windowWidth: 794,
-                scrollY: 0, // BEYAZ SAYFA ÇÖZÜMÜ 3: Kameranın Y (dikey) eksenini sıfıra kilitledik
-                x: 0,
-                y: 0
-            }, 
-            jsPDF:        { unit: 'px', format: [794, 1123], orientation: 'portrait' }
-        };
+        // 2. İŞTE HAYAT KURTARAN KOD: Telefon ekranı çizsin diye 500 milisaniye mühlet veriyoruz!
+        setTimeout(() => {
+            const opt = {
+                margin:       0, 
+                filename:     'Ziraat_Dekont_' + pdfData.a_adSoyad.replace(/ /g, '_') + '.pdf',
+                image:        { type: 'jpeg', quality: 1 },
+                html2canvas:  { 
+                    scale: 2, 
+                    useCORS: true, 
+                    backgroundColor: '#ffffff',
+                    width: 794, 
+                    windowWidth: 794,
+                    scrollY: 0, 
+                    x: 0,
+                    y: 0
+                }, 
+                jsPDF:        { unit: 'px', format: [794, 1123], orientation: 'portrait' }
+            };
 
-        html2pdf().from(element).set(opt).save().then(() => {
-            // İş bitince eski görünmez yerine postalıyoruz
-            element.style.left = '-9999px'; 
-            element.style.zIndex = '-1';
-            
-            btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5zm4 4h-2v-2h2v2zm0-4h-2V7h2v5z"></path></svg> PDF Oluştur ve İndir`;
-            btn.disabled = false;
-            
-            createdPdfCount++;
-            document.getElementById('stat-pdf').innerText = createdPdfCount;
-            dekontModal.style.display = "none";
-        }).catch((err) => {
-            alert("Hata oluştu kanka, bir daha dene.");
-            btn.innerText = "Tekrar Dene"; btn.disabled = false;
-        });
+            html2pdf().from(element).set(opt).save().then(() => {
+                // İş bitince tekrar görünmez cehenneme yolluyoruz
+                element.style.left = '-9999px'; 
+                element.style.zIndex = '-1';
+                
+                btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5zm4 4h-2v-2h2v2zm0-4h-2V7h2v5z"></path></svg> PDF Oluştur ve İndir`;
+                btn.disabled = false;
+                
+                createdPdfCount++;
+                document.getElementById('stat-pdf').innerText = createdPdfCount;
+                dekontModal.style.display = "none";
+            }).catch((err) => {
+                alert("Hata oluştu kanka, bir daha dene.");
+                btn.innerText = "Tekrar Dene"; btn.disabled = false;
+            });
+        }, 500); // 500 MİLİSANİYE BEKLEME SÜRESİ BURADA!
 
     });
+
 
 
     // İlk yüklemede verileri çek
