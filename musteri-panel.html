@@ -444,23 +444,73 @@
         </div>
     </div>
 
-            <div id="pdf-gercek-sablon" style="position: absolute; left: -9999px; top: 0; width: 794px; height: 1123px; background-size: 100% 100%; background-repeat: no-repeat; font-family: 'Verdana', sans-serif; z-index: -1;">
+               <div id="pdf-gercek-sablon" style="position: absolute; left: -9999px; top: 0; width: 794px; height: 1123px; background: #fff; font-family: Arial, Helvetica, sans-serif; padding: 50px; box-sizing: border-box; z-index: -1;">
         
-        <div id="pdf_ust_baslik" style="position: absolute; top: 215px; left: 185px; font-size: 16px; font-weight: 900; color: #333; letter-spacing: -0.5px;"></div>
-        <div id="pdf_tarih_saat" style="position: absolute; top: 160px; left: 745px; font-size: 12px; font-weight: bold; color: #555;"></div>
-
-        <div id="pdf_g_ad" style="position: absolute; top: 295px; left: 510px; font-size: 14px; font-weight: bold; color: #111;"></div>
-        <div id="pdf_g_iban" style="position: absolute; top: 322px; left: 510px; font-size: 12px; font-family: monospace; font-weight: bold; color: #111;"></div>
-        <div id="pdf_g_sube_hesap" style="position: absolute; top: 350px; left: 510px; font-size: 13px; font-weight: bold; color: #111;"></div>
-
-        <div id="pdf_a_ad" style="position: absolute; top: 435px; left: 510px; font-size: 14px; font-weight: bold; color: #111;"></div>
-        <div id="pdf_a_iban" style="position: absolute; top: 462px; left: 510px; font-size: 12px; font-family: monospace; font-weight: bold; color: #111;"></div>
-
-        <div id="pdf_aciklama" style="position: absolute; top: 520px; left: 510px; font-size: 13px; font-style: italic; color: #222;"></div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Ziraat_Bankas%C4%B1_logo.svg/512px-Ziraat_Bankas%C4%B1_logo.svg.png" style="height: 35px;">
+            <div style="text-align: right; font-size: 11px; color: #333;">
+                <span id="z_tarih_sag_ust"></span>
+            </div>
+        </div>
         
-        <div id="pdf_tutar_rakam" style="position: absolute; top: 625px; left: 450px; font-size: 36px; font-weight: 900; color: #000; letter-spacing: 1px;"></div>
-        <div id="pdf_tutar_yazi" style="position: absolute; top: 665px; left: 450px; font-size: 15px; font-weight: bold; font-style: italic; color: #555;"></div>
+        <h2 style="text-align: center; font-size: 16px; margin-bottom: 20px; color: #111; font-weight: bold; letter-spacing: 0.5px;" id="z_islem_turu">HESAPTAN FAST</h2>
+        
+        <div style="border: 1px solid #777; border-radius: 4px; display: flex; font-size: 11px; margin-bottom: 20px; color: #222;">
+            <div style="width: 50%; border-right: 1px solid #777; padding: 15px;">
+                <table style="width: 100%; line-height: 1.8;">
+                    <tr><td style="font-weight: bold; width: 45%;">ŞUBE KODU/ADI</td><td>: <span id="z_sube"></span></td></tr>
+                    <tr><td style="font-weight: bold;">IBAN</td><td>: <span id="z_g_iban"></span></td></tr>
+                    <tr><td style="font-weight: bold;">HESAP NUMARASI</td><td>: <span id="z_hesap"></span></td></tr>
+                    <tr><td style="font-weight: bold;">VERGİ DAİRESİ</td><td>: <span id="z_vergi_daire"></span></td></tr>
+                    <tr><td style="font-weight: bold;">VERGİ KİMLİK NO</td><td>: <span id="z_vergi_no"></span></td></tr>
+                    <tr><td style="font-weight: bold;">İŞLEM TARİHİ</td><td>: <span id="z_islem_tarihi"></span></td></tr>
+                    <tr><td style="font-weight: bold;">VALÖR</td><td>: <span id="z_valor"></span></td></tr>
+                    <tr><td style="font-weight: bold;">İŞLEM YERİ</td><td>: ZİRAAT MOBİL</td></tr>
+                </table>
+            </div>
+            <div style="width: 50%; padding: 15px;">
+                <div style="font-weight: bold; margin-bottom: 5px;">SAYIN</div>
+                <div style="font-weight: bold; margin-bottom: 15px;" id="z_alici_ad"></div>
+                <div id="z_alici_adres" style="text-transform: uppercase;">SİSTEME KAYITLI ADRES<br>TÜRKİYE</div>
+            </div>
+        </div>
+        
+        <div style="font-size: 11px; line-height: 1.6; margin-bottom: 25px; color: #222;">
+            <div>Fast Mesaj Kodu : <span id="z_ref"></span></div>
+            <div>Gönderen : <span id="z_g_ad"></span></div>
+            <div>Alan Banka : <span id="z_a_banka">Belirtilmedi</span></div>
+            <div>Alıcı Hesap : <span id="z_a_iban"></span> Alıcı : <span id="z_alici_ad2" style="text-transform: lowercase;"></span></div>
+            <div>İşlem Tutarı : <span id="z_tutar_rakam"></span> TRY</div>
+            <div>Açıklama : <span id="z_aciklama"></span></div>
+            <div>Komisyon : <span id="z_komisyon"></span> TRY BSMV : 0,00 TRY Mesaj Ücreti : 0,00 TRY</div>
+            <div>Toplam Masraf : <span id="z_toplam_masraf"></span> TRY</div>
+            <div style="margin-top: 10px;">
+                <span id="z_tutar_rakam2"></span> TRY tutarında Fast işleminin yapılmasını, Bu işlem için tarafıma bildirilen <span id="z_toplam_masraf2"></span> TRY masraf alınmasını talep ederim.
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-bottom: 30px;">
+            <div style="font-size: 24px; font-weight: 900; letter-spacing: 0.5px;" id="z_dev_tutar"></div>
+            <div style="font-size: 12px; font-weight: bold; font-style: italic; color: #444;" id="z_dev_yazi"></div>
+        </div>
+        
+        <div style="margin-top: 30px; font-size: 11px; color: #222;">
+            <div>Hesabınızdan <span id="z_tutar_toplam"></span> TL (Yalnız <span id="z_tutar_yazi_bitis"></span>) Çekilmiştir.</div>
+            <div><span id="z_tarih_alt"></span> EFTTGIDD INTERNET</div>
+        </div>
+
+        <div style="text-align: right; font-size: 11px; font-weight: bold; margin-top: -30px; color: #222;">
+            Saygılarımızla<br>T.C ZİRAAT BANKASI A.Ş<br>İNTERNET ŞUBESİ
+        </div>
+
+        <div style="position: absolute; bottom: 50px; left: 50px; right: 50px; font-size: 9px; color: #555; line-height: 1.4; border-top: 1px solid #ccc; padding-top: 10px;">
+            Taraflar arasında tüm uyuşmazlıklarda, Banka'nın defter kayıtları ve belgeleri, müstenitli olsun olmasın, kesin ve aksi ileri sürülemez delil niteliğindedir.<br>
+            Merkez: Hacı Bayram Mahallesi, Atatürk Bulvarı No:8 06050 Altındağ/ANKARA<br>
+            Ticaret Sicil No: 1148<br>
+            www.ziraatbank.com.tr
+        </div>
     </div>
+
 
 
 
