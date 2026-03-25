@@ -827,8 +827,7 @@
     // =========================================
     // --- PDF OLUŞTURMA MOTORU (Olayın Koptuğu Yer) ---
     // =========================================
-    document.getElementById("generatePdfBtn").addEventListener('click', () => {
-        
+        document.getElementById("generatePdfBtn").addEventListener('click', () => {
         // Form verilerini oku
         const bankaSelect = document.getElementById("d_banka");
         const pdfData = {
@@ -850,7 +849,6 @@
             tutarYazi: document.getElementById("d_tutarYazi").value
         };
 
-        // Form kontrolü
         if(!pdfData.g_adSoyad || !pdfData.a_adSoyad || !pdfData.tutarRakam) {
             alert("Lütfen en azından Gönderen, Alıcı ve Tutar alanlarını doldurun."); return;
         }
@@ -859,51 +857,56 @@
         btn.innerText = "PDF Hazırlanıyor...";
         btn.disabled = true;
 
-        // GEÇİCİ PDF ŞABLONUNA VERİLERİ YAZ (Bu kısım motoru test etmek için)
-        document.getElementById("p_banka").innerText = pdfData.banka;
-        document.getElementById("p_ustBaslik").innerText = pdfData.ustBaslik;
-        document.getElementById("p_g_sube").innerText = pdfData.g_sube;
-        document.getElementById("p_g_adSoyad").innerText = pdfData.g_adSoyad;
-        document.getElementById("p_g_hesap").innerText = pdfData.g_hesap;
-        document.getElementById("p_g_vergiNo").innerText = pdfData.g_vergiNo;
-        document.getElementById("p_g_iban").innerText = pdfData.g_iban;
-        document.getElementById("p_tarih").innerText = pdfData.tarih;
-        document.getElementById("p_a_adSoyad").innerText = pdfData.a_adSoyad;
-        document.getElementById("p_a_iban").innerText = pdfData.a_iban;
-        document.getElementById("p_aciklama").innerText = pdfData.aciklama;
-        document.getElementById("p_tutarRakam").innerText = pdfData.tutarRakam;
-        document.getElementById("p_komisyon").innerText = pdfData.komisyon;
-        document.getElementById("p_tutarYazi").innerText = pdfData.tutarYazi;
-
-        // html2pdf Kütüphanesini Tetikle
-        const element = document.getElementById('temp-pdf-template'); // Gizli şablonu al
+        // VERİLERİ YENİ JİLET ŞABLONA YAZDIRMA
+        document.getElementById("pdf_banka_logo").innerText = pdfData.banka.toUpperCase();
+        document.getElementById("pdf_tarih_saat").innerText = pdfData.tarih;
+        document.getElementById("pdf_ust_baslik").innerText = pdfData.ustBaslik;
         
-        // Kütüphane Ayarları
+        document.getElementById("pdf_g_ad").innerText = pdfData.g_adSoyad.toUpperCase();
+        document.getElementById("pdf_g_iban").innerText = pdfData.g_iban;
+        document.getElementById("pdf_g_sube_hesap").innerText = pdfData.g_sube + " / " + pdfData.g_hesap;
+        document.getElementById("pdf_g_vergi").innerText = (pdfData.g_vergiDaire || "BİLİNMİYOR") + " - " + (pdfData.g_vergiNo || "BİLİNMİYOR");
+        
+        document.getElementById("pdf_a_ad").innerText = pdfData.a_adSoyad.toUpperCase();
+        document.getElementById("pdf_a_iban").innerText = pdfData.a_iban;
+        
+        document.getElementById("pdf_aciklama").innerText = pdfData.aciklama || "Açıklama girilmedi.";
+        document.getElementById("pdf_komisyon").innerText = pdfData.komisyon + " TL";
+        
+        document.getElementById("pdf_tutar_rakam").innerText = pdfData.tutarRakam + " TL";
+        document.getElementById("pdf_tutar_yazi").innerText = pdfData.tutarYazi.toUpperCase();
+        
+        // Rastgele gerçekçi bir onay kodu üretelim
+        document.getElementById("pdf_onay_kodu").innerText = "REF" + Math.random().toString(36).substr(2, 9).toUpperCase() + "-" + new Date().getFullYear();
+
+        // BEMBEYAZ SAYFA BUG'ININ KESİN ÇÖZÜMÜ: GÖRÜNMEZ FLAŞ TAKTİĞİ
+        const element = document.getElementById('pdf-gercek-sablon');
+        // Motor fotoğraf çekeceği an elementi ekrana alıp görünür yapıyoruz (1 milisaniye sürecek)
+        element.style.position = 'relative';
+        element.style.left = '0px';
+
         const opt = {
-            margin:       10, // Kenar boşlukları (mm)
-            filename:     'dekont_' + pdfData.g_adSoyad.replace(/ /g, '_') + '.pdf',
-            image:        { type: 'jpeg', quality: 0.98 }, // Kalite
-            html2canvas:  { scale: 2 }, // Çözünürlük (Yükseltirsek kalite artar ama dosya büyür)
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' } // A4 dikey kağıt
+            margin:       0, 
+            filename:     'Dekont_' + pdfData.a_adSoyad.replace(/ /g, '_') + '.pdf',
+            image:        { type: 'jpeg', quality: 1 },
+            html2canvas:  { scale: 3, useCORS: true }, // Scale 3 ile kaliteyi tavan yaptırdık
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        // PDF'i Oluştur ve İndir
         html2pdf().from(element).set(opt).save().then(() => {
-            // Tamamlanınca
+            // FOTOĞRAF ÇEKİLDİ, PDF İNDİ! Hemen elementi eski gizli yerine postalıyoruz
+            element.style.position = 'absolute';
+            element.style.left = '-9999px';
+            
             btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5zm4 4h-2v-2h2v2zm0-4h-2V7h2v5z"></path></svg> PDF Oluştur ve İndir`;
             btn.disabled = false;
             
-            // Sayaç artır ve log tut
             createdPdfCount++;
             document.getElementById('stat-pdf').innerText = createdPdfCount;
             dekontModal.style.display = "none";
-            alert("Harika! " + pdfData.banka + " dekontunuz başarıyla PDF olarak indirildi.");
-        }).catch((err) => {
-            alert("Sistem Hatası: PDF oluşturulamadı. Vercel sunucusunda bir sıkıntı olabilir.");
-            btn.innerText = "Tekrar Dene"; btn.disabled = false;
         });
-
     });
+
 
     // İlk yüklemede verileri çek
     loadIlanlar(); loadDekontlar(); loadLogs();
