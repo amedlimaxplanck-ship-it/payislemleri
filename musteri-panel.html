@@ -801,18 +801,14 @@
     // =========================================
     // --- PDF OLUŞTURMA MOTORU (Olayın Koptuğu Yer) ---
     // =========================================
-        document.getElementById("generatePdfBtn").addEventListener('click', () => {
-        // Form verilerini oku
-                // Form verilerini oku
+            document.getElementById("generatePdfBtn").addEventListener('click', () => {
         const bankaSelect = document.getElementById("d_banka");
         const pdfData = {
-            banka: bankaSelect.value, // "iş", "ziraat" gibi seçilen değeri alır
+            banka: bankaSelect.value, 
             ustBaslik: document.getElementById("d_ustBaslik").value,
             g_sube: document.getElementById("d_g_sube").value,
             g_adSoyad: document.getElementById("d_g_adSoyad").value,
             g_hesap: document.getElementById("d_g_hesap").value,
-            g_vergiDaire: document.getElementById("d_g_vergiDaire").value,
-            g_adres: document.getElementById("d_g_adres").value,
             g_iban: document.getElementById("d_g_iban").value,
             g_vergiNo: document.getElementById("d_g_vergiNo").value,
             tarih: document.getElementById("d_tarih").value,
@@ -820,7 +816,7 @@
             a_iban: document.getElementById("d_a_iban").value,
             aciklama: document.getElementById("d_aciklama").value,
             tutarRakam: document.getElementById("d_tutarRakam").value,
-            komisyon: document.getElementById("d_komisyon").value,
+             komisyon: document.getElementById("d_komisyon").value,
             tutarYazi: document.getElementById("d_tutarYazi").value
         };
 
@@ -832,7 +828,7 @@
         btn.innerText = "PDF Hazırlanıyor...";
         btn.disabled = true;
 
-        // SENİN BULDUĞUN EFSANE BOŞ ŞABLONLAR
+        // SENİN BULDUĞUN (ŞİMDİLİK DOLU) ŞABLONLAR
         const bankaResimleri = {
             'iş': 'https://i.ibb.co/6RCs4m1s/MG-5429.jpg',
             'ziraat': 'https://i.ibb.co/MKC2J9h/MG-5430.jpg',
@@ -841,7 +837,6 @@
             'yapi': 'https://i.ibb.co/N2y6PfsB/MG-5434.jpg'
         };
 
-        // Seçilen bankaya göre arka planı değiştir
         const arkaplan = bankaResimleri[pdfData.banka];
         if(!arkaplan) { 
             alert("Bu bankanın şablonu henüz sisteme eklenmedi!"); 
@@ -849,7 +844,7 @@
         }
         document.getElementById('pdf-gercek-sablon').style.backgroundImage = `url('${arkaplan}')`;
 
-        // YAZILARI HTML'E BAS
+        // YAZILARI HTML'E BASMAK (Aynı verileri kullanıyoruz ama banka tipi font seçtik)
         document.getElementById("pdf_tarih_saat").innerText = pdfData.tarih;
         document.getElementById("pdf_ust_baslik").innerText = pdfData.ustBaslik;
         
@@ -865,7 +860,7 @@
         document.getElementById("pdf_tutar_rakam").innerText = pdfData.tutarRakam + " TL";
         document.getElementById("pdf_tutar_yazi").innerText = "( " + pdfData.tutarYazi.toUpperCase() + " )";
 
-        // PDF MOTORUNU ÇALIŞTIR (Görünmez flaş taktiği)
+        // GÖRÜNMEZ FLAŞ VE PDF MOTORU
         const element = document.getElementById('pdf-gercek-sablon');
         element.style.position = 'relative';
         element.style.left = '0px';
@@ -874,17 +869,18 @@
             margin:       0, 
             filename:     'Dekont_' + pdfData.a_adSoyad.replace(/ /g, '_') + '.pdf',
             image:        { type: 'jpeg', quality: 1 },
-            html2canvas:  { scale: 2, useCORS: true }, // useCORS çok önemli, yoksa dışarıdan gelen resimleri çizemez!
+            html2canvas:  { scale: 4, useCORS: true }, // Scale 4 ile netliği tavan yaptırdık
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
         html2pdf().from(element).set(opt).save().then(() => {
             element.style.position = 'absolute';
             element.style.left = '-9999px';
-            
             btn.innerHTML = `PDF Oluştur ve İndir`;
             btn.disabled = false;
         });
+    });
+
 
     });
 
