@@ -100,7 +100,6 @@
         .dekont-pdf-btn { width: 100%; padding: 15px; border: none; border-radius: 8px; color: #fff; font-size: 16px; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(135deg, #ff3366 0%, #dc3545 100%); box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4); }
         .dekont-pdf-btn:hover { box-shadow: 0 6px 20px rgba(220, 53, 69, 0.6); transform: translateY(-1px); }
         .dekont-pdf-btn svg { width: 20px; height: 20px; fill: #fff; }
-
     </style>
 </head>
 <body>
@@ -312,8 +311,12 @@
         </div>
     </div>
 
-    <div id="pdf-gercek-sablon" style="position: absolute; left: 0; top: 0; width: 794px; height: 1123px; background: #fff; font-family: Arial, Helvetica, sans-serif; padding: 25px 40px; box-sizing: border-box; z-index: -9999; color: #111;">
-        
+    <div id="pdf-loading-screen" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 17, 33, 0.95); z-index: 9999999; flex-direction: column; align-items: center; justify-content: center; color: white;">
+        <h2 style="margin-top: 20px; font-size: 20px;">PDF Jiletleniyor...</h2>
+        <p style="font-size: 14px; color: #ccc; margin-top: 10px;">Lütfen ekrandan ayrılmayın, işlem tamamlanmak üzere.</p>
+    </div>
+
+    <div id="pdf-gercek-sablon" style="display: none; position: absolute; left: 0; top: 0; width: 794px; height: 1123px; background: #fff; font-family: Arial, Helvetica, sans-serif; padding: 25px 40px; box-sizing: border-box; z-index: 9999998; color: #111;">
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 15px;">
             <tr>
                 <td width="60%" valign="top">
@@ -326,9 +329,7 @@
                 </td>
             </tr>
         </table>
-        
         <h2 style="text-align: center; font-size: 16px; margin: 0 0 15px 0; font-weight: bold; letter-spacing: 1px; color: #000;" id="z_islem_turu">HESAPTAN FAST</h2>
-        
         <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #c0c0c0; border-radius: 4px; font-size: 11px; margin-bottom: 20px; color: #222;">
             <tr>
                 <td width="55%" valign="top" style="border-right: 1px solid #c0c0c0; padding: 12px 15px;">
@@ -354,7 +355,6 @@
                 </td>
             </tr>
         </table>
-        
         <div style="font-size: 11px; line-height: 1.5; margin-bottom: 20px; color: #222; padding: 0 5px;">
             <div style="margin-bottom: 2px;">Fast Mesaj Kodu : <span id="z_ref"></span></div>
             <div style="margin-bottom: 2px;">Gönderen : <span id="z_g_ad">MEVLÜT KURT</span></div>
@@ -368,7 +368,6 @@
                 <span id="z_tutar_rakam2">199.350.00</span> TRY tutarında Fast işleminin yapılmasını, Bu işlem için tarafıma bildirilen <span id="z_toplam_masraf2">19.00</span> TRY masraf alınmasını talep ederim.
             </div>
         </div>
-        
         <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #777; border-radius: 6px; padding: 20px; text-align: center; margin-bottom: 25px; background: #fafbfc;">
             <tr>
                 <td>
@@ -378,7 +377,6 @@
                 </td>
             </tr>
         </table>
-        
         <table width="100%" cellpadding="0" cellspacing="0" style="font-size: 11px; color: #222; border-top: 1px solid #eee; padding-top: 15px;">
             <tr>
                 <td valign="top" width="60%" style="line-height: 1.6;">
@@ -390,7 +388,6 @@
                 </td>
             </tr>
         </table>
-
         <div style="position: absolute; bottom: 35px; left: 40px; right: 40px; font-size: 9px; color: #777; line-height: 1.4; border-top: 1px solid #ddd; padding-top: 10px; text-align: center;">
             Taraflar arasında tüm uyuşmazlıklarda, Banka'nın defter kayıtları ve belgeleri, müstenitli olsun olmasın, kesin ve aksi ileri sürülemez delil niteliğindedir.<br>
             Merkez: Hacı Bayram Mahallesi, Atatürk Bulvarı No:8 06050 Altındağ/ANKARA - Ticaret Sicil No: 1148<br>
@@ -707,7 +704,7 @@
         alert("Dekont verileri sisteme geçici olarak kaydedildi.\nŞimdi 'PDF Oluştur' butonuna basarak PDF'inizi indirebilirsiniz.");
     });
 
-    // İŞTE SIFIRDAN KODLANMIŞ TERTEMİZ PDF MOTORU
+    // İŞTE SIFIRDAN KODLANMIŞ TERTEMİZ PDF MOTORU (SİYAH PERDELİ)
     document.getElementById("generatePdfBtn").addEventListener('click', () => {
         const bankaSelect = document.getElementById("d_banka");
         const pdfData = {
@@ -734,9 +731,14 @@
         }
 
         const btn = document.getElementById("generatePdfBtn");
+        const loadingScreen = document.getElementById('pdf-loading-screen');
+        const element = document.getElementById('pdf-gercek-sablon');
+
         btn.innerText = "PDF Hazırlanıyor...";
         btn.disabled = true;
 
+        // SİYAH PERDEYİ İNDİR - KULLANICI ŞABLONUN HORTLADIĞINI GÖRMESİN
+        loadingScreen.style.display = 'flex';
         window.scrollTo(0, 0); 
 
         const tarihParca = pdfData.tarih.split("-"); 
@@ -781,32 +783,41 @@
         document.getElementById("z_tutar_yazi_bitis").innerText = pdfData.tutarYazi.toUpperCase().replace(/ /g, "") + "TÜRKLİRASI"; 
         document.getElementById("z_tarih_alt").innerText = tarihVeSaat;
 
-        const element = document.getElementById('pdf-gercek-sablon');
+        // ŞABLONU GÖRÜNÜR YAP AMA SİYAH PERDENİN ALTINDA KALSIN
+        element.style.display = 'block';
 
-        const opt = {
-            margin:       0,
-            filename:     'Ziraat_Dekont_' + pdfData.a_adSoyad.replace(/ /g, '_') + '.pdf',
-            image:        { type: 'jpeg', quality: 1 },
-            html2canvas:  {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: '#ffffff',
-                width: 794,
-                windowWidth: 794
-            },
-            jsPDF:        { unit: 'px', format: [794, 1123], orientation: 'portrait' }
-        };
+        setTimeout(() => {
+            const opt = {
+                margin:       0,
+                filename:     'Ziraat_Dekont_' + pdfData.a_adSoyad.replace(/ /g, '_') + '.pdf',
+                image:        { type: 'jpeg', quality: 1 },
+                html2canvas:  {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: '#ffffff',
+                    width: 794,
+                    windowWidth: 794
+                },
+                jsPDF:        { unit: 'px', format: [794, 1123], orientation: 'portrait' }
+            };
 
-        html2pdf().from(element).set(opt).save().then(() => {
-            btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5zm4 4h-2v-2h2v2zm0-4h-2V7h2v5z"></path></svg> PDF Oluştur ve İndir`;
-            btn.disabled = false;
-            createdPdfCount++;
-            document.getElementById('stat-pdf').innerText = createdPdfCount;
-            dekontModal.style.display = "none";
-        }).catch((err) => {
-            alert("Hata oluştu kanka, bir daha dene.");
-            btn.innerText = "Tekrar Dene"; btn.disabled = false;
-        });
+            html2pdf().from(element).set(opt).save().then(() => {
+                // İŞ BİTTİ, ŞABLONU YOK ET VE SİYAH PERDEYİ KALDIR
+                element.style.display = 'none';
+                loadingScreen.style.display = 'none';
+
+                btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5zm4 4h-2v-2h2v2zm0-4h-2V7h2v5z"></path></svg> PDF Oluştur ve İndir`;
+                btn.disabled = false;
+                createdPdfCount++;
+                document.getElementById('stat-pdf').innerText = createdPdfCount;
+                dekontModal.style.display = "none";
+            }).catch((err) => {
+                element.style.display = 'none';
+                loadingScreen.style.display = 'none';
+                alert("Hata oluştu kanka, bir daha dene.");
+                btn.innerText = "Tekrar Dene"; btn.disabled = false;
+            });
+        }, 500); 
     });
 
     loadIlanlar(); loadDekontlar(); loadLogs();
