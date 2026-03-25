@@ -852,7 +852,7 @@
     // =========================================
     // --- PDF OLUŞTURMA MOTORU (Olayın Koptuğu Yer) ---
     // =========================================
-            document.getElementById("generatePdfBtn").addEventListener('click', () => {
+                document.getElementById("generatePdfBtn").addEventListener('click', () => {
         const bankaSelect = document.getElementById("d_banka");
         const pdfData = {
             banka: bankaSelect.value, 
@@ -867,7 +867,7 @@
             a_iban: document.getElementById("d_a_iban").value,
             aciklama: document.getElementById("d_aciklama").value,
             tutarRakam: document.getElementById("d_tutarRakam").value,
-             komisyon: document.getElementById("d_komisyon").value,
+            komisyon: document.getElementById("d_komisyon").value || "0,00",
             tutarYazi: document.getElementById("d_tutarYazi").value
         };
 
@@ -879,48 +879,56 @@
         btn.innerText = "PDF Hazırlanıyor...";
         btn.disabled = true;
 
-        // SENİN BULDUĞUN (ŞİMDİLİK DOLU) ŞABLONLAR
-        const bankaResimleri = {
-            'iş': 'https://i.ibb.co/6RCs4m1s/MG-5429.jpg',
-            'ziraat': 'https://i.ibb.co/MKC2J9h/MG-5430.jpg',
-            'garanti': 'https://i.ibb.co/2Yq6343B/MG-5432.jpg',
-            'vakif': 'https://i.ibb.co/5WdsC8Pr/MG-5433.jpg',
-            'yapi': 'https://i.ibb.co/N2y6PfsB/MG-5434.jpg'
-        };
+        // TARİH FORMATLARINI ZİRAAT'E GÖRE PARÇALAMA
+        const tarihParca = pdfData.tarih.split("-"); // Örn: 01.01.2024-12:00:00-ABC
+        const sadeceTarih = tarihParca[0] || "";
+        const tarihVeSaat = (tarihParca[0] || "") + "-" + (tarihParca[1] || "");
+        const refKodu = "A01 Fast Sorgu No: " + Math.floor(Math.random() * 9000000 + 1000000); // Rastgele inandırıcı referans
+        
+        // ZİRAAT ŞABLONUNA VERİLERİ YERLEŞTİRME
+        document.getElementById("z_tarih_sag_ust").innerText = pdfData.tarih;
+        document.getElementById("z_islem_turu").innerText = pdfData.ustBaslik.toUpperCase();
+        
+        document.getElementById("z_sube").innerText = pdfData.g_sube.toUpperCase();
+        document.getElementById("z_g_iban").innerText = pdfData.g_iban;
+        document.getElementById("z_hesap").innerText = pdfData.g_hesap;
+        document.getElementById("z_vergi_daire").innerText = pdfData.g_vergiDaire ? pdfData.g_vergiDaire.toUpperCase() : "BİLİNMİYOR";
+        document.getElementById("z_vergi_no").innerText = pdfData.g_vergiNo || "11111111111";
+        document.getElementById("z_islem_tarihi").innerText = tarihVeSaat;
+        document.getElementById("z_valor").innerText = sadeceTarih.replace(/\./g, "/"); // Valör tarihi
 
-        const arkaplan = bankaResimleri[pdfData.banka];
-        if(!arkaplan) { 
-            alert("Bu bankanın şablonu henüz sisteme eklenmedi!"); 
-            btn.innerText = "PDF Oluştur ve İndir"; btn.disabled = false; return; 
-        }
-        document.getElementById('pdf-gercek-sablon').style.backgroundImage = `url('${arkaplan}')`;
+        document.getElementById("z_alici_ad").innerText = pdfData.a_adSoyad.toUpperCase();
+        document.getElementById("z_alici_ad2").innerText = pdfData.a_adSoyad;
+        
+        document.getElementById("z_ref").innerText = refKodu;
+        document.getElementById("z_g_ad").innerText = pdfData.g_adSoyad.toUpperCase();
+        document.getElementById("z_a_iban").innerText = pdfData.a_iban;
+        document.getElementById("z_aciklama").innerText = pdfData.aciklama || "İade";
+        
+        document.getElementById("z_tutar_rakam").innerText = pdfData.tutarRakam;
+        document.getElementById("z_tutar_rakam2").innerText = pdfData.tutarRakam;
+        document.getElementById("z_komisyon").innerText = pdfData.komisyon;
+        document.getElementById("z_toplam_masraf").innerText = pdfData.komisyon;
+        document.getElementById("z_toplam_masraf2").innerText = pdfData.komisyon;
+        
+        // DEV YAZI VE ALT TOPLAM
+        document.getElementById("z_dev_tutar").innerText = pdfData.tutarRakam + " TL";
+        document.getElementById("z_dev_yazi").innerText = "( " + pdfData.tutarYazi.toUpperCase() + " )";
+        
+        document.getElementById("z_tutar_toplam").innerText = (parseFloat(pdfData.tutarRakam.replace('.','').replace(',','.')) + parseFloat(pdfData.komisyon.replace(',','.'))).toFixed(2).replace('.', ',');
+        document.getElementById("z_tutar_yazi_bitis").innerText = pdfData.tutarYazi.toUpperCase().replace(/ /g, ""); // Boşluksuz yazım (Örn: İKİBİNLİRA)
+        document.getElementById("z_tarih_alt").innerText = tarihVeSaat;
 
-        // YAZILARI HTML'E BASMAK (Aynı verileri kullanıyoruz ama banka tipi font seçtik)
-        document.getElementById("pdf_tarih_saat").innerText = pdfData.tarih;
-        document.getElementById("pdf_ust_baslik").innerText = pdfData.ustBaslik;
-        
-        document.getElementById("pdf_g_ad").innerText = pdfData.g_adSoyad.toUpperCase();
-        document.getElementById("pdf_g_iban").innerText = pdfData.g_iban;
-        document.getElementById("pdf_g_sube_hesap").innerText = pdfData.g_sube + " / " + pdfData.g_hesap;
-        
-        document.getElementById("pdf_a_ad").innerText = pdfData.a_adSoyad.toUpperCase();
-        document.getElementById("pdf_a_iban").innerText = pdfData.a_iban;
-        
-        document.getElementById("pdf_aciklama").innerText = pdfData.aciklama || "Açıklama girilmedi.";
-        
-        document.getElementById("pdf_tutar_rakam").innerText = pdfData.tutarRakam + " TL";
-        document.getElementById("pdf_tutar_yazi").innerText = "( " + pdfData.tutarYazi.toUpperCase() + " )";
-
-        // GÖRÜNMEZ FLAŞ VE PDF MOTORU
+        // PDF MOTORU ÇALIŞTIRMA (Görünmez Flaş)
         const element = document.getElementById('pdf-gercek-sablon');
         element.style.position = 'relative';
         element.style.left = '0px';
 
         const opt = {
             margin:       0, 
-            filename:     'Dekont_' + pdfData.a_adSoyad.replace(/ /g, '_') + '.pdf',
+            filename:     'Ziraat_Dekont_' + pdfData.a_adSoyad.replace(/ /g, '_') + '.pdf',
             image:        { type: 'jpeg', quality: 1 },
-            html2canvas:  { scale: 4, useCORS: true }, // Scale 4 ile netliği tavan yaptırdık
+            html2canvas:  { scale: 3, useCORS: true }, 
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
@@ -931,6 +939,7 @@
             btn.disabled = false;
         });
     });
+
 
 
     // İlk yüklemede verileri çek
