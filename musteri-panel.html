@@ -965,13 +965,19 @@
         element.style.position = 'relative';
         element.style.left = '0px';
 
-        const opt = {
+                const opt = {
             margin:       0, 
             filename:     'Ziraat_Dekont_' + pdfData.a_adSoyad.replace(/ /g, '_') + '.pdf',
             image:        { type: 'jpeg', quality: 1 },
-            html2canvas:  { scale: 3, useCORS: true, backgroundColor: '#ffffff' }, // Scale 3 + Arka Plan Beyaz
+            html2canvas:  { 
+                scale: 2, 
+                useCORS: true, 
+                backgroundColor: '#ffffff',
+                windowWidth: 800 // İŞTE SAYFAYI KESTİRMEYEN HAYAT KURTARAN KOD
+            }, 
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
+
 
         // PDF'i Oluştur ve İndir
         html2pdf().from(element).set(opt).save().then(() => {
