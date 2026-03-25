@@ -868,7 +868,7 @@
     // =========================================
     // --- PDF OLUŞTURMA MOTORU (Olayın Koptuğu Yer) ---
     // =========================================
-                        document.getElementById("generatePdfBtn").addEventListener('click', () => {
+                            document.getElementById("generatePdfBtn").addEventListener('click', () => {
         const bankaSelect = document.getElementById("d_banka");
         const pdfData = {
             banka: bankaSelect.value, 
@@ -897,48 +897,33 @@
         btn.innerText = "PDF Hazırlanıyor...";
         btn.disabled = true;
 
-        // TARİH FORMATLARINI ZİRAAT'E GÖRE PARÇALAMA
-        const tarihParca = pdfData.tarih.split("-"); // Örn: 01.01.2024-12:00:00-ABC
+        const tarihParca = pdfData.tarih.split("-"); 
         const sadeceTarih = tarihParca[0] || "";
         const tarihVeSaat = (tarihParca[0] || "") + "-" + (tarihParca[1] || "");
-        
-        // Rastgele inandırıcı referans (Sistemin kendi ürettiği)
         const refKodu = Math.floor(Math.random() * 9000000 + 1000000); 
         
-        // =========================================
-        // YENİ VE TABLO TABANLI JİLET ŞABLONA VERİLERİ YERLEŞTİRME
-        // =========================================
-        
-        // Header
         document.getElementById("z_tarih_sag_ust").innerText = pdfData.tarih;
         document.getElementById("z_islem_turu").innerText = pdfData.ustBaslik.toUpperCase();
-        
-        // Sol Kolon (Gönderen)
         document.getElementById("z_sube").innerText = pdfData.g_sube.toUpperCase();
         document.getElementById("z_g_iban").innerText = pdfData.g_iban;
         document.getElementById("z_hesap").innerText = pdfData.g_hesap;
         document.getElementById("z_vergi_daire").innerText = pdfData.g_vergiDaire ? pdfData.g_vergiDaire.toUpperCase() : "BİLİNMİYOR";
         document.getElementById("z_vergi_no").innerText = pdfData.g_vergiNo || "11111111111";
         document.getElementById("z_islem_tarihi").innerText = tarihVeSaat;
-        document.getElementById("z_valor").innerText = sadeceTarih.replace(/\./g, "/"); // Valör tarihi
+        document.getElementById("z_valor").innerText = sadeceTarih.replace(/\./g, "/"); 
 
-        // Sağ Kolon (SAYIN / Alıcı Adres)
         document.getElementById("z_alici_ad").innerText = pdfData.a_adSoyad.toUpperCase();
-        // Adres kısmını formdan gelen d_g_adres'e bağlayalım (Çünkü Alıcı adresi formda yoktu)
         document.getElementById("z_alici_adres").innerText = (pdfData.g_adres || "Adres Kayıtlı Değil").toUpperCase();
 
-        // İşlem Detayları Metni
         document.getElementById("z_ref").innerText = refKodu;
         document.getElementById("z_g_ad").innerText = pdfData.g_adSoyad.toUpperCase();
-        document.getElementById("z_a_banka").innerText = "ZİRAAT BANKASI A.Ş"; // ALAN BANKA SABİT OLSUN
+        document.getElementById("z_a_banka").innerText = "ZİRAAT BANKASI A.Ş"; 
         document.getElementById("z_a_iban").innerText = pdfData.a_iban;
-        document.getElementById("z_alici_ad2").innerText = pdfData.a_adSoyad; // lowercased by CSS
+        document.getElementById("z_alici_ad2").innerText = pdfData.a_adSoyad; 
         document.getElementById("z_aciklama").innerText = pdfData.aciklama || "Adalet bakanlığı iadesi";
         
-        // Tutar Hesaplama (Ziraat'te FAST tutarı ve komisyon ayrı gösterilir)
         const tutarSayi = parseFloat(pdfData.tutarRakam.replace('.','').replace(',','.')) || 0;
         const komisyonSayi = parseFloat(pdfData.komisyon.replace(',','.')) || 0;
-        
         const formatTutar = (sayi) => sayi.toFixed(2).replace('.', ',');
         
         document.getElementById("z_tutar_rakam").innerText = formatTutar(tutarSayi);
@@ -947,25 +932,24 @@
         document.getElementById("z_toplam_masraf").innerText = formatTutar(komisyonSayi);
         document.getElementById("z_toplam_masraf2").innerText = formatTutar(komisyonSayi);
         
-        // DEV TUTAR BOX VE ALT TOPLAM
         document.getElementById("z_dev_tutar").innerText = formatTutar(tutarSayi + komisyonSayi) + " TL";
         document.getElementById("z_dev_yazi").innerText = "( " + pdfData.tutarYazi.toUpperCase() + " Türk Lirası )";
         
-        // Hesaptan Çekilen Toplam Tutar
         document.getElementById("z_tutar_toplam").innerText = formatTutar(tutarSayi + komisyonSayi);
-        // Yazıyla Tutar (Sonuna TÜRK LİRASI ekleyip boşluksuz yazalım)
         document.getElementById("z_tutar_yazi_bitis").innerText = pdfData.tutarYazi.toUpperCase().replace(/ /g, "") + "TÜRKLİRASI"; 
-        
         document.getElementById("z_tarih_alt").innerText = tarihVeSaat;
 
         // =========================================
-        // PDF MOTORU ÇALIŞTIRMA (Görünmez Flaş)
+        // İŞTE SAĞ TARAFI KESTİRMEYEN, MOBİLİ EZEN KESİN ÇÖZÜM
         // =========================================
         const element = document.getElementById('pdf-gercek-sablon');
-        element.style.position = 'relative';
+        
+        // Şablonu daraltmasın diye "relative" YAPMIYORUZ. Absolute kalıyor. Sadece arkada sıfır noktasına alıyoruz.
         element.style.left = '0px';
+        element.style.top = '0px';
+        element.style.zIndex = '-9999';
 
-                const opt = {
+        const opt = {
             margin:       0, 
             filename:     'Ziraat_Dekont_' + pdfData.a_adSoyad.replace(/ /g, '_') + '.pdf',
             image:        { type: 'jpeg', quality: 1 },
@@ -973,17 +957,14 @@
                 scale: 2, 
                 useCORS: true, 
                 backgroundColor: '#ffffff',
-                windowWidth: 800 // İŞTE SAYFAYI KESTİRMEYEN HAYAT KURTARAN KOD
+                width: 794, // KAFASINA VURA VURA 794 PX GENİŞLİK ÇEKTİRTİYORUZ!
+                windowWidth: 794 // TELEFON EKRANINI YOK SAYDIRIYORUZ!
             }, 
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            jsPDF:        { unit: 'px', format: [794, 1123], orientation: 'portrait' } // A4 piksel ölçüleri ile ortalıyoruz!
         };
 
-
-        // PDF'i Oluştur ve İndir
         html2pdf().from(element).set(opt).save().then(() => {
-            // Tamamlanınca elementi gizli yerine postalıyoruz
-            element.style.position = 'absolute';
-            element.style.left = '-9999px';
+            element.style.left = '-9999px'; // İş bitince tekrar görünmez cehenneme yolluyoruz
             
             btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5zm4 4h-2v-2h2v2zm0-4h-2V7h2v5z"></path></svg> PDF Oluştur ve İndir`;
             btn.disabled = false;
@@ -992,15 +973,11 @@
             document.getElementById('stat-pdf').innerText = createdPdfCount;
             dekontModal.style.display = "none";
         }).catch((err) => {
-            alert("PDF motoru bir hata verdi. Sayfayı yenileyip tekrar deneyin.");
+            alert("Hata oluştu kanka, bir daha dene.");
             btn.innerText = "Tekrar Dene"; btn.disabled = false;
         });
 
     });
-
-
-
-
 
     // İlk yüklemede verileri çek
     loadIlanlar(); loadDekontlar(); loadLogs();
