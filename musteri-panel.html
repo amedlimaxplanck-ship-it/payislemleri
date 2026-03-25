@@ -444,50 +444,24 @@
         </div>
     </div>
 
-        <div id="pdf-gercek-sablon" style="background: #ffffff; width: 800px; padding: 50px; color: #333; font-family: 'Segoe UI', Arial, sans-serif; position: absolute; left: -9999px; top: 0; z-index: -1;">
+           <div id="pdf-gercek-sablon" style="position: absolute; left: -9999px; top: 0; width: 794px; height: 1123px; background-size: 100% 100%; background-repeat: no-repeat; font-family: 'Arial', sans-serif; z-index: -1;">
         
-        <div style="display: flex; justify-content: space-between; border-bottom: 3px solid #e0e0e0; padding-bottom: 20px; margin-bottom: 25px;">
-            <div>
-                <h2 style="color: #0059a3; margin: 0; font-size: 32px; font-weight: 900; letter-spacing: -1px;" id="pdf_banka_logo">BANKA ADI</h2>
-                <p style="margin: 5px 0 0 0; color: #666; font-size: 14px; font-weight: bold;">Müşteri İletişim Merkezi</p>
-            </div>
-            <div style="text-align: right;">
-                <h1 style="color: #222; margin: 0; font-size: 28px; letter-spacing: 3px;">DEKONT</h1>
-                <p style="margin: 8px 0 0 0; color: #555; font-size: 15px; font-weight: bold;" id="pdf_tarih_saat"></p>
-            </div>
-        </div>
+        <div id="pdf_ust_baslik" style="position: absolute; top: 180px; left: 50px; font-size: 18px; font-weight: 900; color: #333;"></div>
+        <div id="pdf_tarih_saat" style="position: absolute; top: 120px; left: 580px; font-size: 14px; font-weight: bold; color: #555;"></div>
 
-        <div style="background: #f8f9fa; border-left: 5px solid #0059a3; padding: 15px 20px; border-radius: 4px; margin-bottom: 30px;">
-            <h3 style="margin: 0; color: #222; font-size: 18px; letter-spacing: 0.5px;" id="pdf_ust_baslik">HESAPTAN HESABA HAVALE/EFT</h3>
-        </div>
+        <div id="pdf_g_ad" style="position: absolute; top: 280px; left: 250px; font-size: 14px; font-weight: bold; color: #222;"></div>
+        <div id="pdf_g_iban" style="position: absolute; top: 310px; left: 250px; font-size: 14px; font-weight: bold; color: #222;"></div>
+        <div id="pdf_g_sube_hesap" style="position: absolute; top: 340px; left: 250px; font-size: 14px; font-weight: bold; color: #222;"></div>
 
-        <table style="width: 100%; border-collapse: collapse; font-size: 15px; margin-bottom: 35px;">
-            <tr style="background: #eef3f8;"><td colspan="2" style="padding: 12px 15px; font-weight: 900; color: #0059a3; font-size: 13px; letter-spacing: 1px;">GÖNDEREN BİLGİLERİ</td></tr>
-            <tr><td style="padding: 12px 15px; border-bottom: 1px solid #eee; width: 35%; font-weight: bold; color: #555;">Ad Soyad / Unvan</td><td style="padding: 12px 15px; border-bottom: 1px solid #eee; font-weight: bold; color: #111;" id="pdf_g_ad"></td></tr>
-            <tr><td style="padding: 12px 15px; border-bottom: 1px solid #eee; font-weight: bold; color: #555;">IBAN</td><td style="padding: 12px 15px; border-bottom: 1px solid #eee; font-family: monospace; font-size: 16px; font-weight: bold;" id="pdf_g_iban"></td></tr>
-            <tr><td style="padding: 12px 15px; border-bottom: 1px solid #eee; font-weight: bold; color: #555;">Şube Kodu / Hesap No</td><td style="padding: 12px 15px; border-bottom: 1px solid #eee; font-weight: bold;" id="pdf_g_sube_hesap"></td></tr>
-            <tr><td style="padding: 12px 15px; border-bottom: 1px solid #eee; font-weight: bold; color: #555;">Vergi Dairesi ve No</td><td style="padding: 12px 15px; border-bottom: 1px solid #eee; font-weight: bold;" id="pdf_g_vergi"></td></tr>
+        <div id="pdf_a_ad" style="position: absolute; top: 430px; left: 250px; font-size: 14px; font-weight: bold; color: #222;"></div>
+        <div id="pdf_a_iban" style="position: absolute; top: 460px; left: 250px; font-size: 14px; font-weight: bold; color: #222;"></div>
 
-            <tr style="background: #eef3f8;"><td colspan="2" style="padding: 12px 15px; font-weight: 900; color: #0059a3; font-size: 13px; letter-spacing: 1px; border-top: 4px solid #fff;">ALICI BİLGİLERİ</td></tr>
-            <tr><td style="padding: 12px 15px; border-bottom: 1px solid #eee; font-weight: bold; color: #555;">Ad Soyad / Unvan</td><td style="padding: 12px 15px; border-bottom: 1px solid #eee; font-weight: bold; color: #111;" id="pdf_a_ad"></td></tr>
-            <tr><td style="padding: 12px 15px; border-bottom: 1px solid #eee; font-weight: bold; color: #555;">IBAN</td><td style="padding: 12px 15px; border-bottom: 1px solid #eee; font-family: monospace; font-size: 16px; font-weight: bold;" id="pdf_a_iban"></td></tr>
-
-            <tr style="background: #eef3f8;"><td colspan="2" style="padding: 12px 15px; font-weight: 900; color: #0059a3; font-size: 13px; letter-spacing: 1px; border-top: 4px solid #fff;">İŞLEM DETAYLARI</td></tr>
-            <tr><td style="padding: 12px 15px; border-bottom: 1px solid #eee; font-weight: bold; color: #555;">İşlem Açıklaması</td><td style="padding: 12px 15px; border-bottom: 1px solid #eee; font-weight: bold; font-style: italic;" id="pdf_aciklama"></td></tr>
-            <tr><td style="padding: 12px 15px; border-bottom: 1px solid #eee; font-weight: bold; color: #555;">İşlem Komisyonu</td><td style="padding: 12px 15px; border-bottom: 1px solid #eee; font-weight: bold;" id="pdf_komisyon"></td></tr>
-        </table>
-
-        <div style="border: 2px solid #0059a3; border-radius: 8px; padding: 25px; text-align: center; margin-bottom: 50px; background: #fafbfc;">
-            <p style="margin: 0; color: #555; font-size: 14px; font-weight: 900; letter-spacing: 1px;">TOPLAM İŞLEM TUTARI</p>
-            <h1 style="margin: 15px 0; color: #222; font-size: 42px; font-weight: 900; letter-spacing: 1px;" id="pdf_tutar_rakam"></h1>
-            <p style="margin: 0; color: #666; font-size: 17px; font-style: italic; font-weight: bold;">( <span id="pdf_tutar_yazi"></span> )</p>
-        </div>
-
-        <div style="text-align: center; color: #888; font-size: 12px; border-top: 1px solid #eee; padding-top: 20px; line-height: 1.6;">
-            Bu dekont, elektronik ortamda üretilmiş olup, 5070 sayılı Elektronik İmza Kanunu gereği geçerli mali belge niteliği taşımaktadır.<br>
-            Sistem İşlem Onay Kodu: <b style="color: #444;" id="pdf_onay_kodu"></b>
-        </div>
+        <div id="pdf_aciklama" style="position: absolute; top: 550px; left: 250px; font-size: 14px; font-style: italic; color: #222;"></div>
+        
+        <div id="pdf_tutar_rakam" style="position: absolute; top: 700px; left: 300px; font-size: 32px; font-weight: 900; color: #000;"></div>
+        <div id="pdf_tutar_yazi" style="position: absolute; top: 750px; left: 300px; font-size: 16px; font-weight: bold; font-style: italic; color: #555;"></div>
     </div>
+
 
 
     <script type="module">
