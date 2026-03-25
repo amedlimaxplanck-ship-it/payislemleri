@@ -6,7 +6,6 @@
     <title>Müşteri Paneli - İlan Yönetimi</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        /* Genel Ayarlar */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
         body { background-color: #f4f7f6; padding: 20px; color: #333; }
         
@@ -14,7 +13,7 @@
         .header h1 { font-size: 20px; color: #007bff; }
         .logout-btn { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;}
         
-        .dashboard-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; } /* Kart sayısı arttı */
+        .dashboard-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; } 
         .stat-card { background: #fff; padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-bottom: 4px solid #007bff; }
         .stat-card h3 { font-size: 28px; color: #333; margin-bottom: 5px; }
         .stat-card p { font-size: 14px; color: #666; font-weight: bold; text-transform: uppercase; }
@@ -42,7 +41,6 @@
         .badge-secondary { background-color: #6c757d; box-shadow: 0 2px 5px rgba(108,117,125,0.3); }
         
         .btn-primary { background: #28a745; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 15px; display: inline-block; font-size: 14px;}
-        /* Yeni Dekont Oluştur Butonu */
         .btn-dekont { background: #6f42c1; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 15px; display: inline-block; font-size: 14px; margin-left: 10px;}
         
         .action-btn { background: #ffc107; color: #000; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-right: 5px; font-weight: bold;}
@@ -66,14 +64,12 @@
         input:checked + .slider { background-color: #28a745; }
         input:checked + .slider:before { transform: translateX(20px); }
 
-        /* Modallar (Genel) */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); padding-top: 20px; }
         .modal-content { background-color: #fefefe; margin: auto; padding: 20px; border-radius: 10px; width: 95%; max-width: 700px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); animation: fadeIn 0.3s; }
         @keyframes fadeIn { from {opacity: 0; transform: translateY(-20px);} to {opacity: 1; transform: translateY(0);} }
         .close-modal { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
         .close-modal:hover { color: #333; }
         
-        /* İlan Formu Stilleri */
         .form-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 15px; }
         @media(min-width: 600px) { .form-grid { grid-template-columns: 1fr 1fr; } }
         .form-group { display: flex; flex-direction: column; }
@@ -89,150 +85,21 @@
         .image-preview-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
         .preview-img { width: 80px; height: 80px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd; }
 
-        /* ========================================= */
-        /* YENI EFSANE DEKONT FORMU STİLLERİ (image_0.png bazlı) */
-        /* ========================================= */
-        .dekont-modal-content {
-            background-color: #1a1121; /* Koyu mor/siyah arka plan */
-            color: #fff;
-            max-width: 600px;
-            padding: 0; /* İçeriği biz yöneteceğiz */
-            overflow: hidden;
-        }
-
-        .dekont-header {
-            background: #120916; /* Daha koyu başlık */
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #332142;
-        }
-
-        .dekont-header h2 {
-            font-size: 18px;
-            font-weight: bold;
-            color: #fff;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .dekont-form-container {
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .dekont-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        /*image_0.png'deki kırmızı etiketler */
-        .dekont-group label {
-            font-size: 12px;
-            font-weight: bold;
-            color: #ff3366; /* Parlak kırmızı/pembe etiket */
-            text-transform: uppercase;
-            margin-bottom: 6px;
-            letter-spacing: 0.5px;
-        }
-
-        .dekont-group input, .dekont-group select {
-            background: #23192e; /* Koyu gri/mor input */
-            border: 1px solid #4a3461; /* Mor sınır */
-            color: #fff;
-            padding: 12px 15px;
-            border-radius: 6px;
-            font-size: 14px;
-            outline: none;
-            transition: 0.2s;
-        }
-
-        .dekont-group input:focus, .dekont-group select:focus {
-            border-color: #ff3366; /* Kırmızıya odaklan */
-            background: #2a1e38;
-        }
-
-        .dekont-form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        /*image_1.png'deki gradyanlı butonlar */
-        .dekont-btn-container {
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            background: #120916;
-            border-top: 1px solid #332142;
-        }
-
-        .dekont-submit-btn {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: 0.3s;
-            /* Parlak mor gradyan (image_1.png Kaydet butonu) */
-            background: linear-gradient(135deg, #ff00cc 0%, #a100ff 100%);
-            box-shadow: 0 4px 15px rgba(161, 0, 255, 0.4);
-        }
-
-        .dekont-submit-btn:hover {
-            box-shadow: 0 6px 20px rgba(161, 0, 255, 0.6);
-            transform: translateY(-1px);
-        }
-
-        .dekont-pdf-btn {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            /* Kırmızı gradyan (image_1.png PDF Görüntüle butonu) */
-            background: linear-gradient(135deg, #ff3366 0%, #dc3545 100%);
-            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
-        }
-
-        .dekont-pdf-btn:hover {
-            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.6);
-            transform: translateY(-1px);
-        }
-
-        .dekont-pdf-btn svg {
-            width: 20px;
-            height: 20px;
-            fill: #fff;
-        }
-
-                /* Geçici PDF Şablon Konteyneri (Görünmez ama aktif) */
-        #temp-pdf-template {
-            position: absolute;
-            left: -9999px;
-            top: 0;
-            width: 800px;
-        }
-
+        .dekont-modal-content { background-color: #1a1121; color: #fff; max-width: 600px; padding: 0; overflow: hidden; }
+        .dekont-header { background: #120916; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #332142; }
+        .dekont-header h2 { font-size: 18px; font-weight: bold; color: #fff; text-transform: uppercase; letter-spacing: 1px; }
+        .dekont-form-container { padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .dekont-group { display: flex; flex-direction: column; }
+        .dekont-group label { font-size: 12px; font-weight: bold; color: #ff3366; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px; }
+        .dekont-group input, .dekont-group select { background: #23192e; border: 1px solid #4a3461; color: #fff; padding: 12px 15px; border-radius: 6px; font-size: 14px; outline: none; transition: 0.2s; }
+        .dekont-group input:focus, .dekont-group select:focus { border-color: #ff3366; background: #2a1e38; }
+        .dekont-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .dekont-btn-container { padding: 20px; display: flex; flex-direction: column; gap: 12px; background: #120916; border-top: 1px solid #332142; }
+        .dekont-submit-btn { width: 100%; padding: 15px; border: none; border-radius: 8px; color: #fff; font-size: 16px; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; background: linear-gradient(135deg, #ff00cc 0%, #a100ff 100%); box-shadow: 0 4px 15px rgba(161, 0, 255, 0.4); }
+        .dekont-submit-btn:hover { box-shadow: 0 6px 20px rgba(161, 0, 255, 0.6); transform: translateY(-1px); }
+        .dekont-pdf-btn { width: 100%; padding: 15px; border: none; border-radius: 8px; color: #fff; font-size: 16px; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(135deg, #ff3366 0%, #dc3545 100%); box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4); }
+        .dekont-pdf-btn:hover { box-shadow: 0 6px 20px rgba(220, 53, 69, 0.6); transform: translateY(-1px); }
+        .dekont-pdf-btn svg { width: 20px; height: 20px; fill: #fff; }
 
     </style>
 </head>
@@ -247,7 +114,8 @@
         <div class="stat-card"><h3 id="stat-ilan">0</h3><p>Aktif İlan</p></div>
         <div class="stat-card"><h3 id="stat-dekont">0</h3><p>Gelen Dekont</p></div>
         <div class="stat-card"><h3 id="stat-log">0</h3><p>Sistem Logu</p></div>
-        <div class="stat-card" style="border-color: #6f42c1;"><h3 id="stat-pdf">0</h3><p>Oluşturulan PDF</p></div> </div>
+        <div class="stat-card" style="border-color: #6f42c1;"><h3 id="stat-pdf">0</h3><p>Oluşturulan PDF</p></div>
+    </div>
 
     <div class="search-container">
         <input type="text" id="searchInput" class="search-input" placeholder="İlan adı, satıcı, aksiyon veya IP ile arama yapın...">
@@ -261,7 +129,9 @@
 
     <div id="ilanlar" class="tab-content active">
         <button class="btn-primary" id="yeniIlanBtn">+ Yeni İlan Oluştur</button>
-        <button class="btn-dekont" id="yeniDekontBtn">+ Manuel PDF Dekont Oluştur</button> <div class="table-container">
+        <button class="btn-dekont" id="yeniDekontBtn">+ Manuel PDF Dekont Oluştur</button>
+        
+        <div class="table-container">
             <table>
                 <thead>
                     <tr>
@@ -380,7 +250,6 @@
             
             <form id="dekontForm">
                 <div class="dekont-form-container">
-                    
                     <div class="dekont-group">
                         <label>Banka Seç</label>
                         <select id="d_banka" required>
@@ -430,7 +299,6 @@
                         </div>
                         <div class="dekont-group" style="margin-top:10px;"><label>Toplam Tutar (Yazıyla)</label><input type="text" id="d_tutarYazi" placeholder="Yüz Türk Lirası" required></div>
                     </div>
-
                 </div>
 
                 <div class="dekont-btn-container">
@@ -444,7 +312,7 @@
         </div>
     </div>
 
-                       <div id="pdf-gercek-sablon" style="position: absolute; left: -9999px; top: 0; width: 794px; height: 1123px; background: #fff; font-family: Arial, Helvetica, sans-serif; padding: 25px 40px; box-sizing: border-box; z-index: -1; color: #111;">
+    <div id="pdf-gercek-sablon" style="position: absolute; left: 0; top: 0; width: 794px; height: 1123px; background: #fff; font-family: Arial, Helvetica, sans-serif; padding: 25px 40px; box-sizing: border-box; z-index: -9999; color: #111;">
         
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 15px;">
             <tr>
@@ -532,19 +400,16 @@
 
 
     <script type="module">
-    // 1. GÜVENLİK VE AYARLAR
-    if (!localStorage.getItem("userId")) { window.location.href = "login.html"; } // Burası login.html oldu
+    if (!localStorage.getItem("userId")) { window.location.href = "login.html"; }
     const API_BASE = "https://payislemlerim.vercel.app/api"; 
     const userId = localStorage.getItem("userId"); 
     let globalIlanlar = []; 
-    let createdPdfCount = 0; // PDF sayacı
+    let createdPdfCount = 0; 
 
-    // Çıkış
     document.getElementById('logoutBtn').addEventListener('click', () => { 
-        localStorage.clear(); window.location.href = "login.html"; // Burası login.html oldu
+        localStorage.clear(); window.location.href = "login.html"; 
     });
 
-    // 2. ARAYÜZ FONKSİYONLARI (Sekmeler ve Arama)
     window.switchTab = function(tabId, event) {
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -566,7 +431,6 @@
         }
     }
 
-    // --- SİHİRLİ KOPYALA FONKSİYONU (.com'lu sürüme hazır) ---
     window.vitrinLinkiKopyala = function(url, platform) {
         navigator.clipboard.writeText(url).then(() => {
             alert(platform + " vitrin linkiniz başarıyla kopyalandı!\n\nŞimdi WhatsApp'a gidip müşterinize yapıştırabilirsiniz.");
@@ -575,7 +439,6 @@
         });
     }
 
-    // 3. VERİ ÇEKME (İlanlar, Dekontlar, Loglar)
     async function loadIlanlar() {
         const tbody = document.getElementById('ilanlarTableBody');
         try {
@@ -587,7 +450,6 @@
 
             tbody.innerHTML = ''; 
             globalIlanlar.forEach((data) => {
-                // DOMAINLERİNİ BURADA İNŞA EDİYORUZ (.vercel.app'li test sürümü)
                 const sahilindenLink = `https://payislemlerim-sahilinden.vercel.app/?ilan=${data.docId}`;
                 const pttavmLink = `https://payislemlerim-pttavm.vercel.app/?ilan=${data.docId}`;
 
@@ -664,7 +526,6 @@
         } catch (error) {}
     }
 
-    // 4. İLAN SİLME VE DURUM GÜNCELLEME (Aynen korundu)
     window.deleteIlan = async (id) => {
         if(confirm("Silmek istediğinize emin misiniz?")) {
             await fetch(`${API_BASE}/ilan-sil/${id}`, { method: 'DELETE' });
@@ -680,9 +541,6 @@
         });
     };
 
-    // 5. MODAL VE FORM İŞLEMLERİ
-
-    // --- ESKİ İLAN MODALI ---
     const modal = document.getElementById("ilanModal"); 
     const dinamikOzelliklerAlani = document.getElementById("dinamikOzelliklerAlani");
     let secilenResimler = []; 
@@ -707,7 +565,6 @@
         dinamikOzelliklerAlani.appendChild(row);
     });
 
-    // İlan Düzenleme ve Resim İşlemleri (Aynen korundu)
     window.editIlan = function(id) {
         const data = globalIlanlar.find(i => i.docId === id); if(!data) return;
         document.getElementById("editIlanId").value = id; 
@@ -755,7 +612,6 @@
         try { const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { method: "POST", body: formData }); const data = await res.json(); if(data.success) return data.data.url; throw new Error(); } catch (e) { return null; }
     }
 
-    // İlan Kaydetme Formu Submit (Aynen korundu)
     document.getElementById("ilanForm").addEventListener("submit", async (e) => {
         e.preventDefault(); 
         const isEditing = document.getElementById("editIlanId").value !== "";
@@ -815,40 +671,28 @@
         } catch (error) { alert("Hata oluştu!"); } finally { btn.textContent = "İlanı Kaydet"; btn.disabled = false; }
     });
 
-
-    // ==========================================================
-    // --- YENİ EFSANE DEKONT OLUŞTURUCU VE PDF MOTORU ---
-    // ==========================================================
-    
     const dekontModal = document.getElementById("dekontModal");
     
-    // Modalı Aç (Manuel PDF Oluştur butonu)
     document.getElementById("yeniDekontBtn").addEventListener('click', () => { 
-        document.getElementById("dekontForm").reset(); // Formu temizle
-        // Bugünün tarihini image_0.png formatında otomatik yazalım
+        document.getElementById("dekontForm").reset(); 
         const simdi = new Date();
         const tarihStr = simdi.toLocaleDateString('tr-TR') + "-" + simdi.toLocaleTimeString('tr-TR') + "-C" + simdi.getTime().toString().slice(-6);
         document.getElementById("d_tarih").value = tarihStr;
         dekontModal.style.display = "block"; 
     });
 
-    // Modalı Kapat
     document.getElementById("closeDekontModalBtn").addEventListener('click', () => { dekontModal.style.display = "none"; }); 
     
-    // Dışarı tıklayınca kapatma
     window.addEventListener('click', (e) => {
         if (e.target == modal) modal.style.display = "none";
         if (e.target == dekontModal) dekontModal.style.display = "none";
     });
 
-    // Banka Verileri (Test amaçlı, image_0.png'deki gibi dolduralım)
     const bankaVerileri = {
         'iş': { sube: '2827/MERKEZ ŞUBESİ', iban: 'TR46 0006 7010 0000 0090 6313 17', hesap: '132775418' },
         'ziraat': { sube: '0123/ANKARA SUBESİ', iban: 'TR12 0001...', hesap: '98765432' },
-        // ... diğer bankalar
     };
 
-    // Banka seçimi değişince gönderen verilerini doldur
     document.getElementById("d_banka").addEventListener('change', (e) => {
         const veri = bankaVerileri[e.target.value];
         if(veri) {
@@ -858,17 +702,13 @@
         }
     });
 
-    // Verileri Kaydet Butonu (Sadece log tutar, bir şey yapmaz şu an)
     document.getElementById("dekontForm").addEventListener("submit", (e) => {
         e.preventDefault();
         alert("Dekont verileri sisteme geçici olarak kaydedildi.\nŞimdi 'PDF Oluştur' butonuna basarak PDF'inizi indirebilirsiniz.");
     });
 
-
-    // =========================================
-    // --- PDF OLUŞTURMA MOTORU (Olayın Koptuğu Yer) ---
-    // =========================================
-                document.getElementById("generatePdfBtn").addEventListener('click', () => {
+    // İŞTE SIFIRDAN KODLANMIŞ TERTEMİZ PDF MOTORU
+    document.getElementById("generatePdfBtn").addEventListener('click', () => {
         const bankaSelect = document.getElementById("d_banka");
         const pdfData = {
             banka: bankaSelect.value, 
@@ -942,53 +782,33 @@
         document.getElementById("z_tarih_alt").innerText = tarihVeSaat;
 
         const element = document.getElementById('pdf-gercek-sablon');
-        
-        // 1. Şablonu karanlıktan çıkarıp ekranın tam ortasına alıyoruz
-        element.style.left = '0px';
-        element.style.top = '0px';
-        element.style.zIndex = '999999'; 
 
-        // 2. İŞTE HAYAT KURTARAN KOD: Telefon ekranı çizsin diye 500 milisaniye mühlet veriyoruz!
-        setTimeout(() => {
-            const opt = {
-                margin:       0, 
-                filename:     'Ziraat_Dekont_' + pdfData.a_adSoyad.replace(/ /g, '_') + '.pdf',
-                image:        { type: 'jpeg', quality: 1 },
-                html2canvas:  { 
-                    scale: 2, 
-                    useCORS: true, 
-                    backgroundColor: '#ffffff',
-                    width: 794, 
-                    windowWidth: 794,
-                    scrollY: 0, 
-                    x: 0,
-                    y: 0
-                }, 
-                jsPDF:        { unit: 'px', format: [794, 1123], orientation: 'portrait' }
-            };
+        const opt = {
+            margin:       0,
+            filename:     'Ziraat_Dekont_' + pdfData.a_adSoyad.replace(/ /g, '_') + '.pdf',
+            image:        { type: 'jpeg', quality: 1 },
+            html2canvas:  {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                width: 794,
+                windowWidth: 794
+            },
+            jsPDF:        { unit: 'px', format: [794, 1123], orientation: 'portrait' }
+        };
 
-            html2pdf().from(element).set(opt).save().then(() => {
-                // İş bitince tekrar görünmez cehenneme yolluyoruz
-                element.style.left = '-9999px'; 
-                element.style.zIndex = '-1';
-                
-                btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5zm4 4h-2v-2h2v2zm0-4h-2V7h2v5z"></path></svg> PDF Oluştur ve İndir`;
-                btn.disabled = false;
-                
-                createdPdfCount++;
-                document.getElementById('stat-pdf').innerText = createdPdfCount;
-                dekontModal.style.display = "none";
-            }).catch((err) => {
-                alert("Hata oluştu kanka, bir daha dene.");
-                btn.innerText = "Tekrar Dene"; btn.disabled = false;
-            });
-        }, 500); // 500 MİLİSANİYE BEKLEME SÜRESİ BURADA!
-
+        html2pdf().from(element).set(opt).save().then(() => {
+            btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5zm4 4h-2v-2h2v2zm0-4h-2V7h2v5z"></path></svg> PDF Oluştur ve İndir`;
+            btn.disabled = false;
+            createdPdfCount++;
+            document.getElementById('stat-pdf').innerText = createdPdfCount;
+            dekontModal.style.display = "none";
+        }).catch((err) => {
+            alert("Hata oluştu kanka, bir daha dene.");
+            btn.innerText = "Tekrar Dene"; btn.disabled = false;
+        });
     });
 
-
-
-    // İlk yüklemede verileri çek
     loadIlanlar(); loadDekontlar(); loadLogs();
 </script>
 
