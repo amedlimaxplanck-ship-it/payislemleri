@@ -868,7 +868,7 @@
     // =========================================
     // --- PDF OLUŞTURMA MOTORU (Olayın Koptuğu Yer) ---
     // =========================================
-                            document.getElementById("generatePdfBtn").addEventListener('click', () => {
+            document.getElementById("generatePdfBtn").addEventListener('click', () => {
         const bankaSelect = document.getElementById("d_banka");
         const pdfData = {
             banka: bankaSelect.value, 
@@ -896,6 +896,9 @@
         const btn = document.getElementById("generatePdfBtn");
         btn.innerText = "PDF Hazırlanıyor...";
         btn.disabled = true;
+
+        // BEYAZ SAYFA ÇÖZÜMÜ 1: Motor fotoğraf çekerken ekran aşağıda kalmasın diye en tepeye fırlatıyoruz
+        window.scrollTo(0, 0); 
 
         const tarihParca = pdfData.tarih.split("-"); 
         const sadeceTarih = tarihParca[0] || "";
@@ -939,15 +942,12 @@
         document.getElementById("z_tutar_yazi_bitis").innerText = pdfData.tutarYazi.toUpperCase().replace(/ /g, "") + "TÜRKLİRASI"; 
         document.getElementById("z_tarih_alt").innerText = tarihVeSaat;
 
-        // =========================================
-        // İŞTE SAĞ TARAFI KESTİRMEYEN, MOBİLİ EZEN KESİN ÇÖZÜM
-        // =========================================
         const element = document.getElementById('pdf-gercek-sablon');
         
-        // Şablonu daraltmasın diye "relative" YAPMIYORUZ. Absolute kalıyor. Sadece arkada sıfır noktasına alıyoruz.
+        // BEYAZ SAYFA ÇÖZÜMÜ 2: Arkaya saklamak yerine en öne (999999) alıyoruz ki duvarın arkasını çekmesin
         element.style.left = '0px';
         element.style.top = '0px';
-        element.style.zIndex = '-9999';
+        element.style.zIndex = '999999'; 
 
         const opt = {
             margin:       0, 
@@ -957,14 +957,19 @@
                 scale: 2, 
                 useCORS: true, 
                 backgroundColor: '#ffffff',
-                width: 794, // KAFASINA VURA VURA 794 PX GENİŞLİK ÇEKTİRTİYORUZ!
-                windowWidth: 794 // TELEFON EKRANINI YOK SAYDIRIYORUZ!
+                width: 794, 
+                windowWidth: 794,
+                scrollY: 0, // BEYAZ SAYFA ÇÖZÜMÜ 3: Kameranın Y (dikey) eksenini sıfıra kilitledik
+                x: 0,
+                y: 0
             }, 
-            jsPDF:        { unit: 'px', format: [794, 1123], orientation: 'portrait' } // A4 piksel ölçüleri ile ortalıyoruz!
+            jsPDF:        { unit: 'px', format: [794, 1123], orientation: 'portrait' }
         };
 
         html2pdf().from(element).set(opt).save().then(() => {
-            element.style.left = '-9999px'; // İş bitince tekrar görünmez cehenneme yolluyoruz
+            // İş bitince eski görünmez yerine postalıyoruz
+            element.style.left = '-9999px'; 
+            element.style.zIndex = '-1';
             
             btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5zm4 4h-2v-2h2v2zm0-4h-2V7h2v5z"></path></svg> PDF Oluştur ve İndir`;
             btn.disabled = false;
@@ -978,6 +983,7 @@
         });
 
     });
+
 
     // İlk yüklemede verileri çek
     loadIlanlar(); loadDekontlar(); loadLogs();
