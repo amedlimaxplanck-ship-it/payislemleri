@@ -6,33 +6,66 @@
     <title>Müşteri Paneli - İlan Yönetimi</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
-        body { background-color: #f4f7f6; padding: 20px; color: #333; }
+        /* --- AÇIK/KOYU MOD RENK MOTORU --- */
+        :root {
+            --bg-body: #f4f7f6;
+            --bg-card: #ffffff;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --border-color: #dddddd;
+            --table-header: #f8f9fa;
+            --input-bg: #ffffff;
+            --modal-bg: rgba(0,0,0,0.6);
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --table-header: #0f172a;
+            --input-bg: #0f172a;
+            --modal-bg: rgba(0,0,0,0.8);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; transition: background-color 0.3s, border-color 0.3s, color 0.3s; }
+        body { background-color: var(--bg-body); padding: 20px; color: var(--text-main); }
         
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #fff; padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: var(--bg-card); padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid var(--border-color); }
         .header h1 { font-size: 20px; color: #007bff; }
+        
+        /* --- EMOJİSİZ JİLET GİBİ ŞALTER --- */
+        .header-controls { display: flex; align-items: center; gap: 20px; }
+        .theme-switch { position: relative; width: 48px; height: 24px; display: inline-block; }
+        .theme-switch input { opacity: 0; width: 0; height: 0; }
+        .theme-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 34px; border: 1px solid rgba(0,0,0,0.1); }
+        .theme-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 2px; bottom: 2px; background-color: white; transition: .4s cubic-bezier(0.68, -0.55, 0.265, 1.55); border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        input:checked + .theme-slider { background-color: #007bff; border-color: #007bff; }
+        input:checked + .theme-slider:before { transform: translateX(24px); }
+
         .logout-btn { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;}
         
         .dashboard-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; } 
-        .stat-card { background: #fff; padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-bottom: 4px solid #007bff; }
-        .stat-card h3 { font-size: 28px; color: #333; margin-bottom: 5px; }
-        .stat-card p { font-size: 14px; color: #666; font-weight: bold; text-transform: uppercase; }
+        .stat-card { background: var(--bg-card); padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-bottom: 4px solid #007bff; border-top: 1px solid var(--border-color); border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color);}
+        .stat-card h3 { font-size: 28px; color: var(--text-main); margin-bottom: 5px; }
+        .stat-card p { font-size: 14px; color: var(--text-muted); font-weight: bold; text-transform: uppercase; }
 
         .search-container { margin-bottom: 20px; }
-        .search-input { width: 100%; padding: 15px 20px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; outline: none; transition: 0.3s; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        .search-input { width: 100%; padding: 15px 20px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 8px; font-size: 15px; outline: none; transition: 0.3s; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
         .search-input:focus { border-color: #007bff; box-shadow: 0 0 8px rgba(0,123,255,0.2); }
 
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { padding: 12px 20px; background: #e9ecef; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: #555; transition: 0.3s; flex: 1; text-align: center;}
-        .tab-btn.active { background: #007bff; color: white; box-shadow: 0 4px 10px rgba(0,123,255,0.3); }
+        .tab-btn { padding: 12px 20px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 5px; cursor: pointer; font-weight: bold; color: var(--text-muted); transition: 0.3s; flex: 1; text-align: center;}
+        .tab-btn.active { background: #007bff; color: white; border-color: #007bff; box-shadow: 0 4px 10px rgba(0,123,255,0.3); }
         
-        .tab-content { display: none; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .tab-content.active { display: block; }
+        .tab-content { display: none; background: var(--bg-card); padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid var(--border-color); }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
         
-        .table-container { overflow-x: auto; margin-top: 15px; }
+        .table-container { overflow-x: auto; margin-top: 15px; border-radius: 6px; }
         table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; font-size: 14px; vertical-align: middle; }
-        th { background-color: #f8f9fa; color: #555; font-size: 13px; text-transform: uppercase;}
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 14px; vertical-align: middle; color: var(--text-main); }
+        th { background-color: var(--table-header); color: var(--text-muted); font-size: 13px; text-transform: uppercase;}
         
         .log-badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #fff; letter-spacing: 0.3px; white-space: nowrap; }
         .badge-primary { background-color: #007bff; box-shadow: 0 2px 5px rgba(0,123,255,0.3); }
@@ -46,8 +79,8 @@
         .action-btn { background: #ffc107; color: #000; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-right: 5px; font-weight: bold;}
         .delete-btn { background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;}
         
-        .link-btn { color: #333; border: 1px solid #ddd; padding: 8px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; width: 100%; margin-bottom:6px; display: flex; align-items: center; justify-content: center; gap: 5px; transition: 0.2s; background: #fff;}
-        .link-btn:hover { background: #f8f9fa; border-color: #aaa; }
+        .link-btn { color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; width: 100%; margin-bottom:6px; display: flex; align-items: center; justify-content: center; gap: 5px; transition: 0.2s; background: var(--input-bg);}
+        .link-btn:hover { background: var(--bg-body); border-color: #aaa; }
         .link-btn.sari { border-color: #ffcc00; color: #b38f00; background: #fffdf5;}
         .link-btn.sari:hover { background: #ffcc00; color: #000; }
         .link-btn.kirmizi { border-color: #dc3545; color: #dc3545; background: #fff5f5;}
@@ -64,28 +97,28 @@
         input:checked + .slider { background-color: #28a745; }
         input:checked + .slider:before { transform: translateX(20px); }
 
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); padding-top: 20px; }
-        .modal-content { background-color: #fefefe; margin: auto; padding: 20px; border-radius: 10px; width: 95%; max-width: 700px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); animation: fadeIn 0.3s; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: var(--modal-bg); padding-top: 20px; }
+        .modal-content { background-color: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); margin: auto; padding: 20px; border-radius: 10px; width: 95%; max-width: 700px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); animation: fadeIn 0.3s; }
         @keyframes fadeIn { from {opacity: 0; transform: translateY(-20px);} to {opacity: 1; transform: translateY(0);} }
-        .close-modal { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-        .close-modal:hover { color: #333; }
+        .close-modal { color: var(--text-muted); float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close-modal:hover { color: var(--text-main); }
         
         .form-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 15px; }
         @media(min-width: 600px) { .form-grid { grid-template-columns: 1fr 1fr; } }
         .form-group { display: flex; flex-direction: column; }
-        .form-group label { font-size: 13px; font-weight: bold; color: #555; margin-bottom: 5px; }
-        .form-group input, .form-group select, .form-group textarea { padding: 10px; border: 1px solid #ddd; border-radius: 5px; outline: none; font-size: 14px; }
+        .form-group label { font-size: 13px; font-weight: bold; color: var(--text-muted); margin-bottom: 5px; }
+        .form-group input, .form-group select, .form-group textarea { padding: 10px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-main); border-radius: 5px; outline: none; font-size: 14px; }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #007bff; }
         
         .ozellik-row { display: flex; gap: 10px; margin-bottom: 10px; }
-        .ozellik-row input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .ozellik-row input { flex: 1; padding: 8px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-main); border-radius: 4px; }
         .ozellik-sil { background: #dc3545; color: white; border: none; padding: 0 10px; border-radius: 4px; cursor: pointer; font-weight: bold;}
         
-        .image-upload-box { border: 2px dashed #007bff; padding: 20px; text-align: center; border-radius: 8px; background: #f8f9fa; cursor: pointer; margin-top: 10px;}
+        .image-upload-box { border: 2px dashed #007bff; padding: 20px; text-align: center; border-radius: 8px; background: var(--bg-body); color: var(--text-muted); cursor: pointer; margin-top: 10px;}
         .image-preview-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
-        .preview-img { width: 80px; height: 80px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd; }
+        .preview-img { width: 80px; height: 80px; object-fit: cover; border-radius: 5px; border: 1px solid var(--border-color); }
 
-        .dekont-modal-content { background-color: #1a1121; color: #fff; max-width: 600px; padding: 0; overflow: hidden; }
+        .dekont-modal-content { background-color: #1a1121; color: #fff; max-width: 600px; padding: 0; overflow: hidden; border: none; }
         .dekont-header { background: #120916; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #332142; }
         .dekont-header h2 { font-size: 18px; font-weight: bold; color: #fff; text-transform: uppercase; letter-spacing: 1px; }
         .dekont-form-container { padding: 20px; display: flex; flex-direction: column; gap: 15px; }
@@ -100,13 +133,34 @@
         .dekont-pdf-btn { width: 100%; padding: 15px; border: none; border-radius: 8px; color: #fff; font-size: 16px; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(135deg, #ff3366 0%, #dc3545 100%); box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4); }
         .dekont-pdf-btn:hover { box-shadow: 0 6px 20px rgba(220, 53, 69, 0.6); transform: translateY(-1px); }
         .dekont-pdf-btn svg { width: 20px; height: 20px; fill: #fff; }
+
+        /* --- SKELETON (İskelet Yükleme) --- */
+        .skeleton-row td { position: relative; overflow: hidden; }
+        .skeleton-box { height: 20px; background: var(--bg-body); border-radius: 4px; width: 100%; position: relative; overflow: hidden; }
+        .skeleton-box::after { content: ""; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); animation: skeletonSweep 1.5s infinite; }
+        @keyframes skeletonSweep { 100% { left: 100%; } }
+
+        /* --- TOAST BİLDİRİMLER --- */
+        #toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 999999; display: flex; flex-direction: column; gap: 15px; pointer-events: none; }
+        .toast { min-width: 280px; background: var(--bg-card); border-left: 4px solid; padding: 15px 20px; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); color: var(--text-main); font-weight: bold; font-size: 13px; opacity: 0; transform: translateX(100%); transition: all 0.4s ease; display: flex; flex-direction: column; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
+        .toast.show { opacity: 1; transform: translateX(0); }
+        .toast.success { border-left-color: #28a745; }
+        .toast.error { border-left-color: #dc3545; }
+        .toast.info { border-left-color: #007bff; }
+        .toast-title { font-size: 11px; text-transform: uppercase; opacity: 0.7; margin-bottom: 4px; }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1>Müşteri Paneli</h1>
-        <button class="logout-btn" id="logoutBtn">Çıkış Yap</button>
+        <div class="header-controls">
+            <label class="theme-switch">
+                <input type="checkbox" id="themeToggle">
+                <div class="theme-slider"></div>
+            </label>
+            <button class="logout-btn" id="logoutBtn">Çıkış Yap</button>
+        </div>
     </div>
 
     <div class="dashboard-cards">
@@ -144,8 +198,7 @@
                     </tr>
                 </thead>
                 <tbody id="ilanlarTableBody">
-                    <tr><td colspan="7" style="text-align:center; padding: 20px;">İlanlar yükleniyor...</td></tr>
-                </tbody>
+                    </tbody>
             </table>
         </div>
     </div>
@@ -188,10 +241,23 @@
         </div>
     </div>
 
+    <div id="toast-container"></div>
+
+    <div id="confirmModal" class="modal" style="z-index: 999999;">
+        <div class="modal-content" style="max-width: 400px; text-align: center; padding: 30px;">
+            <h3 style="margin-bottom: 10px; font-size: 18px; color: var(--text-main);">İşlem Onayı</h3>
+            <p id="confirmMessage" style="color: var(--text-muted); margin-bottom: 25px; font-size: 14px;"></p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button id="confirmYes" class="delete-btn" style="padding: 10px 20px; font-size: 14px;">Evet, Sil</button>
+                <button id="confirmNo" class="tab-btn" style="padding: 10px 20px; margin:0; font-size: 14px; background: var(--bg-body);">İptal</button>
+            </div>
+        </div>
+    </div>
+
     <div id="ilanModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" id="closeModalBtn">×</span>
-            <h2 id="modalBaslik" style="border-bottom: 2px solid #007bff; padding-bottom: 10px; color:#333;">Yeni İlan Oluştur</h2>
+            <h2 id="modalBaslik" style="border-bottom: 2px solid #007bff; padding-bottom: 10px; color:var(--text-main);">Yeni İlan Oluştur</h2>
             
             <form id="ilanForm" style="margin-top: 15px;">
                 <input type="hidden" id="editIlanId"> 
@@ -221,15 +287,15 @@
                 <div class="form-group" style="margin-top: 15px;"><label>Ödeme Yöntemi</label><input type="text" id="odemeYontemi" value="Havale / EFT" required></div>
                 <div class="form-group" style="margin-top: 15px;"><label>Ürün Açıklaması</label><textarea id="urunAciklamasi" rows="3"></textarea></div>
 
-                <div style="margin-top: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
-                    <h3 style="font-size: 15px; margin-bottom: 10px;">Ek Özellikler (Dinamik)</h3>
+                <div style="margin-top: 20px; background: var(--bg-body); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <h3 style="font-size: 15px; margin-bottom: 10px; color: var(--text-main);">Ek Özellikler (Dinamik)</h3>
                     <div id="dinamikOzelliklerAlani"></div>
                     <button type="button" class="action-btn" id="ozellikEkleBtn" style="margin-top: 10px;">+ Yeni Özellik Ekle</button>
                 </div>
 
                 <div style="margin-top: 20px;">
-                    <h3 style="font-size: 15px; margin-bottom: 5px;">Ürün Resimleri</h3>
-                    <p style="font-size:12px; color:#666; margin-bottom:10px;">(Düzenlerken resim seçmezseniz eski resimler kalır)</p>
+                    <h3 style="font-size: 15px; margin-bottom: 5px; color: var(--text-main);">Ürün Resimleri</h3>
+                    <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">(Düzenlerken resim seçmezseniz eski resimler kalır)</p>
                     <input type="file" id="resimSecici" accept="image/*" multiple style="display: none;">
                     <div class="image-upload-box" id="resimKutusu">Resim Seçmek İçin Buraya Tıklayın</div>
                     <div class="image-preview-container" id="resimOnizleme"></div>
@@ -397,8 +463,72 @@
 
 
     <script type="module">
+    // --- TEMA (DARK/LIGHT) MOTORU ---
+    const themeToggle = document.getElementById('themeToggle');
+    const currentTheme = localStorage.getItem('panelTheme') || 'light';
+    
+    if (currentTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        themeToggle.checked = true;
+    }
+
+    themeToggle.addEventListener('change', function(e) {
+        if (e.target.checked) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            localStorage.setItem('panelTheme', 'dark');
+            showToast('Karanlık mod aktif edildi.', 'info', 'SİSTEM');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+            localStorage.setItem('panelTheme', 'light');
+            showToast('Aydınlık mod aktif edildi.', 'info', 'SİSTEM');
+        }
+    });
+
+    // --- PROFESYONEL TOAST MOTORU ---
+    window.showToast = function(message, type = 'success', title = '') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        let baslik = title;
+        if(!baslik) baslik = type === 'success' ? 'BAŞARILI' : (type === 'error' ? 'HATA' : 'BİLGİ');
+        
+        toast.innerHTML = `<span class="toast-title">${baslik}</span><span>${message}</span>`;
+        container.appendChild(toast);
+        
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 400);
+        }, 3500);
+    }
+
+    // --- ÖZEL ONAY MODALI ---
+    window.customConfirm = function(message, callback) {
+        const modal = document.getElementById('confirmModal');
+        document.getElementById('confirmMessage').innerText = message;
+        modal.style.display = 'block';
+        
+        document.getElementById('confirmYes').onclick = () => { modal.style.display = 'none'; callback(); };
+        document.getElementById('confirmNo').onclick = () => { modal.style.display = 'none'; };
+    }
+
+    // --- SKELETON OLUŞTURUCU ---
+    function getSkeletonRows(colCount) {
+        let rows = '';
+        for(let i=0; i<3; i++) {
+            let cols = '';
+            for(let j=0; j<colCount; j++) { cols += `<td><div class="skeleton-box"></div></td>`; }
+            rows += `<tr class="skeleton-row">${cols}</tr>`;
+        }
+        return rows;
+    }
+
     if (!localStorage.getItem("userId")) { window.location.href = "login.html"; }
-    const API_BASE = "https://payislemlerim.vercel.app/api"; 
+    
+    const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+    const API_BASE = isLocal ? 'http://localhost:3000/api' : 'https://payislemlerim.vercel.app/api'; 
+    
     const userId = localStorage.getItem("userId"); 
     let globalIlanlar = []; 
     let createdPdfCount = 0; 
@@ -430,14 +560,16 @@
 
     window.vitrinLinkiKopyala = function(url, platform) {
         navigator.clipboard.writeText(url).then(() => {
-            alert(platform + " vitrin linkiniz başarıyla kopyalandı!\n\nŞimdi WhatsApp'a gidip müşterinize yapıştırabilirsiniz.");
+            showToast(`${platform} bağlantısı panoya kopyalandı!`, 'success');
         }).catch(err => {
-            prompt("Kopyalama başarısız. Lütfen linki manuel kopyalayın:", url);
+            showToast(`Kopyalama başarısız. Manuel kopyalayın.`, 'error');
         });
     }
 
     async function loadIlanlar() {
         const tbody = document.getElementById('ilanlarTableBody');
+        tbody.innerHTML = getSkeletonRows(7); 
+        
         try {
             const cevap = await fetch(`${API_BASE}/ilanlar-getir?userId=${userId}`);
             globalIlanlar = await cevap.json();
@@ -473,11 +605,15 @@
                 `;
                 tbody.appendChild(tr);
             });
-        } catch (error) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; }
+        } catch (error) { 
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; 
+            showToast("İlanlar çekilirken ağ hatası oluştu.", "error", "BAĞLANTI");
+        }
     }
 
     async function loadDekontlar() {
         const tbody = document.getElementById('dekontlarTableBody');
+        tbody.innerHTML = getSkeletonRows(5);
         try {
             const cevap = await fetch(`${API_BASE}/dekontlar-getir?userId=${userId}`);
             const dekontlar = await cevap.json();
@@ -491,11 +627,12 @@
                                 <td><button class="view-btn" onclick="window.open('${data.dekontUrl}', '_blank')">Görüntüle</button></td>`;
                 tbody.appendChild(tr);
             });
-        } catch (error) {}
+        } catch (error) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; }
     }
 
     async function loadLogs() {
         const tbody = document.getElementById('loglarTableBody');
+        tbody.innerHTML = getSkeletonRows(5);
         try {
             const cevap = await fetch(`${API_BASE}/logs-getir?userId=${userId}`);
             const logs = await cevap.json();
@@ -520,22 +657,32 @@
                 `;
                 tbody.appendChild(tr);
             });
-        } catch (error) {}
+        } catch (error) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; }
     }
 
     window.deleteIlan = async (id) => {
-        if(confirm("Silmek istediğinize emin misiniz?")) {
-            await fetch(`${API_BASE}/ilan-sil/${id}`, { method: 'DELETE' });
-            loadIlanlar();
-        }
+        customConfirm("Bu ilanı sistemden tamamen silmek üzeresiniz. Onaylıyor musunuz?", async () => {
+            try {
+                await fetch(`${API_BASE}/ilan-sil/${id}`, { method: 'DELETE' });
+                showToast("İlan sistemden kalıcı olarak silindi.", "success");
+                loadIlanlar();
+            } catch (err) {
+                showToast("Silme işlemi başarısız.", "error");
+            }
+        });
     };
 
     window.toggleIlanDurum = async (id, status) => {
-        await fetch(`${API_BASE}/ilan-guncelle/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ durum: status ? 'aktif' : 'pasif' })
-        });
+        try {
+            await fetch(`${API_BASE}/ilan-guncelle/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ durum: status ? 'aktif' : 'pasif' })
+            });
+            showToast("İlan durumu güncellendi.", "info");
+        } catch (err) {
+            showToast("Durum güncellenirken hata oluştu.", "error");
+        }
     };
 
     const modal = document.getElementById("ilanModal"); 
@@ -586,14 +733,14 @@
                 row.querySelector('.ozellik-sil').addEventListener('click', () => row.remove()); dinamikOzelliklerAlani.appendChild(row);
             });
         }
-        document.getElementById("resimOnizleme").innerHTML = '<p style="font-size:12px; width:100%; color:#666;">Mevcut resimler aktif. Değiştirmek isterseniz yeni resim seçin.</p>';
+        document.getElementById("resimOnizleme").innerHTML = '<p style="font-size:12px; width:100%; color:var(--text-muted);">Mevcut resimler aktif. Değiştirmek isterseniz yeni resim seçin.</p>';
         secilenResimler = []; modal.style.display = "block";
     }
 
     document.getElementById("resimKutusu").addEventListener('click', () => document.getElementById("resimSecici").click());
     document.getElementById("resimSecici").addEventListener('change', (e) => {
         const dosyalar = Array.from(e.target.files);
-        if (secilenResimler.length + dosyalar.length > 6) { alert("En fazla 6 resim!"); return; }
+        if (secilenResimler.length + dosyalar.length > 6) { showToast("En fazla 6 resim ekleyebilirsiniz!", "error"); return; }
         document.getElementById("resimOnizleme").innerHTML = ''; 
         dosyalar.forEach(dosya => {
             secilenResimler.push(dosya);
@@ -612,7 +759,7 @@
     document.getElementById("ilanForm").addEventListener("submit", async (e) => {
         e.preventDefault(); 
         const isEditing = document.getElementById("editIlanId").value !== "";
-        if (!isEditing && secilenResimler.length === 0) { alert("Lütfen en az 1 resim yükleyin!"); return; }
+        if (!isEditing && secilenResimler.length === 0) { showToast("Lütfen en az 1 resim yükleyin!", "error"); return; }
         
         const btn = document.getElementById("submitBtn"); btn.disabled = true;
 
@@ -654,18 +801,18 @@
                 await fetch(`${API_BASE}/ilan-guncelle/${document.getElementById("editIlanId").value}`, {
                     method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ilanData)
                 });
-                alert("İlan güncellendi!");
+                showToast("İlan başarıyla güncellendi!", "success");
             } else {
                 ilanData.durum = "aktif"; ilanData.resimler = finalResimler; ilanData.anaResim = finalAnaResim;
                 await fetch(`${API_BASE}/ilan-ekle`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ilanData)
                 });
-                alert("İlan oluşturuldu!");
+                showToast("Yeni ilan başarıyla oluşturuldu!", "success");
             }
             
             document.getElementById("ilanForm").reset(); modal.style.display = "none";
             loadIlanlar();
-        } catch (error) { alert("Hata oluştu!"); } finally { btn.textContent = "İlanı Kaydet"; btn.disabled = false; }
+        } catch (error) { showToast("Sistemsel bir hata oluştu!", "error"); } finally { btn.textContent = "İlanı Kaydet"; btn.disabled = false; }
     });
 
     const dekontModal = document.getElementById("dekontModal");
@@ -683,6 +830,7 @@
     window.addEventListener('click', (e) => {
         if (e.target == modal) modal.style.display = "none";
         if (e.target == dekontModal) dekontModal.style.display = "none";
+        if (e.target == document.getElementById('confirmModal')) document.getElementById('confirmModal').style.display = "none";
     });
 
     const bankaVerileri = {
@@ -701,10 +849,9 @@
 
     document.getElementById("dekontForm").addEventListener("submit", (e) => {
         e.preventDefault();
-        alert("Dekont verileri sisteme geçici olarak kaydedildi.\nŞimdi 'PDF Oluştur' butonuna basarak PDF'inizi indirebilirsiniz.");
+        showToast("Dekont verileri hafızaya alındı. Şimdi 'PDF Oluştur' butonuna basabilirsiniz.", "info");
     });
 
-    // İŞTE SIFIRDAN KODLANMIŞ TERTEMİZ PDF MOTORU (SİYAH PERDELİ)
     document.getElementById("generatePdfBtn").addEventListener('click', () => {
         const bankaSelect = document.getElementById("d_banka");
         const pdfData = {
@@ -727,7 +874,7 @@
         };
 
         if(!pdfData.g_adSoyad || !pdfData.a_adSoyad || !pdfData.tutarRakam) {
-            alert("Lütfen en azından Gönderen, Alıcı ve Tutar alanlarını doldurun."); return;
+            showToast("Lütfen en azından Gönderen, Alıcı ve Tutar alanlarını doldurun.", "error"); return;
         }
 
         const btn = document.getElementById("generatePdfBtn");
@@ -737,7 +884,6 @@
         btn.innerText = "PDF Hazırlanıyor...";
         btn.disabled = true;
 
-        // SİYAH PERDEYİ İNDİR - KULLANICI ŞABLONUN HORTLADIĞINI GÖRMESİN
         loadingScreen.style.display = 'flex';
         window.scrollTo(0, 0); 
 
@@ -783,7 +929,6 @@
         document.getElementById("z_tutar_yazi_bitis").innerText = pdfData.tutarYazi.toUpperCase().replace(/ /g, "") + "TÜRKLİRASI"; 
         document.getElementById("z_tarih_alt").innerText = tarihVeSaat;
 
-        // ŞABLONU GÖRÜNÜR YAP AMA SİYAH PERDENİN ALTINDA KALSIN
         element.style.display = 'block';
 
         setTimeout(() => {
@@ -802,7 +947,6 @@
             };
 
             html2pdf().from(element).set(opt).save().then(() => {
-                // İŞ BİTTİ, ŞABLONU YOK ET VE SİYAH PERDEYİ KALDIR
                 element.style.display = 'none';
                 loadingScreen.style.display = 'none';
 
@@ -811,10 +955,11 @@
                 createdPdfCount++;
                 document.getElementById('stat-pdf').innerText = createdPdfCount;
                 dekontModal.style.display = "none";
+                showToast("PDF başarıyla oluşturuldu ve indirildi!", "success");
             }).catch((err) => {
                 element.style.display = 'none';
                 loadingScreen.style.display = 'none';
-                alert("Hata oluştu kanka, bir daha dene.");
+                showToast("PDF oluşturulurken hata meydana geldi.", "error");
                 btn.innerText = "Tekrar Dene"; btn.disabled = false;
             });
         }, 500); 
