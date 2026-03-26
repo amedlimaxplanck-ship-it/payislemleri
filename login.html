@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Girişi</title>
+    <title>Sistem Girişi | Güvenli Erişim Protokolü</title>
     <style>
         * {
             box-sizing: border-box;
@@ -11,96 +11,312 @@
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+        
         body {
-            background-color: #f4f7f6;
+            /* Zifiri Karanlık Ana Arka Plan */
+            background-color: #050505;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            color: #f8fafc;
+            overflow: hidden;
+            position: relative;
         }
+
+        /* --- AMBIENT GLOW (Arka Plandaki Uçuşan Sisler) --- */
+        .glow-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: 1;
+            opacity: 0.4;
+            animation: floatGlow 25s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glow-1 {
+            width: 500px; height: 500px;
+            background: #1e3a8a; /* Derin Gece Mavisi */
+            top: -150px; left: -200px;
+        }
+
+        .glow-2 {
+            width: 450px; height: 450px;
+            background: #4c1d95; /* Koyu Lüks Mor */
+            bottom: -150px; right: -150px;
+            animation-delay: -7s;
+        }
+
+        @keyframes floatGlow {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(60px, 40px) scale(1.1); }
+            100% { transform: translate(-40px, -60px) scale(0.9); }
+        }
+
+        /* --- TAKIMYILDIZ AĞI (Moving Constellation Network) --- */
+        .constellation {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 2;
+            opacity: 0.1;
+            animation: moveNetwork 60s linear infinite;
+        }
+
+        @keyframes moveNetwork {
+            from { background-position: 0 0; }
+            to { background-position: 500px 500px; }
+        }
+
+        /* Canlı Sistem Saati ve Güvenlik İbaresi */
+        .system-clock {
+            position: absolute;
+            top: 25px;
+            right: 35px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            color: #475569;
+            letter-spacing: 1px;
+            text-align: right;
+            z-index: 20;
+            line-height: 1.6;
+        }
+
+        .system-clock span.secure { color: #10b981; font-weight: bold; }
+        .system-clock span.time { color: #f8fafc; font-weight: bold; }
+
+        .status-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            background-color: #10b981;
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 10px #10b981;
+            animation: pulse 2s infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.5; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); opacity: 0.5; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* Ana Giriş Kutusu (Gerçek Buzlu Cam) */
         .login-container {
-            background-color: #ffffff;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            background-color: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            padding: 55px 45px;
+            border-radius: 20px;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             text-align: center;
+            position: relative;
+            z-index: 10;
+            animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
         .login-container h2 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 24px;
+            color: #f1f5f9;
+            margin-bottom: 5px;
+            font-size: 20px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
+
         .login-container p {
-            color: #777;
-            margin-bottom: 30px;
-            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 45px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
         }
+
         .input-group {
-            margin-bottom: 20px;
+            margin-bottom: 35px;
             text-align: left;
+            position: relative;
         }
+
+        .input-badge {
+            position: absolute;
+            top: -24px;
+            right: 0;
+            font-size: 10px;
+            color: #334155;
+            font-family: 'Courier New', Courier, monospace;
+            letter-spacing: 1.5px;
+        }
+
         .input-group input {
             width: 100%;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
+            padding: 18px;
+            background-color: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            color: #fff; 
+            font-size: 24px; 
             outline: none;
-            transition: border-color 0.3s;
+            transition: all 0.3s;
             text-align: center;
-            letter-spacing: 2px;
+            letter-spacing: 12px; 
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
         }
+
         .input-group input:focus {
-            border-color: #007bff;
+            border-color: #3b82f6;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 0 25px rgba(59, 130, 246, 0.2);
+            background-color: rgba(0, 0, 0, 0.6);
         }
+
+        .input-group input::placeholder {
+            color: #2a3042;
+            letter-spacing: 4px;
+            font-size: 14px;
+            font-weight: normal;
+        }
+
+        /* Apple Tarzı Premium Buton */
         button {
             width: 100%;
-            padding: 15px;
-            background-color: #007bff;
-            color: white;
+            padding: 18px;
+            background: #f1f5f9;
+            color: #0f172a; 
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        /* YENİ: Daha Şık Uyarı Kutusu Tasarımı */
-        #error-message {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-            padding: 12px;
-            border-radius: 6px;
-            margin-top: 15px;
+            border-radius: 12px;
             font-size: 14px;
-            line-height: 1.4;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 58px;
+        }
+
+        button:hover {
+            background: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.1);
+        }
+
+        button:disabled {
+            background: #334155;
+            color: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Spinner (Yükleme Halkası) */
+        .spinner {
+            border: 3px solid rgba(15, 23, 42, 0.1);
+            border-top: 3px solid #0f172a;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            animation: spin 0.8s linear infinite;
             display: none;
-            font-weight: 500;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Hata Mesajı (Kırmızı Titreyen Kutu) */
+        #error-message {
+            background-color: rgba(220, 38, 38, 0.12);
+            color: #fca5a5;
+            border: 1px solid rgba(220, 38, 38, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 25px;
+            font-size: 13px;
+            display: none;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            animation: shake 0.4s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25%, 75% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+        }
+
+        /* Anonim Güvenlik İbaresi */
+        .security-footer {
+            margin-top: 35px;
+            font-size: 10px;
+            color: #475569;
+            font-family: 'Courier New', Courier, monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
     </style>
 </head>
 <body>
 
-    <div class="login-container">
-        <h2>Sisteme Giriş</h2>
-        <p>Lütfen erişim kodunuzu girin</p>
-        
-        <div class="input-group">
-            <input type="password" id="accessCode" placeholder="Erişim Kodu" autocomplete="off">
-        </div>
-        
-        <button id="loginBtn">Giriş Yap</button>
-        <div id="error-message">Hatalı veya süresi dolmuş kod!</div>
+    <div class="glow-blob glow-1"></div>
+    <div class="glow-blob glow-2"></div>
+    
+    <div class="constellation"></div>
+
+    <div class="system-clock">
+        <span class="secure"><span class="status-dot"></span> SECURE_SESSION</span><br>
+        SYS_TIME: <span id="clock" class="time">...</span><br>
+        NODE: <span style="color:#64748b;">RELAY-X19</span>
     </div>
 
-        <script type="module">
+    <div class="login-container">
+        <h2>Güvenli Erişim</h2>
+        <p>Protokol Doğrulaması</p>
+        
+        <div class="input-group">
+            <span class="input-badge">PROTOCOL_V5</span>
+            <input type="password" id="accessCode" placeholder="GİZLİ ANAHTAR" autocomplete="off">
+        </div>
+        
+        <button id="loginBtn">
+            <span id="btnText">Doğrulama Başlat</span>
+            <div class="spinner" id="btnSpinner"></div>
+        </button>
+        
+        <div id="error-message">Hatalı veya süresi dolmuş kod!</div>
+
+        <div class="security-footer">
+            [ AES-256 | TLS 1.3 | ZERO_TRUST ]
+        </div>
+    </div>
+
+    <script type="module">
+        // Canlı Saat Fonksiyonu
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('tr-TR');
+            const dateStr = now.toLocaleDateString('tr-TR');
+            document.getElementById('clock').innerText = dateStr + " " + timeStr;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
         const loginBtn = document.getElementById('loginBtn');
+        const btnText = document.getElementById('btnText');
+        const btnSpinner = document.getElementById('btnSpinner');
         const accessCodeInput = document.getElementById('accessCode');
         const errorMessage = document.getElementById('error-message');
 
@@ -114,17 +330,21 @@
             errorMessage.style.display = 'none';
             
             if (code === "") {
-                showError("Lütfen erişim kodunuzu girin!");
+                showError("Lütfen güvenlik anahtarını girin.");
                 return;
             }
 
-            loginBtn.textContent = "Bağlanıyor...";
+            // Tasarım animasyonunu başlat
+            btnText.style.display = 'none';
+            btnSpinner.style.display = 'block';
             loginBtn.disabled = true;
 
             try {
-                // HATA BURADAYDI: Başına // ekledik, artık kod bozulmaz.
-                // Node.js sunucuna (Backend) soruyoruz
-                const cevap = await fetch('/api/login', {
+                // Senin orijinal API rotan (Yerel testteysen yerel sunucuya atar, Vercel'deysen normal çalışır)
+                const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+                const apiUrl = isLocal ? 'http://localhost:3000/api/login' : '/api/login';
+
+                const cevap = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ code: code }) 
@@ -132,6 +352,7 @@
 
                 const sonuc = await cevap.json();
 
+                // Senin orijinal yetkilendirme ve yönlendirme mantığın
                 if (sonuc.success) {
                     localStorage.setItem("userId", sonuc.user.id);
                     localStorage.setItem("userRole", sonuc.user.role);
@@ -154,9 +375,17 @@
                 console.error("Hata Detayı:", error);
                 showError("Sunucu bağlantı hatası. Vercel uykuda veya internet yok.");
             } finally {
-                loginBtn.textContent = "Giriş Yap";
+                // Tasarım animasyonunu durdur
+                btnText.style.display = 'block';
+                btnText.innerText = "Tekrar Dene";
+                btnSpinner.style.display = 'none';
                 loginBtn.disabled = false;
             }
+        });
+
+        // Enter tuşuyla girebilme rahatlığı
+        accessCodeInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') loginBtn.click();
         });
     </script>
 
