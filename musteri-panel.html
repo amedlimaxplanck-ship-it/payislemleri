@@ -932,19 +932,24 @@
         element.style.display = 'block';
 
         setTimeout(() => {
-            const opt = {
+                        const opt = {
                 margin:       0,
                 filename:     'Ziraat_Dekont_' + pdfData.a_adSoyad.replace(/ /g, '_') + '.pdf',
                 image:        { type: 'jpeg', quality: 1 },
                 html2canvas:  {
-                    scale: 2,
+                    scale: 2, // Çözünürlüğü ve kaliteyi artırır
                     useCORS: true,
                     backgroundColor: '#ffffff',
+                    scrollY: 0, // İŞTE SİHİR BURADA: Scroll (kaydırma) hatasını sıfırlar
+                    scrollX: 0, // Kamerayı tam sola yaslar
+                    y: 0,       // Y eksenini kesin olarak en tepeye sabitler
+                    x: 0,
                     width: 794,
-                    windowWidth: 794
+                    height: 1123
                 },
                 jsPDF:        { unit: 'px', format: [794, 1123], orientation: 'portrait' }
             };
+
 
             html2pdf().from(element).set(opt).save().then(() => {
                 element.style.display = 'none';
