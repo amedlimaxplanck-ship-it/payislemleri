@@ -12,7 +12,7 @@
           "value": "payislemleri-sahibinden.vercel.app"
         }
       ],
-      "destination": "/sablon1.html"
+      "destination": "/api/render-sahibinden"
     },
     {
       "source": "/",
