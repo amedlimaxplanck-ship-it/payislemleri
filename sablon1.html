@@ -947,9 +947,9 @@
         // Metinler ve Fiyatlar
         document.getElementById('v-kategori').innerText = data.kategoriAgaci || "Kategori Belirtilmemiş";
         document.getElementById('v-adres').innerText = data.sehir;
-       // Şehir ismini URL'ye uygun formata çevirip (boşlukları, Türkçe karakterleri ayarlayıp) haritaya gömüyoruz
+        document.getElementById('v-harita-adres').innerText = data.sehir;
+    // Şehir ismini URL'ye uygun formata çevirip (boşlukları, Türkçe karakterleri ayarlayıp) haritaya gömüyoruz
 const haritaAdres = encodeURIComponent(data.sehir);
-document.getElementById('v-harita-adres').innerText = data.sehir;
 
 // z=11 değeri haritayı uzaklaştırır ve daha genel bir alanı (semt/mahalle) gösterir
 document.getElementById('v-harita').src = `https://maps.google.com/maps?q=${haritaAdres}&t=&z=11&ie=UTF8&iwloc=&output=embed`;
