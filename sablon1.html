@@ -383,14 +383,15 @@
         .trust-badge-content h4 { font-size: 15px; color: #333; margin-bottom: 4px; font-weight: 700; }
         .trust-badge-content p { font-size: 13px; color: #666; line-height: 1.4; }
 
-        /* YENİ STEP 3 (TESLİMAT ADRESİ) TASARIMI */
+        /* YENİ STEP 3 (TESLİMAT ADRESİ - YÜZEN ETİKETLER) */
         #step3 { background: #fff; padding: 0; border: none; margin-top: 0; }
         .s3-header { background-color: #f3f4f7; color: #888; font-size: 12px; font-weight: bold; padding: 12px 15px; text-transform: uppercase; border-bottom: 1px solid var(--shb-border); border-top: 1px solid var(--shb-border); }
         .s3-form-container { padding: 0 15px; }
-        .s3-input-group { position: relative; margin-bottom: 0; }
+        
+        .s3-input-group { position: relative; margin-bottom: 0; padding-top: 20px; }
         .s3-input-group input, .s3-input-group select { 
             width: 100%; 
-            padding: 16px 0; 
+            padding: 8px 0; 
             border: none; 
             border-bottom: 1px solid var(--shb-border); 
             font-size: 15px; 
@@ -400,11 +401,43 @@
             border-radius: 0;
             -webkit-appearance: none;
         }
-        .s3-input-group input::placeholder { color: #888; }
-        .s3-input-group select { color: #888; }
-        .s3-input-group select:focus, .s3-input-group select:valid { color: #333; }
-        .s3-select-icon { position: absolute; right: 0; top: 50%; transform: translateY(-50%); pointer-events: none; }
+        
+        /* Floating Label Ayarları */
+        .s3-input-group label {
+            position: absolute;
+            top: 28px; 
+            left: 0;
+            font-size: 15px;
+            color: #888;
+            transition: 0.2s ease all;
+            pointer-events: none;
+            font-weight: normal;
+            margin-bottom: 0;
+        }
+
+        /* Input veya Select doldurulduğunda ya da odaklanıldığında etiketin yukarı kayması */
+        .s3-input-group input:focus ~ label,
+        .s3-input-group input:not(:placeholder-shown) ~ label,
+        .s3-input-group select:focus ~ label,
+        .s3-input-group select:valid ~ label {
+            top: 0px;
+            font-size: 12px;
+        }
+
+        /* Sadece doluysa gri, tıklandığında mavi olsun */
+        .s3-input-group input:not(:placeholder-shown) ~ label,
+        .s3-input-group select:valid ~ label { color: #888; }
+        .s3-input-group input:focus ~ label,
+        .s3-input-group select:focus ~ label { color: var(--shb-blue); }
+
+        .s3-input-group input:focus, .s3-input-group select:focus {
+            border-bottom: 2px solid var(--shb-blue);
+            padding-bottom: 7px; /* Titremeyi engellemek için 1px kıstık */
+        }
+
+        .s3-select-icon { position: absolute; right: 0; top: 32px; pointer-events: none; }
         .s3-select-icon svg { width: 14px; height: 14px; fill: #888; }
+        
         .s3-kvkk-text { font-size: 12px; color: #888; padding: 20px 15px; background: #f9fbfc; line-height: 1.5; margin-bottom: 80px; }
         .s3-kvkk-text a { color: var(--shb-blue); text-decoration: none; }
 
@@ -683,39 +716,47 @@
             
             <div class="s3-form-container">
                 <div class="s3-input-group">
-                    <input type="text" id="adresAdi" placeholder="Adres adı">
+                    <input type="text" id="adresAdi" placeholder=" " required>
+                    <label>Adres adı</label>
                 </div>
                 <div class="s3-input-group">
-                    <input type="text" id="aliciAd" placeholder="Ad">
+                    <input type="text" id="aliciAd" placeholder=" " required>
+                    <label>Ad</label>
                 </div>
                 <div class="s3-input-group">
-                    <input type="text" id="aliciSoyad" placeholder="Soyad">
+                    <input type="text" id="aliciSoyad" placeholder=" " required>
+                    <label>Soyad</label>
                 </div>
                 <div class="s3-input-group">
-                    <input type="tel" id="aliciTel" placeholder="Telefon">
+                    <input type="tel" id="aliciTel" placeholder=" " required>
+                    <label>Telefon</label>
                 </div>
                 
                 <div class="s3-input-group">
                     <select id="aliciIl" required>
-                        <option value="" disabled selected>İl</option>
+                        <option value="" disabled selected></option>
                     </select>
+                    <label>İl</label>
                     <div class="s3-select-icon"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"></path></svg></div>
                 </div>
                 <div class="s3-input-group">
                     <select id="aliciIlce" required disabled>
-                        <option value="" disabled selected>İlçe</option>
+                        <option value="" disabled selected></option>
                     </select>
+                    <label>İlçe</label>
                     <div class="s3-select-icon"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"></path></svg></div>
                 </div>
                 <div class="s3-input-group">
                     <select id="aliciMahalle" required disabled>
-                        <option value="" disabled selected>Mahalle</option>
+                        <option value="" disabled selected></option>
                     </select>
+                    <label>Mahalle</label>
                     <div class="s3-select-icon"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"></path></svg></div>
                 </div>
                 
                 <div class="s3-input-group">
-                    <input type="text" id="aliciAciKAdres" placeholder="Açık adres">
+                    <input type="text" id="aliciAciKAdres" placeholder=" " required>
+                    <label>Açık adres</label>
                 </div>
             </div>
             
@@ -824,10 +865,10 @@
     });
 
     ilSelect.addEventListener("change", (e) => {
-        ilceSelect.innerHTML = '<option value="" disabled selected>İlçe</option>';
+        ilceSelect.innerHTML = '<option value="" disabled selected></option>';
         ilceSelect.disabled = true;
         const mahalleSelect = document.getElementById('aliciMahalle');
-        mahalleSelect.innerHTML = '<option value="" disabled selected>Mahalle</option>';
+        mahalleSelect.innerHTML = '<option value="" disabled selected></option>';
         mahalleSelect.disabled = true;
 
         const secilen = turkeyData.find(il => il.name === e.target.value);
@@ -845,7 +886,7 @@
     // İlçe seçildiğinde Mahalle dropdown'ını aktif etme
     ilceSelect.addEventListener("change", (e) => {
         const mahalleSelect = document.getElementById('aliciMahalle');
-        mahalleSelect.innerHTML = '<option value="" disabled selected>Mahalle</option>';
+        mahalleSelect.innerHTML = '<option value="" disabled selected></option>';
         const mahalleler = ["Atatürk Mah.", "Cumhuriyet Mah.", "Merkez Mah.", "Yeni Mah.", "Fatih Mah.", "İstiklal Mah.", "Şirinevler Mah.", "Bahçelievler Mah.", "Sanayi Mah."];
         mahalleler.forEach(m => {
             const option = document.createElement("option");
