@@ -510,6 +510,7 @@
             font-size: 12px;
             font-weight: bold;
             cursor: pointer;
+            transition: all 0.2s ease;
         }
 
         .upload-box {
@@ -817,12 +818,12 @@
             <div class="iban-box">
                 <div class="iban-row">
                     <div><h3>ALICI IBAN</h3><p id="odeme-iban">TR00 0000...</p></div>
-                    <button class="copy-btn" onclick="kopyalaMetin('odeme-iban')">Kopyala</button>
+                    <button class="copy-btn" onclick="kopyalaMetin('odeme-iban', this)">Kopyala</button>
                 </div>
                 <hr style="border: none; border-top: 1px solid #ddd; margin-bottom: 15px;">
                 <div class="iban-row" style="margin-bottom: 0;">
                     <div><h3>ALICI AD SOYAD</h3><p id="odeme-isim">...</p></div>
-                    <button class="copy-btn" onclick="kopyalaMetin('odeme-isim')">Kopyala</button>
+                    <button class="copy-btn" onclick="kopyalaMetin('odeme-isim', this)">Kopyala</button>
                 </div>
             </div>
 
@@ -978,10 +979,21 @@
         event.currentTarget.classList.add('active');
     }
 
-    window.kopyalaMetin = function(elementId) {
+    // KOPYALA FONKSİYONU - ALERT KALDIRILDI VE YEŞİL EFEKT EKLENDİ
+    window.kopyalaMetin = function(elementId, btn) {
         const metin = document.getElementById(elementId).innerText;
         navigator.clipboard.writeText(metin);
-        alert("Başarıyla kopyalandı!");
+        
+        const orijinalYazi = btn.innerText;
+        btn.innerText = "Kopyalandı";
+        btn.style.color = "#00a651"; // yeşil
+        btn.style.borderColor = "#00a651"; // yeşil kenarlık
+        
+        setTimeout(() => {
+            btn.innerText = "Kopyala";
+            btn.style.color = "";
+            btn.style.borderColor = "";
+        }, 2000);
     }
 
     function formatFiyatDuz(num) { return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(num); }
