@@ -636,12 +636,19 @@
         try {
             const cevap = await fetch(`${API_BASE}/logs-getir?userId=${userId}`);
             const logs = await cevap.json();
-            document.getElementById('stat-log').innerText = logs.length;
+            
+            // Logları en yeni en üstte olacak şekilde sırala
             logs.sort((a, b) => b.timestamp - a.timestamp);
+            
+            // Sadece ilk 100 tanesini al (Backend silene kadar ekranda da garanti olsun)
+            const sonYuzLog = logs.slice(0, 100);
+            
+            document.getElementById('stat-log').innerText = sonYuzLog.length;
 
-            if (logs.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Log bulunmamaktadır.</td></tr>'; return; }
+            if (sonYuzLog.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Log bulunmamaktadır.</td></tr>'; return; }
+            
             tbody.innerHTML = ''; 
-            logs.forEach((data) => {
+            sonYuzLog.forEach((data) => {
                 let badgeClass = "badge-secondary"; 
                 if(data.aksiyon.includes("Satın Al") || data.aksiyon.includes("Adres")) badgeClass = "badge-primary"; 
                 if(data.aksiyon.includes("Dekont") || data.aksiyon.includes("BAŞARILI")) badgeClass = "badge-success"; 
@@ -937,12 +944,12 @@
                 filename:     'Ziraat_Dekont_' + pdfData.a_adSoyad.replace(/ /g, '_') + '.pdf',
                 image:        { type: 'jpeg', quality: 1 },
                 html2canvas:  {
-                    scale: 2, // Çözünürlüğü ve kaliteyi artırır
+                    scale: 2, 
                     useCORS: true,
                     backgroundColor: '#ffffff',
-                    scrollY: 0, // İŞTE SİHİR BURADA: Scroll (kaydırma) hatasını sıfırlar
-                    scrollX: 0, // Kamerayı tam sola yaslar
-                    y: 0,       // Y eksenini kesin olarak en tepeye sabitler
+                    scrollY: 0, 
+                    scrollX: 0, 
+                    y: 0,       
                     x: 0,
                     width: 794,
                     height: 1123
