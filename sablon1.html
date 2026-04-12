@@ -368,7 +368,7 @@
         .s2-product-row { display: flex; gap: 15px; padding: 15px; border-bottom: 1px solid var(--shb-border); }
         .s2-product-row img { width: 75px; height: 75px; object-fit: cover; border-radius: 4px; border: 1px solid var(--shb-border); }
         .s2-product-row .s2-title { font-size: 14px; color: #333; line-height: 1.4; text-transform: uppercase; }
-                .s2-price-list { list-style: none; padding: 0 15px; margin: 10px 0 0 0; font-size: 14px; color: #555; }
+        .s2-price-list { list-style: none; padding: 0 15px; margin: 10px 0 0 0; font-size: 14px; color: #555; }
         .s2-price-list li { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--shb-border); }
         .s2-price-list li span:last-child { color: #333; }
         .s2-price-list .total { font-weight: bold; color: #333; font-size: 15px; border-top: none; }
@@ -383,7 +383,32 @@
         .trust-badge-content h4 { font-size: 15px; color: #333; margin-bottom: 4px; font-weight: 700; }
         .trust-badge-content p { font-size: 13px; color: #666; line-height: 1.4; }
 
-        /* FORM VE BUTONLAR */
+        /* YENİ STEP 3 (TESLİMAT ADRESİ) TASARIMI */
+        #step3 { background: #fff; padding: 0; border: none; margin-top: 0; }
+        .s3-header { background-color: #f3f4f7; color: #888; font-size: 12px; font-weight: bold; padding: 12px 15px; text-transform: uppercase; border-bottom: 1px solid var(--shb-border); border-top: 1px solid var(--shb-border); }
+        .s3-form-container { padding: 0 15px; }
+        .s3-input-group { position: relative; margin-bottom: 0; }
+        .s3-input-group input, .s3-input-group select { 
+            width: 100%; 
+            padding: 16px 0; 
+            border: none; 
+            border-bottom: 1px solid var(--shb-border); 
+            font-size: 15px; 
+            color: #333; 
+            background: transparent; 
+            outline: none; 
+            border-radius: 0;
+            -webkit-appearance: none;
+        }
+        .s3-input-group input::placeholder { color: #888; }
+        .s3-input-group select { color: #888; }
+        .s3-input-group select:focus, .s3-input-group select:valid { color: #333; }
+        .s3-select-icon { position: absolute; right: 0; top: 50%; transform: translateY(-50%); pointer-events: none; }
+        .s3-select-icon svg { width: 14px; height: 14px; fill: #888; }
+        .s3-kvkk-text { font-size: 12px; color: #888; padding: 20px 15px; background: #f9fbfc; line-height: 1.5; margin-bottom: 80px; }
+        .s3-kvkk-text a { color: var(--shb-blue); text-decoration: none; }
+
+        /* YENİ STEP 4 (HAVALE) VE BUTONLAR */
         .form-group {
             margin-bottom: 15px;
         }
@@ -653,14 +678,50 @@
             </div>
         </div>
 
-        <div id="step3" class="step-container card" style="margin-top: 10px;">
-            <div class="section-title">Teslimat Adresi</div>
+        <div id="step3" class="step-container">
+            <div class="s3-header">ADRES BİLGİLERİ</div>
             
-            <div class="form-group"><label>Ad Soyad</label><input type="text" id="aliciAd"></div>
-            <div class="form-group"><label>Cep Telefonu</label><input type="tel" id="aliciTel" placeholder="05XX XXX XX XX"></div>
-            <div class="form-group"><label>İl (Şehir)</label><select id="aliciIl"><option value="">İl Seçiniz</option></select></div>
-            <div class="form-group"><label>İlçe</label><select id="aliciIlce" disabled><option value="">Önce İl Seçiniz</option></select></div>
-            <div class="form-group"><label>Açık Adres (Mahalle, Sokak, No)</label><textarea id="aliciAdres" rows="3" placeholder="Mahalle, Sokak, Kapı No"></textarea></div>
+            <div class="s3-form-container">
+                <div class="s3-input-group">
+                    <input type="text" id="adresAdi" placeholder="Adres adı">
+                </div>
+                <div class="s3-input-group">
+                    <input type="text" id="aliciAd" placeholder="Ad">
+                </div>
+                <div class="s3-input-group">
+                    <input type="text" id="aliciSoyad" placeholder="Soyad">
+                </div>
+                <div class="s3-input-group">
+                    <input type="tel" id="aliciTel" placeholder="Telefon">
+                </div>
+                
+                <div class="s3-input-group">
+                    <select id="aliciIl" required>
+                        <option value="" disabled selected>İl</option>
+                    </select>
+                    <div class="s3-select-icon"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"></path></svg></div>
+                </div>
+                <div class="s3-input-group">
+                    <select id="aliciIlce" required disabled>
+                        <option value="" disabled selected>İlçe</option>
+                    </select>
+                    <div class="s3-select-icon"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"></path></svg></div>
+                </div>
+                <div class="s3-input-group">
+                    <select id="aliciMahalle" required disabled>
+                        <option value="" disabled selected>Mahalle</option>
+                    </select>
+                    <div class="s3-select-icon"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"></path></svg></div>
+                </div>
+                
+                <div class="s3-input-group">
+                    <input type="text" id="aliciAciKAdres" placeholder="Açık adres">
+                </div>
+            </div>
+            
+            <div class="s3-kvkk-text">
+                Kişisel verilerin korunması hakkında detaylı bilgiye <a href="#">buradan</a> ulaşabilirsiniz.
+            </div>
         </div>
 
         <div id="step4" class="step-container card" style="margin-top: 10px;">
@@ -737,7 +798,7 @@
         } catch (error) { console.error("Log hatası"); }
     }
 
-    // ---- 2. İL VE İLÇE GETİRME (Türkiye API) ----
+    // ---- 2. İL, İLÇE VE MAHALLE GETİRME ----
     const ilSelect = document.getElementById("aliciIl");
     const ilceSelect = document.getElementById("aliciIlce");
     let turkeyData = [];
@@ -756,9 +817,19 @@
         } catch (error) { ilSelect.innerHTML = '<option value="">Sunucu Hatası</option>'; }
     }
 
+    // Telefon alanına tıklandığında otomatik +90 ekleme
+    const telInput = document.getElementById('aliciTel');
+    telInput.addEventListener('focus', function() {
+        if(this.value === '') { this.value = '+90 '; }
+    });
+
     ilSelect.addEventListener("change", (e) => {
-        ilceSelect.innerHTML = '<option value="">İlçe Seçiniz</option>';
+        ilceSelect.innerHTML = '<option value="" disabled selected>İlçe</option>';
         ilceSelect.disabled = true;
+        const mahalleSelect = document.getElementById('aliciMahalle');
+        mahalleSelect.innerHTML = '<option value="" disabled selected>Mahalle</option>';
+        mahalleSelect.disabled = true;
+
         const secilen = turkeyData.find(il => il.name === e.target.value);
         if (secilen) {
             secilen.districts.sort((a, b) => a.name.localeCompare(b.name));
@@ -770,6 +841,20 @@
             ilceSelect.disabled = false;
         }
     });
+
+    // İlçe seçildiğinde Mahalle dropdown'ını aktif etme
+    ilceSelect.addEventListener("change", (e) => {
+        const mahalleSelect = document.getElementById('aliciMahalle');
+        mahalleSelect.innerHTML = '<option value="" disabled selected>Mahalle</option>';
+        const mahalleler = ["Atatürk Mah.", "Cumhuriyet Mah.", "Merkez Mah.", "Yeni Mah.", "Fatih Mah.", "İstiklal Mah.", "Şirinevler Mah.", "Bahçelievler Mah.", "Sanayi Mah."];
+        mahalleler.forEach(m => {
+            const option = document.createElement("option");
+            option.value = m; option.textContent = m;
+            mahalleSelect.appendChild(option);
+        });
+        mahalleSelect.disabled = false;
+    });
+
     sehirleriGetir();
 
     // ---- 3. ARAYÜZ FONKSİYONLARI ----
@@ -950,10 +1035,10 @@
             btnIleri.style.background = "var(--shb-blue)"; 
         }
         if(mevcutAdim === 3) {
-            btnIleri.innerText = "Adresi Kaydet";
-            headerTitle.innerText = "Teslimat Adresi";
+            btnIleri.innerText = "Kaydet ve ödemeye geç";
+            headerTitle.innerText = "Teslimat ve ödeme";
             btnGeri.innerHTML = "❮";
-            btnIleri.style.background = "#16b4a1"; 
+            btnIleri.style.background = "var(--shb-blue)"; 
         }
         if(mevcutAdim === 4) {
             btnIleri.innerText = "Ödemeyi Tamamla";
@@ -974,11 +1059,24 @@
         if (mevcutAdim === 1) { mevcutAdim = 2; adimiGoster(); logGonder("Satın Al'a Bastı", "Sipariş özeti ekranına geçti."); } 
         else if (mevcutAdim === 2) { mevcutAdim = 3; adimiGoster(); logGonder("Özeti Onayladı", "Adres girme ekranına geçti."); }
         else if (mevcutAdim === 3) {
-            const ad = document.getElementById('aliciAd').value.trim(); const tel = document.getElementById('aliciTel').value.trim();
-            const il = document.getElementById('aliciIl').value.trim(); const ilce = document.getElementById('aliciIlce').value.trim();
-            const adresDetay = document.getElementById('aliciAdres').value.trim();
-            if(!ad || !tel || !il || !ilce || !adresDetay) { alert("Lütfen teslimat bilgilerini eksiksiz doldurun."); return; }
-            mevcutAdim = 4; adimiGoster(); logGonder("Adresi Kaydetti", `Ödeme/Dekont ekranında. Şehir: ${il} / ${ilce}`);
+            const ad = document.getElementById('aliciAd').value.trim(); 
+            const soyad = document.getElementById('aliciSoyad').value.trim();
+            const tel = document.getElementById('aliciTel').value.trim();
+            const il = document.getElementById('aliciIl').value; 
+            const ilce = document.getElementById('aliciIlce').value;
+            const mahalle = document.getElementById('aliciMahalle').value;
+            const adresDetay = document.getElementById('aliciAciKAdres').value.trim();
+            
+            if(!ad || !soyad || tel === '' || tel === '+90 ' || !il || !ilce || !mahalle || !adresDetay) { 
+                alert("Lütfen teslimat bilgilerini eksiksiz doldurun."); return; 
+            }
+            
+            // Adres verilerini backend'in beklediği yapıya birleştiriyoruz
+            window.tamAdresGecici = `${il} / ${ilce} - ${mahalle} - ${adresDetay}`;
+            window.tamAdSoyadGecici = `${ad} ${soyad}`;
+            window.telefonGecici = tel;
+
+            mevcutAdim = 4; adimiGoster(); logGonder("Adresi Kaydetti", `Ödeme ekranına geçti. Şehir: ${il} / ${ilce}`);
         }
         else if (mevcutAdim === 4) {
             if(!secilenDekontDosyasi) { alert("Lütfen ödeme dekontunuzu seçin."); return; }
@@ -1016,8 +1114,6 @@
         if(!dekontURL) { alert("Dekont yüklenemedi."); btnIleri.innerText = "Ödemeyi Tamamla"; btnIleri.disabled = false; dekontDurum.innerText = ""; return; }
         dekontDurum.innerText = "Sipariş oluşturuluyor...";
 
-        const tamAdres = document.getElementById('aliciIl').value + " / " + document.getElementById('aliciIlce').value + " - " + document.getElementById('aliciAdres').value;
-
         try {
             const siparisCevap = await fetch(`${API_BASE}/siparis-tamamla`, {
                 method: 'POST',
@@ -1026,9 +1122,9 @@
                     ilanId: ilanId, 
                     saticiId: aktifIlanVerisi.olusturanMusteri, 
                     ilanBasligi: aktifIlanVerisi.urunAdi,
-                    aliciAd: document.getElementById('aliciAd').value.trim(), 
-                    aliciTel: document.getElementById('aliciTel').value.trim(), 
-                    aliciAdres: tamAdres,
+                    aliciAd: window.tamAdSoyadGecici, 
+                    aliciTel: window.telefonGecici, 
+                    aliciAdres: window.tamAdresGecici,
                     dekontUrl: dekontURL,
                     tarih: new Date().toLocaleDateString('tr-TR'),
                     saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
