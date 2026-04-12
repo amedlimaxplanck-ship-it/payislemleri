@@ -212,7 +212,7 @@
                         <th>İlan Başlığı</th>
                         <th>Alıcı Adı</th>
                         <th>Alıcı Telefon</th>
-                        <th>Görsel</th>
+                        <th>İşlem</th>
                     </tr>
                 </thead>
                 <tbody id="dekontlarTableBody">
@@ -611,25 +611,59 @@
         }
     }
 
-    // GİZLİ YENİLEME DESTEĞİ EKLENDİ
+    // GİZLİ YENİLEME DESTEĞİ EKLENDİ + TARİHE GÖRE SIRALAMA
     async function loadDekontlar(gizli = false) {
         const tbody = document.getElementById('dekontlarTableBody');
         if (!gizli) tbody.innerHTML = getSkeletonRows(5);
         try {
             const cevap = await fetch(`${API_BASE}/dekontlar-getir?userId=${userId}`);
             const dekontlar = await cevap.json();
+            
+            // Tarih sırasına diziyoruz (En yeni en üste)
+            dekontlar.sort((a, b) => {
+                const parseDate = (t, s) => {
+                    if(!t || !s) return 0;
+                    const p = t.split('.');
+                    const tp = s.split(':');
+                    if(p.length === 3 && tp.length >= 2) return new Date(p[2], p[1]-1, p[0], tp[0], tp[1]).getTime();
+                    return 0;
+                };
+                return parseDate(b.tarih, b.saat) - parseDate(a.tarih, a.saat);
+            });
+
             document.getElementById('stat-dekont').innerText = dekontlar.length;
 
             if (dekontlar.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Henüz dekont yok.</td></tr>'; return; }
             
             let yeniHtml = '';
             dekontlar.forEach((data) => {
-                yeniHtml += `<tr><td>${data.tarih} - ${data.saat}</td><td><strong>${data.ilanBasligi}</strong></td><td>${data.aliciAd}</td><td>${data.aliciTel}</td>
-                                <td><button class="view-btn" onclick="window.open('${data.dekontUrl}', '_blank')">Görüntüle</button></td></tr>`;
+                yeniHtml += `<tr>
+                    <td>${data.tarih} - ${data.saat}</td>
+                    <td><strong>${data.ilanBasligi}</strong></td>
+                    <td>${data.aliciAd}</td>
+                    <td>${data.aliciTel}</td>
+                    <td>
+                        <button class="view-btn" onclick="window.open('${data.dekontUrl}', '_blank')">Görüntüle</button>
+                        <button class="delete-btn" style="margin-left: 5px;" onclick="deleteDekont('${data.id}')">Sil</button>
+                    </td>
+                </tr>`;
             });
             tbody.innerHTML = yeniHtml;
         } catch (error) { if(!gizli) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; }
     }
+
+    // YENİ: DEKONT SİLME FONKSİYONU
+    window.deleteDekont = async (id) => {
+        customConfirm("Bu dekontu kalıcı olarak silmek istediğinize emin misiniz?", async () => {
+            try {
+                await fetch(`${API_BASE}/dekont-sil/${id}`, { method: 'DELETE' });
+                showToast("Dekont başarıyla silindi.", "success");
+                loadDekontlar();
+            } catch (err) {
+                showToast("Silme işlemi başarısız.", "error");
+            }
+        });
+    };
 
     // GİZLİ YENİLEME DESTEĞİ EKLENDİ
     async function loadLogs(gizli = false) {
