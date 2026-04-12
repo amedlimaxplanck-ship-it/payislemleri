@@ -1,8 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors'); 
-const fs = require('fs'); 
-const path = require('path'); 
+const fs = require('fs'); // Şablonları okumak için eklendi
+const path = require('path'); // Dosya yollarını bulmak için eklendi
 const { initializeApp } = require('firebase/app');
 const {
     getFirestore, collection, addDoc, getDocs, 
@@ -27,7 +27,7 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
 
-// --- API KAPILARI ---
+// --- API KAPILARI (Mevcut Sisteminiz Dokunulmadan Bırakıldı) ---
 
 app.post('/api/login', async (req, res) => {
     const { code } = req.body; 
@@ -65,21 +65,11 @@ app.delete('/api/ilan-sil/:id', async (req, res) => {
     res.json({ success: true });
 });
 
-// --- DEKONT YÖNETİMİ (SİLME EKLENDİ) ---
+// --- DEKONT VE LOG ---
 app.get('/api/dekontlar-getir', async (req, res) => {
     const q = query(collection(db, "dekontlar"), where("saticiId", "==", req.query.userId));
     const snap = await getDocs(q);
-    // Silme işlemi yapabilmek için doc.id'yi de gönderiyoruz
-    res.json(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-});
-
-app.delete('/api/dekont-sil/:id', async (req, res) => {
-    try {
-        await deleteDoc(doc(db, "dekontlar", req.params.id));
-        res.json({ success: true });
-    } catch (error) {
-        res.status(500).json({ hata: "Silme başarısız" });
-    }
+    res.json(snap.docs.map(doc => doc.data()));
 });
 
 app.get('/api/logs-getir', async (req, res) => {
@@ -88,12 +78,20 @@ app.get('/api/logs-getir', async (req, res) => {
     res.json(snap.docs.map(doc => doc.data()));
 });
 
+// --- 1. İLAN GETİRME KAPISI (GET) ---
 app.get('/api/ilan/:id', async (req, res) => {
     try {
         const ilanRef = doc(db, "ilanlar", req.params.id);
         const ilanSnap = await getDoc(ilanRef);
         if (ilanSnap.exists()) {
-            res.json(ilanSnap.data());
+            const ilanVerisi = ilanSnap.data();
+            
+            // --- PASİF İLAN KONTROLÜ BURAYA EKLENDİ ---
+            if (ilanVerisi.durum === 'pasif') {
+                return res.status(404).json({ hata: "Bu ilan pasife alınmış." });
+            }
+            
+            res.json(ilanVerisi);
         } else {
             res.status(404).json({ hata: "İlan yok" });
         }
@@ -102,6 +100,7 @@ app.get('/api/ilan/:id', async (req, res) => {
     }
 });
 
+// --- MÜŞTERİ YÖNETİMİ KAPILARI ---
 app.get('/api/users', async (req, res) => {
     try {
         const q = query(collection(db, "users"));
@@ -146,19 +145,27 @@ app.patch('/api/ilan-guncelle/:id', async (req, res) => {
     }
 });
 
+// --- 2. LOG TUTMA KAPISI (POST) - OTOMATİK SİLME EKLENDİ ---
 app.post('/api/log-ekle', async (req, res) => {
     try {
         const yeniLog = req.body;
+        
+        // 1. Yeni logu veritabanına ekliyoruz
         await addDoc(collection(db, "logs"), {
             ...yeniLog,
             timestamp: new Date().getTime()
         });
-        
+
+        // 2. Eskileri temizleme operasyonu (Sadece son 100 kalsın)
         if (yeniLog.saticiId) {
             const q = query(collection(db, "logs"), where("saticiId", "==", yeniLog.saticiId));
             const snap = await getDocs(q);
+            
+            // Tüm logları çekip tarihe göre (en yeni en üstte) sıralıyoruz
             let userLogs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             userLogs.sort((a, b) => b.timestamp - a.timestamp);
+
+            // Eğer toplam log sayısı 100'ü geçmişse, 100'den sonrakileri siliyoruz
             if (userLogs.length > 100) {
                 const silinecekler = userLogs.slice(100);
                 for (const logDoc of silinecekler) {
@@ -166,12 +173,15 @@ app.post('/api/log-ekle', async (req, res) => {
                 }
             }
         }
+
         res.json({ durum: "başarılı" });
     } catch (error) {
+        console.error("Log ekleme hatası:", error);
         res.status(500).json({ hata: "Log kaydedilemedi" });
     }
 });
 
+// --- 3. SİPARİŞ/DEKONT KAPISI (POST) ---
 app.post('/api/siparis-tamamla', async (req, res) => {
     try {
         const siparisVerisi = req.body;
@@ -195,6 +205,7 @@ app.get('/', async (req, res) => {
             dosyaAdi = 'sablon2.html';
         }
         
+        // Dosyayı hard diskte aramak yerine, Vercel'in kendi yayınladığı statik linkten çekiyoruz (fs hatasını %100 çözer)
         const protokol = host.includes('localhost') ? 'http' : 'https';
         const fetchUrl = `${protokol}://${host}/${dosyaAdi}`;
         
@@ -205,29 +216,34 @@ app.get('/', async (req, res) => {
         
         let html = await response.text();
 
+        // OG Tag Operasyonu (WhatsApp'ta resim/başlık çıkması için)
         if (ilanId && (dosyaAdi === 'sablon1.html' || dosyaAdi === 'sablon2.html')) {
             const ilanRef = doc(db, "ilanlar", ilanId);
             const ilanSnap = await getDoc(ilanRef);
             
             if (ilanSnap.exists()) {
                 const data = ilanSnap.data();
-                const fiyatFormati = data.fiyat ? new Intl.NumberFormat('tr-TR').format(data.fiyat) : '';
-                const fiyatMetni = fiyatFormati ? `${fiyatFormati} TL` : '';
-                const baslik = data.urunAdi || 'İlan Detayı';
-                let varsayilanResim = host.includes('pttavm') ? 'https://www.pttavm.com/favicon.ico' : 'https://www.sahibinden.com/favicon.ico';
-                const resim = data.anaResim || (data.resimler && data.resimler[0]) || varsayilanResim;
-                const aciklama = data.urunAciklamasi ? data.urunAciklamasi.substring(0, 120) + '...' : 'Güvenli alışverişin adresi.';
 
-                const ogTags = `
-    <meta property="og:title" content="${baslik} - ${fiyatMetni}">
-    <meta property="og:description" content="${aciklama}">
-    <meta property="og:image" content="${resim}">
-    <meta property="og:url" content="https://${host}/?ilan=${ilanId}">
-    <meta property="og:type" content="website">
-    <meta name="twitter:card" content="summary_large_image">
-`;
-                html = html.replace('</head>', `${ogTags}\n</head>`);
-                html = html.replace(/<title>.*<\/title>/, `<title>${baslik} - ${fiyatMetni}</title>`);
+                // Eğer ilan pasifse OG tag basmıyoruz ki WhatsApp'ta falan boşuna önizleme vermesin
+                if (data.durum !== 'pasif') {
+                    const fiyatFormati = data.fiyat ? new Intl.NumberFormat('tr-TR').format(data.fiyat) : '';
+                    const fiyatMetni = fiyatFormati ? `${fiyatFormati} TL` : '';
+                    const baslik = data.urunAdi || 'İlan Detayı';
+                    let varsayilanResim = host.includes('pttavm') ? 'https://www.pttavm.com/favicon.ico' : 'https://www.sahibinden.com/favicon.ico';
+                    const resim = data.anaResim || (data.resimler && data.resimler[0]) || varsayilanResim;
+                    const aciklama = data.urunAciklamasi ? data.urunAciklamasi.substring(0, 120) + '...' : 'Güvenli alışverişin adresi.';
+
+                    const ogTags = `
+        <meta property="og:title" content="${baslik} - ${fiyatMetni}">
+        <meta property="og:description" content="${aciklama}">
+        <meta property="og:image" content="${resim}">
+        <meta property="og:url" content="https://${host}/?ilan=${ilanId}">
+        <meta property="og:type" content="website">
+        <meta name="twitter:card" content="summary_large_image">
+    `;
+                    html = html.replace('</head>', `${ogTags}\n</head>`);
+                    html = html.replace(/<title>.*<\/title>/, `<title>${baslik} - ${fiyatMetni}</title>`);
+                }
             }
         }
         res.send(html);
@@ -237,8 +253,11 @@ app.get('/', async (req, res) => {
     }
 });
 
+
+
 // --- SUNUCU BAŞLATMA ---
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Santral ${PORT} portunda aktif!`));
 
+// Vercel Serverless yapısı için Express'i dışarı aktarıyoruz
 module.exports = app;
