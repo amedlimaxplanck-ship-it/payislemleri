@@ -239,11 +239,32 @@
             line-height: 1.4;
         }
 
-        .desc-box {
+                .desc-box {
             font-size: 14px;
             line-height: 1.6;
             color: #444;
+            margin-bottom: 5px; /* Altındaki butona yakın dursun diye 20'den 5'e çektik */
         }
+
+        .desc-kisitli {
+            display: -webkit-box;
+            -webkit-line-clamp: 5; /* Sadece ilk 5 satırı gösterir */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .daha-fazla-btn {
+            background: none;
+            border: none;
+            color: #0059a3; /* Sarı sitenin mavi link rengi */
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 0;
+            margin-bottom: 20px;
+            display: none; /* JS ile gerekliyse göstereceğiz */
+        }
+
 
         /* SEKMELER */
         .tabs {
