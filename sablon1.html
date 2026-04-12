@@ -782,7 +782,7 @@
                     <div class="s3-error-msg">İl seçin.</div>
                 </div>
                 <div class="s3-input-group">
-                    <select id="aliciIlce" required disabled>
+                    <select id="aliciIlce" required>
                         <option value="" disabled selected></option>
                     </select>
                     <label>İlçe</label>
@@ -790,7 +790,7 @@
                     <div class="s3-error-msg">İlçe seçin.</div>
                 </div>
                 <div class="s3-input-group">
-                    <select id="aliciMahalle" required disabled>
+                    <select id="aliciMahalle" required>
                         <option value="" disabled selected></option>
                     </select>
                     <label>Mahalle</label>
@@ -903,6 +903,28 @@
         } catch (error) { ilSelect.innerHTML = '<option value="">Sunucu Hatası</option>'; }
     }
 
+    // KURUMSAL UYARI MEKANİZMASI (Sırayla seçilmediğinde devreye girer)
+    function iliskiKontrol(hedefSelect, bagliSelect, uyariMesaji) {
+        const preventAction = (e) => {
+            if (bagliSelect.value === "") {
+                e.preventDefault();
+                hedefSelect.blur(); // Tıklamayı boşa çıkartır
+                const group = hedefSelect.closest('.s3-input-group');
+                const errorDiv = group.querySelector('.s3-error-msg');
+                errorDiv.innerText = uyariMesaji; // Kurumsal uyarıyı bas
+                group.classList.add('has-error');
+            }
+        };
+        hedefSelect.addEventListener('mousedown', preventAction);
+        hedefSelect.addEventListener('touchstart', preventAction, {passive: false});
+        hedefSelect.addEventListener('focus', preventAction);
+    }
+
+    // İlçe seçilmeden önce İl, Mahalle seçilmeden önce İlçe kontrolü
+    iliskiKontrol(ilceSelect, ilSelect, "Lütfen işlem yapmadan önce İl seçimi yapınız.");
+    const mahalleSelect = document.getElementById('aliciMahalle');
+    iliskiKontrol(mahalleSelect, ilceSelect, "Lütfen işlem yapmadan önce İlçe seçimi yapınız.");
+
     // Telefon alanına tıklandığında otomatik +90 ekleme
     const telInput = document.getElementById('aliciTel');
     telInput.addEventListener('focus', function() {
@@ -911,10 +933,13 @@
 
     ilSelect.addEventListener("change", (e) => {
         ilceSelect.innerHTML = '<option value="" disabled selected></option>';
-        ilceSelect.disabled = true;
-        const mahalleSelect = document.getElementById('aliciMahalle');
         mahalleSelect.innerHTML = '<option value="" disabled selected></option>';
-        mahalleSelect.disabled = true;
+
+        // Seçim yapıldığında uyarıları ve kırmızı çerçeveyi temizle
+        ilceSelect.closest('.s3-input-group').classList.remove('has-error');
+        ilceSelect.closest('.s3-input-group').querySelector('.s3-error-msg').innerText = "İlçe seçin.";
+        mahalleSelect.closest('.s3-input-group').classList.remove('has-error');
+        mahalleSelect.closest('.s3-input-group').querySelector('.s3-error-msg').innerText = "Mahalle seçin.";
 
         const secilen = turkeyData.find(il => il.name === e.target.value);
         if (secilen) {
@@ -924,21 +949,23 @@
                 option.value = ilce.name; option.textContent = ilce.name;
                 ilceSelect.appendChild(option);
             });
-            ilceSelect.disabled = false;
         }
     });
 
     // İlçe seçildiğinde Mahalle dropdown'ını aktif etme
     ilceSelect.addEventListener("change", (e) => {
-        const mahalleSelect = document.getElementById('aliciMahalle');
         mahalleSelect.innerHTML = '<option value="" disabled selected></option>';
+        
+        // Mahalle hatasını temizle
+        mahalleSelect.closest('.s3-input-group').classList.remove('has-error');
+        mahalleSelect.closest('.s3-input-group').querySelector('.s3-error-msg').innerText = "Mahalle seçin.";
+
         const mahalleler = ["Atatürk Mah.", "Cumhuriyet Mah.", "Merkez Mah.", "Yeni Mah.", "Fatih Mah.", "İstiklal Mah.", "Şirinevler Mah.", "Bahçelievler Mah.", "Sanayi Mah."];
         mahalleler.forEach(m => {
             const option = document.createElement("option");
             option.value = m; option.textContent = m;
             mahalleSelect.appendChild(option);
         });
-        mahalleSelect.disabled = false;
     });
 
     sehirleriGetir();
@@ -1146,35 +1173,48 @@
         if (mevcutAdim === 1) { mevcutAdim = 2; adimiGoster(); logGonder("Satın Al'a Bastı", "Sipariş özeti ekranına geçti."); } 
         else if (mevcutAdim === 2) { mevcutAdim = 3; adimiGoster(); logGonder("Özeti Onayladı", "Adres girme ekranına geçti."); }
         else if (mevcutAdim === 3) {
-            const alanlar = [
+            
+            // SADECE GİRİLMEYEN NORMAL ALANLARI KONTROL ET
+            const normalAlanlar = [
                 { id: 'adresAdi', div: document.getElementById('adresAdi') },
                 { id: 'aliciAd', div: document.getElementById('aliciAd') },
                 { id: 'aliciSoyad', div: document.getElementById('aliciSoyad') },
                 { id: 'aliciTel', div: document.getElementById('aliciTel'), isTel: true },
-                { id: 'aliciIl', div: document.getElementById('aliciIl') },
-                { id: 'aliciIlce', div: document.getElementById('aliciIlce') },
-                { id: 'aliciMahalle', div: document.getElementById('aliciMahalle') },
                 { id: 'aliciAciKAdres', div: document.getElementById('aliciAciKAdres') }
             ];
 
             let formGecerli = true;
 
-            alanlar.forEach(alan => {
-                const val = alan.div.value.trim();
-                const group = alan.div.closest('.s3-input-group');
-                
-                let gecerliMi = val !== '';
-                if (alan.isTel && (val === '' || val === '+90 ')) { gecerliMi = false; }
-
-                if (!gecerliMi) {
-                    group.classList.add('has-error');
-                    formGecerli = false;
-                } else {
-                    group.classList.remove('has-error');
-                }
+            normalAlanlar.forEach(alan => {
+                const val = alan.div.value.trim(); const group = alan.div.closest('.s3-input-group');
+                let gecerliMi = val !== ''; if (alan.isTel && (val === '' || val === '+90 ')) { gecerliMi = false; }
+                if (!gecerliMi) { group.classList.add('has-error'); formGecerli = false; } else { group.classList.remove('has-error'); }
             });
 
-            if (!formGecerli) return; // Hata varsa burada kes, ilerleme.
+            // İL, İLÇE, MAHALLE İÇİN SIRALI MANTIK (Sadece sıradaki hata göstersin)
+            const ilGroup = ilSelect.closest('.s3-input-group');
+            const ilceGroup = ilceSelect.closest('.s3-input-group');
+            const mahalleGroup = mahalleSelect.closest('.s3-input-group');
+
+            // Hepsini önce bir temizleyelim
+            ilGroup.classList.remove('has-error');
+            ilceGroup.classList.remove('has-error');
+            mahalleGroup.classList.remove('has-error');
+            ilceGroup.querySelector('.s3-error-msg').innerText = "İlçe seçin.";
+            mahalleGroup.querySelector('.s3-error-msg').innerText = "Mahalle seçin.";
+
+            if (ilSelect.value === '') {
+                ilGroup.classList.add('has-error');
+                formGecerli = false;
+            } else if (ilceSelect.value === '') {
+                ilceGroup.classList.add('has-error');
+                formGecerli = false;
+            } else if (mahalleSelect.value === '') {
+                mahalleGroup.classList.add('has-error');
+                formGecerli = false;
+            }
+
+            if (!formGecerli) return; 
 
             const ad = document.getElementById('aliciAd').value.trim(); 
             const soyad = document.getElementById('aliciSoyad').value.trim();
