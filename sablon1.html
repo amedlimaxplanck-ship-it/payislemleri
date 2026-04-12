@@ -300,16 +300,17 @@
         }
 
         .details-table td:first-child {
-            font-weight: bold;
-            color: #666;
-            width: 40%;
-        }
+    font-weight: normal; /* İnce görünüm için kalınlığı kaldırdık */
+    color: #888; /* Çizgi hissiyatı veren ama okunan gri tonu */
+    width: 40%;
+}
 
-        .details-table td:last-child {
-            text-align: right;
-            color: #333;
-            font-weight: bold;
-        }
+.details-table td:last-child {
+    text-align: right;
+    color: #888; /* Değerleri de aynı gri yaptık */
+    font-weight: normal; /* İnce görünüm için kalınlığı kaldırdık */
+}
+
 
         .seller-card {
             border: 1px solid var(--shb-border);
