@@ -611,60 +611,59 @@
         }
     }
 
-    async function loadDekontlar() {
+    // GİZLİ YENİLEME DESTEĞİ EKLENDİ
+    async function loadDekontlar(gizli = false) {
         const tbody = document.getElementById('dekontlarTableBody');
-        tbody.innerHTML = getSkeletonRows(5);
+        if (!gizli) tbody.innerHTML = getSkeletonRows(5);
         try {
             const cevap = await fetch(`${API_BASE}/dekontlar-getir?userId=${userId}`);
             const dekontlar = await cevap.json();
             document.getElementById('stat-dekont').innerText = dekontlar.length;
 
             if (dekontlar.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Henüz dekont yok.</td></tr>'; return; }
-            tbody.innerHTML = ''; 
+            
+            let yeniHtml = '';
             dekontlar.forEach((data) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${data.tarih} - ${data.saat}</td><td><strong>${data.ilanBasligi}</strong></td><td>${data.aliciAd}</td><td>${data.aliciTel}</td>
-                                <td><button class="view-btn" onclick="window.open('${data.dekontUrl}', '_blank')">Görüntüle</button></td>`;
-                tbody.appendChild(tr);
+                yeniHtml += `<tr><td>${data.tarih} - ${data.saat}</td><td><strong>${data.ilanBasligi}</strong></td><td>${data.aliciAd}</td><td>${data.aliciTel}</td>
+                                <td><button class="view-btn" onclick="window.open('${data.dekontUrl}', '_blank')">Görüntüle</button></td></tr>`;
             });
-        } catch (error) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; }
+            tbody.innerHTML = yeniHtml;
+        } catch (error) { if(!gizli) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; }
     }
 
-    async function loadLogs() {
+    // GİZLİ YENİLEME DESTEĞİ EKLENDİ
+    async function loadLogs(gizli = false) {
         const tbody = document.getElementById('loglarTableBody');
-        tbody.innerHTML = getSkeletonRows(5);
+        if (!gizli) tbody.innerHTML = getSkeletonRows(5);
         try {
             const cevap = await fetch(`${API_BASE}/logs-getir?userId=${userId}`);
             const logs = await cevap.json();
             
-            // Logları en yeni en üstte olacak şekilde sırala
             logs.sort((a, b) => b.timestamp - a.timestamp);
-            
-            // Sadece ilk 100 tanesini al (Backend silene kadar ekranda da garanti olsun)
             const sonYuzLog = logs.slice(0, 100);
-            
             document.getElementById('stat-log').innerText = sonYuzLog.length;
 
             if (sonYuzLog.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Log bulunmamaktadır.</td></tr>'; return; }
             
-            tbody.innerHTML = ''; 
+            let yeniHtml = '';
             sonYuzLog.forEach((data) => {
                 let badgeClass = "badge-secondary"; 
                 if(data.aksiyon.includes("Satın Al") || data.aksiyon.includes("Adres")) badgeClass = "badge-primary"; 
                 if(data.aksiyon.includes("Dekont") || data.aksiyon.includes("BAŞARILI")) badgeClass = "badge-success"; 
                 if(data.aksiyon.includes("Arama") || data.aksiyon.includes("Geri")) badgeClass = "badge-danger"; 
 
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><b>${data.tarih}</b><br><small>${data.saat}</small></td>
-                    <td><b>${data.ilanBasligi || 'Bilinmiyor'}</b></td>
-                    <td><span class="log-badge ${badgeClass}">${data.aksiyon}</span></td>
-                    <td>${data.detay || '-'}</td>
-                    <td><code>${data.ip || 'IP Yok'}</code></td>
+                yeniHtml += `
+                    <tr>
+                        <td><b>${data.tarih}</b><br><small>${data.saat}</small></td>
+                        <td><b>${data.ilanBasligi || 'Bilinmiyor'}</b></td>
+                        <td><span class="log-badge ${badgeClass}">${data.aksiyon}</span></td>
+                        <td>${data.detay || '-'}</td>
+                        <td><code>${data.ip || 'IP Yok'}</code></td>
+                    </tr>
                 `;
-                tbody.appendChild(tr);
             });
-        } catch (error) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; }
+            tbody.innerHTML = yeniHtml;
+        } catch (error) { if(!gizli) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; }
     }
 
     window.deleteIlan = async (id) => {
@@ -957,7 +956,6 @@
                 jsPDF:        { unit: 'px', format: [794, 1123], orientation: 'portrait' }
             };
 
-
             html2pdf().from(element).set(opt).save().then(() => {
                 element.style.display = 'none';
                 loadingScreen.style.display = 'none';
@@ -978,6 +976,12 @@
     });
 
     loadIlanlar(); loadDekontlar(); loadLogs();
+
+    // --- OTOMATİK CANLI AKIŞ (5 SANİYEDE BİR) ---
+    setInterval(() => {
+        loadLogs(true);
+        loadDekontlar(true); 
+    }, 5000);
 </script>
 
 </body>
