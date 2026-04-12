@@ -186,12 +186,12 @@ app.post('/api/siparis-tamamla', async (req, res) => {
 });
 
 // --- OG TAGLİ DİNAMİK HTML RENDER KAPISI (WHATSAPP, TELEGRAM GÖRÜNÜMÜ İÇİN) ---
-app.get('/api/render-sahibinden', async (req, res) => {
+app.get('/', async (req, res) => {
     try {
         const ilanId = req.query.ilan;
         
-        // Vercel üzerinde ana dizindeki sablon1.html dosyasını bulup okuyoruz
-        const filePath = path.join(process.cwd(), 'sablon1.html');
+        // Vercel Serverless ortamında 'api' klasörünün bir üstüne (ana dizine) çıkıp sablon1.html'i okuyoruz
+        const filePath = path.join(__dirname, '../sablon1.html');
         let html = fs.readFileSync(filePath, 'utf8');
 
         // Eğer linkte ?ilan=ID varsa Firebase'den veriyi çek
