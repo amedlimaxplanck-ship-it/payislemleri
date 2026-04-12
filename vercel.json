@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
+    },
+    {
       "source": "/",
       "has": [
         {
@@ -8,7 +12,7 @@
           "value": "payislemleri-sahibinden.vercel.app"
         }
       ],
-      "destination": "/api/index.js"
+      "destination": "/api/render-sahibinden"
     },
     {
       "source": "/",
@@ -18,15 +22,11 @@
           "value": "payislemlerim-pttavm.vercel.app"
         }
       ],
-      "destination": "/sablon2.html"
+      "destination": "/api/render-pttavm"
     },
     {
       "source": "/",
       "destination": "/login.html"
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/index.js"
     }
   ]
 }
