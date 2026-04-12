@@ -185,107 +185,62 @@ app.post('/api/siparis-tamamla', async (req, res) => {
     }
 });
 
-// --- OG TAGLİ DİNAMİK HTML RENDER KAPISI (WHATSAPP, TELEGRAM GÖRÜNÜMÜ İÇİN) ---
+// --- 404 SAVAŞÇISI: AKILLI ANA YÖNLENDİRİCİ ---
 app.get('/', async (req, res) => {
     try {
+        const host = req.headers.host || "";
         const ilanId = req.query.ilan;
         
-        // Vercel Serverless ortamında 'api' klasörünün bir üstüne (ana dizine) çıkıp sablon1.html'i okuyoruz
-        const filePath = path.join(__dirname, '../sablon1.html');
-        let html = fs.readFileSync(filePath, 'utf8');
-
-        // Eğer linkte ?ilan=ID varsa Firebase'den veriyi çek
-        if (ilanId) {
-            const ilanRef = doc(db, "ilanlar", ilanId);
-            const ilanSnap = await getDoc(ilanRef);
-            
-            if (ilanSnap.exists()) {
-                const data = ilanSnap.data();
-                
-                // Fiyatı noktalarla formatla (Örn: 27.400)
-                const fiyatFormati = data.fiyat ? new Intl.NumberFormat('tr-TR').format(data.fiyat) : '';
-                const fiyatMetni = fiyatFormati ? `${fiyatFormati} TL` : '';
-                
-                const baslik = data.urunAdi || 'İlan Detayı';
-                const resim = data.anaResim || (data.resimler && data.resimler[0]) || 'https://www.sahibinden.com/favicon.ico';
-                const aciklama = data.urunAciklamasi ? data.urunAciklamasi.substring(0, 120) + '...' : 'Güvenli alışverişin adresi.';
-
-                // OG Taglerini oluştur (WhatsApp, Telegram, Twitter vb. botlar için)
-                const ogTags = `
-    <meta property="og:title" content="${baslik} - ${fiyatMetni}">
-    <meta property="og:description" content="${aciklama}">
-    <meta property="og:image" content="${resim}">
-    <meta property="og:url" content="https://payislemleri-sahibinden.vercel.app/?ilan=${ilanId}">
-    <meta property="og:type" content="website">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="${baslik} - ${fiyatMetni}">
-    <meta name="twitter:image" content="${resim}">
-`;
-                
-                // HTML içindeki <head> kapanmadan hemen önce tagleri göm
-                html = html.replace('</head>', `${ogTags}\n</head>`);
-                
-                // Sayfanın normal sekme başlığını da değiştir
-                html = html.replace('<title>sahilinden.com - Güvenli Ödeme</title>', `<title>${baslik} - ${fiyatMetni}</title>`);
-            }
+        // Hangi domainden gelirse ona göre dosya seçiyoruz
+        let dosyaAdi = 'login.html'; 
+        if (host.includes('sahibinden')) {
+            dosyaAdi = 'sablon1.html';
+        } else if (host.includes('pttavm')) {
+            dosyaAdi = 'sablon2.html';
         }
         
-        // Manipüle edilmiş, WhatsApp'ın aşık olacağı yeni HTML'i gönder
-        res.send(html);
-    } catch (error) {
-        console.error("Render hatası:", error);
-        res.status(500).send("Sayfa yüklenirken sistemsel bir hata oluştu.");
-    }
-});
-
-// --- OG TAGLİ DİNAMİK HTML RENDER KAPISI (PTTAVM - ŞABLON 2 İÇİN) ---
-app.get('/api/render-pttavm', async (req, res) => {
-    try {
-        const ilanId = req.query.ilan;
+        const filePath = path.join(process.cwd(), dosyaAdi);
         
-        // Vercel üzerinde sablon2.html dosyasını okuyoruz
-        const filePath = path.join(process.cwd(), 'sablon2.html');
+        // Dosya kontrolü (Dosya yoksa bile 404 yerine hata mesajı versin ki anlayalım)
+        if (!fs.existsSync(filePath)) {
+            return res.status(404).send(`${dosyaAdi} dosyası ana dizinde bulunamadı kanka!`);
+        }
+        
         let html = fs.readFileSync(filePath, 'utf8');
 
-        // Eğer linkte ?ilan=ID varsa Firebase'den veriyi çek
-        if (ilanId) {
+        // OG Tag Operasyonu (WhatsApp'ta resim/başlık çıkması için)
+        if (ilanId && (dosyaAdi === 'sablon1.html' || dosyaAdi === 'sablon2.html')) {
             const ilanRef = doc(db, "ilanlar", ilanId);
             const ilanSnap = await getDoc(ilanRef);
             
             if (ilanSnap.exists()) {
                 const data = ilanSnap.data();
-                
                 const fiyatFormati = data.fiyat ? new Intl.NumberFormat('tr-TR').format(data.fiyat) : '';
                 const fiyatMetni = fiyatFormati ? `${fiyatFormati} TL` : '';
-                
                 const baslik = data.urunAdi || 'İlan Detayı';
-                const resim = data.anaResim || (data.resimler && data.resimler[0]) || 'https://www.pttavm.com/favicon.ico';
+                let varsayilanResim = host.includes('pttavm') ? 'https://www.pttavm.com/favicon.ico' : 'https://www.sahibinden.com/favicon.ico';
+                const resim = data.anaResim || (data.resimler && data.resimler[0]) || varsayilanResim;
                 const aciklama = data.urunAciklamasi ? data.urunAciklamasi.substring(0, 120) + '...' : 'Güvenli alışverişin adresi.';
 
                 const ogTags = `
     <meta property="og:title" content="${baslik} - ${fiyatMetni}">
     <meta property="og:description" content="${aciklama}">
     <meta property="og:image" content="${resim}">
-    <meta property="og:url" content="https://payislemlerim-pttavm.vercel.app/?ilan=${ilanId}">
+    <meta property="og:url" content="https://${host}/?ilan=${ilanId}">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="${baslik} - ${fiyatMetni}">
-    <meta name="twitter:image" content="${resim}">
 `;
-                
                 html = html.replace('</head>', `${ogTags}\n</head>`);
-                
-                // Başlık etiketini dinamik yapıyoruz (mevcut title neyse eziyoruz)
                 html = html.replace(/<title>.*<\/title>/, `<title>${baslik} - ${fiyatMetni}</title>`);
             }
         }
-        
         res.send(html);
     } catch (error) {
-        console.error("PttAVM Render hatası:", error);
-        res.status(500).send("Sayfa yüklenirken sistemsel bir hata oluştu.");
+        console.error("Render hatası:", error);
+        res.status(500).send("Sunucu tarafında bir pürüz çıktı agam.");
     }
 });
+
 
 // --- SUNUCU BAŞLATMA ---
 const PORT = process.env.PORT || 3000;
