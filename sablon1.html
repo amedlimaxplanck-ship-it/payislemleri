@@ -943,7 +943,32 @@
         document.getElementById('o-toplam').innerText = formatFiyatKusuratli(hesaplanmisToplam) + " TL";
         document.getElementById('v-baslik').innerText = data.urunAdi;
         document.getElementById('o-baslik').innerText = data.urunAdi;
-        document.getElementById('v-aciklama').innerHTML = data.urunAciklamasi ? data.urunAciklamasi.replace(/\n/g, '<br>') : "Açıklama girilmemiş.";
+                const aciklamaKutusu = document.getElementById('v-aciklama');
+        aciklamaKutusu.innerHTML = data.urunAciklamasi ? data.urunAciklamasi.replace(/\n/g, '<br>') : "Açıklama girilmemiş.";
+        
+        const togBtn = document.getElementById('btnAciklamaTog');
+        aciklamaKutusu.classList.add('desc-kisitli'); // İlk başta hep kısıtlı başla
+        
+        // Metin 5 satırdan uzunsa butonu göster, kısaysa butonu hiç çıkarma
+        setTimeout(() => {
+            if (aciklamaKutusu.scrollHeight > aciklamaKutusu.clientHeight) {
+                togBtn.style.display = 'inline-block';
+            } else {
+                togBtn.style.display = 'none';
+            }
+        }, 10);
+
+        // Butona basıldığında aç/kapat mantığı
+        togBtn.onclick = function() {
+            if (aciklamaKutusu.classList.contains('desc-kisitli')) {
+                aciklamaKutusu.classList.remove('desc-kisitli');
+                togBtn.innerText = 'Daha az göster';
+            } else {
+                aciklamaKutusu.classList.add('desc-kisitli');
+                togBtn.innerText = 'Daha fazla göster';
+            }
+        };
+
         document.getElementById('v-saticiAdi').innerText = data.saticiAdi;
         document.getElementById('v-hesapTarihi').innerText = "Hesap Açılış: " + (data.hesapTarihi || "Belirtilmemiş");
 
