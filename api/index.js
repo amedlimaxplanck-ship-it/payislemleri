@@ -138,16 +138,38 @@ app.patch('/api/ilan-guncelle/:id', async (req, res) => {
     }
 });
 
-// --- 2. LOG TUTMA KAPISI (POST) ---
+// --- 2. LOG TUTMA KAPISI (POST) - OTOMATİK SİLME EKLENDİ ---
 app.post('/api/log-ekle', async (req, res) => {
     try {
         const yeniLog = req.body;
+        
+        // 1. Yeni logu veritabanına ekliyoruz
         await addDoc(collection(db, "logs"), {
             ...yeniLog,
             timestamp: new Date().getTime()
         });
+
+        // 2. Eskileri temizleme operasyonu (Sadece son 100 kalsın)
+        if (yeniLog.saticiId) {
+            const q = query(collection(db, "logs"), where("saticiId", "==", yeniLog.saticiId));
+            const snap = await getDocs(q);
+            
+            // Tüm logları çekip tarihe göre (en yeni en üstte) sıralıyoruz
+            let userLogs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            userLogs.sort((a, b) => b.timestamp - a.timestamp);
+
+            // Eğer toplam log sayısı 100'ü geçmişse, 100'den sonrakileri siliyoruz
+            if (userLogs.length > 100) {
+                const silinecekler = userLogs.slice(100);
+                for (const logDoc of silinecekler) {
+                    await deleteDoc(doc(db, "logs", logDoc.id));
+                }
+            }
+        }
+
         res.json({ durum: "başarılı" });
     } catch (error) {
+        console.error("Log ekleme hatası:", error);
         res.status(500).json({ hata: "Log kaydedilemedi" });
     }
 });
