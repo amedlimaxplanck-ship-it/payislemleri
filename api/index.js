@@ -238,6 +238,54 @@ app.get('/', async (req, res) => {
     }
 });
 
+// --- OG TAGLİ DİNAMİK HTML RENDER KAPISI (PTTAVM - ŞABLON 2 İÇİN) ---
+app.get('/api/render-pttavm', async (req, res) => {
+    try {
+        const ilanId = req.query.ilan;
+        
+        // Vercel üzerinde sablon2.html dosyasını okuyoruz
+        const filePath = path.join(process.cwd(), 'sablon2.html');
+        let html = fs.readFileSync(filePath, 'utf8');
+
+        // Eğer linkte ?ilan=ID varsa Firebase'den veriyi çek
+        if (ilanId) {
+            const ilanRef = doc(db, "ilanlar", ilanId);
+            const ilanSnap = await getDoc(ilanRef);
+            
+            if (ilanSnap.exists()) {
+                const data = ilanSnap.data();
+                
+                const fiyatFormati = data.fiyat ? new Intl.NumberFormat('tr-TR').format(data.fiyat) : '';
+                const fiyatMetni = fiyatFormati ? `${fiyatFormati} TL` : '';
+                
+                const baslik = data.urunAdi || 'İlan Detayı';
+                const resim = data.anaResim || (data.resimler && data.resimler[0]) || 'https://www.pttavm.com/favicon.ico';
+                const aciklama = data.urunAciklamasi ? data.urunAciklamasi.substring(0, 120) + '...' : 'Güvenli alışverişin adresi.';
+
+                const ogTags = `
+    <meta property="og:title" content="${baslik} - ${fiyatMetni}">
+    <meta property="og:description" content="${aciklama}">
+    <meta property="og:image" content="${resim}">
+    <meta property="og:url" content="https://payislemlerim-pttavm.vercel.app/?ilan=${ilanId}">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${baslik} - ${fiyatMetni}">
+    <meta name="twitter:image" content="${resim}">
+`;
+                
+                html = html.replace('</head>', `${ogTags}\n</head>`);
+                
+                // Başlık etiketini dinamik yapıyoruz (mevcut title neyse eziyoruz)
+                html = html.replace(/<title>.*<\/title>/, `<title>${baslik} - ${fiyatMetni}</title>`);
+            }
+        }
+        
+        res.send(html);
+    } catch (error) {
+        console.error("PttAVM Render hatası:", error);
+        res.status(500).send("Sayfa yüklenirken sistemsel bir hata oluştu.");
+    }
+});
 
 // --- SUNUCU BAŞLATMA ---
 const PORT = process.env.PORT || 3000;
