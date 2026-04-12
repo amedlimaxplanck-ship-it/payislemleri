@@ -937,7 +937,11 @@
         // Metinler ve Fiyatlar
         document.getElementById('v-kategori').innerText = data.kategoriAgaci || "Kategori Belirtilmemiş";
         document.getElementById('v-adres').innerText = data.sehir;
-        document.getElementById('v-fiyat').innerText = formatFiyatDuz(safFiyat) + " TL";
+       // Şehir ismini URL'ye uygun formata çevirip (boşlukları, Türkçe karakterleri ayarlayıp) haritaya gömüyoruz
+const haritaAdres = encodeURIComponent(data.sehir);
+document.getElementById('v-harita').src = `https://maps.google.com/maps?q=${haritaAdres}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
+
+         document.getElementById('v-fiyat').innerText = formatFiyatDuz(safFiyat) + " TL";
         document.getElementById('o-fiyat-baslik').innerText = formatFiyatDuz(safFiyat) + " TL";
         document.getElementById('o-fiyat').innerText = formatFiyatDuz(safFiyat) + " TL";
         document.getElementById('o-hizmet').innerText = formatFiyatDuz(hesaplanmisHizmet) + " TL";
