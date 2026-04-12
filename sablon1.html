@@ -1035,15 +1035,16 @@
             e.currentTarget.classList.toggle('filled');
         });
 
-        document.getElementById('btnPaylas').addEventListener('click', async (e) => {
+                document.getElementById('btnPaylas').addEventListener('click', async (e) => {
             e.preventDefault();
             const shareUrl = window.location.href; 
             if(navigator.share) {
-                try { await navigator.share({ title: data.urunAdi, text: "sahilinden.com'da harika bir ilan buldum!", url: shareUrl }); } catch (e) {}
+                try { await navigator.share({ title: data.urunAdi, text: "Şu ilana bir baksana, harika bir şey buldum:", url: shareUrl }); } catch (e) {}
             } else {
                 navigator.clipboard.writeText(shareUrl); alert("İlan linki başarıyla kopyalandı!");
             }
         });
+
     }
 
     // ---- 5. ADIM GEÇİŞLERİ VE SİPARİŞ AKIŞI ----
