@@ -922,13 +922,16 @@
         document.getElementById('v-saticiAdi').innerText = data.saticiAdi;
         document.getElementById('v-hesapTarihi').innerText = "Hesap Açılış: " + (data.hesapTarihi || "Belirtilmemiş");
 
-        // Özellikler Tablosu
+               // Özellikler Tablosu
         const ozelliklerListesi = document.getElementById('v-ozellikler');
         if (Array.isArray(data.dinamikOzellikler)) {
             data.dinamikOzellikler.forEach(item => {
-                ozelliklerListesi.innerHTML += `<tr><td>${item.anahtar}</td><td>${item.deger}</td></tr>`;
+                // Eğer eklenen özelliğin adı "İlan No" ise sağ tarafı kırmızı yap
+                let degerStili = item.anahtar === 'İlan No' ? 'color: #dc3545; font-weight: bold;' : '';
+                ozelliklerListesi.innerHTML += `<tr><td>${item.anahtar}</td><td style="${degerStili}">${item.deger}</td></tr>`;
             });
         }
+
 
         // IBAN Ayrıştırma
         let ibanTam = data.iban || ""; let gosterilecekIban = ibanTam; let gosterilecekIsim = data.saticiAdi || "";
