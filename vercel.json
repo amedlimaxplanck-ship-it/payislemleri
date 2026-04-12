@@ -5,28 +5,8 @@
       "destination": "/api/index.js"
     },
     {
-      "source": "/",
-      "has": [
-        {
-          "type": "host",
-          "value": "payislemleri-sahibinden.vercel.app"
-        }
-      ],
-      "destination": "/api/render-sahibinden"
-    },
-    {
-      "source": "/",
-      "has": [
-        {
-          "type": "host",
-          "value": "payislemlerim-pttavm.vercel.app"
-        }
-      ],
-      "destination": "/api/render-pttavm"
-    },
-    {
-      "source": "/",
-      "destination": "/login.html"
+      "source": "/(.*)",
+      "destination": "/api/index.js"
     }
   ]
 }
