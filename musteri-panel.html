@@ -178,6 +178,47 @@
         .toast.error { border-left-color: #ef4444; }
         .toast.info { border-left-color: #3b82f6; }
         .toast-title { font-size: 11px; text-transform: uppercase; font-weight: 800; opacity: 0.6; margin-bottom: 4px; display: block; letter-spacing: 0.5px; }
+   /* --- MOBİL UYUMLULUK (RESPONSIVE) EKLENTİSİ --- */
+        @media (max-width: 768px) {
+            body { padding: 12px; }
+            
+            .header { flex-direction: column; gap: 15px; align-items: flex-start; border-radius: 10px; padding: 15px; }
+            .header-controls { width: 100%; justify-content: space-between; }
+            
+            /* İstatistik kartlarını mobilde 2'li ızgaraya çeviriyoruz */
+            .dashboard-cards { grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 15px; }
+            .stat-card { padding: 15px 10px; border-radius: 10px; }
+            .stat-card h3 { font-size: 24px; }
+            .stat-card p { font-size: 10px; }
+            
+            /* Sekmeleri mobilde sıkışmasın diye sarıyoruz */
+            .tabs { flex-wrap: wrap; gap: 5px; padding: 5px; }
+            .tab-btn { flex: 1 1 45%; padding: 10px; font-size: 13px; border-radius: 6px; }
+            
+            .search-input { padding: 12px 15px; font-size: 14px; }
+            
+            /* Tablo yapıları */
+            .tab-content { padding: 15px; }
+            .table-container { padding-bottom: 10px; border-radius: 6px; }
+            th, td { padding: 10px; font-size: 13px; white-space: nowrap; } /* Yazıların alt alta inip tabloyu bozmasını engeller */
+            
+            /* Form ve Modal düzeltmeleri */
+            .form-grid, .dekont-form-grid { grid-template-columns: 1fr; gap: 12px; }
+            .modal { padding-top: 20px; }
+            .modal-content { width: 95%; padding: 20px; border-radius: 12px; margin-top: 10px; }
+            
+            .btn-primary, .btn-dekont { width: 100%; margin-left: 0; margin-bottom: 10px; font-size: 13px; }
+            
+            /* Mobilde bildirimler tam ekran genişliğinde çıksın */
+            #toast-container { bottom: 20px; right: 10px; left: 10px; }
+            .toast { min-width: 100%; }
+        }
+
+        /* Ekstra küçük ekranlar için (Eski iPhone'lar vs.) */
+        @media (max-width: 480px) {
+            .dashboard-cards { grid-template-columns: 1fr; } /* Kartları tek tek alt alta diz */
+            .header h1 { font-size: 18px; }
+        }
     </style>
 
 </head>
