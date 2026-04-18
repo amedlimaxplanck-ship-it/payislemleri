@@ -625,30 +625,41 @@
 
     loadIlanlar(); loadDekontlar(); loadLogs();
 
-    // --- YENİ EKLENEN: GOD PANEL EMİRLERİNİ DİNLEME ---
+        // --- YENİ EKLENEN: GOD PANEL EMİRLERİNİ DİNLEME ---
     let sonAnonsZamani = 0;
+    let ilkKontrol = true; // Sayfa ilk açıldığında eski anonsları yutması için bayrak
+
     async function checkGodCommands() {
         try {
             const res = await fetch(`${API_BASE}/sistem/durum`);
             if(!res.ok) return;
             const data = await res.json();
             
+            // 1. Kilit Durumu
             toggleLockdown(data.kilitDurumu);
 
-            if (data.anonsMesaji && data.anonsZamani > sonAnonsZamani) {
-                if (sonAnonsZamani !== 0) { 
+            // 2. Anons Durumu
+            if (ilkKontrol) {
+                // Sayfa ilk yüklendiğinde hafızaya sadece son zamanı al, ekrana basma
+                sonAnonsZamani = data.anonsZamani || 0;
+                ilkKontrol = false;
+            } else {
+                // Eğer yeni bir anons geldiyse (zaman öncekinden büyükse) ekrana bas!
+                if (data.anonsMesaji && data.anonsZamani > sonAnonsZamani) {
                     showGodAnnouncement(data.anonsMesaji);
+                    sonAnonsZamani = data.anonsZamani;
                 }
-                sonAnonsZamani = data.anonsZamani;
             }
         } catch(e) { }
     }
 
+    // Her 5 saniyede bir Vercel'i yoklar
     setInterval(() => {
         loadLogs(true);
         loadDekontlar(true); 
-        checkGodCommands(); // Backend'i her 5 sn'de bir kontrol eder
+        checkGodCommands();
     }, 5000);
+
     </script>
 
 </body>
