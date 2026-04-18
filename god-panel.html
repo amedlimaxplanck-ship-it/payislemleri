@@ -63,7 +63,6 @@
         .bg-green { background: linear-gradient(135deg, #10b981, #059669); } 
         .bg-red { background: linear-gradient(135deg, var(--god-accent), #b91c1c); }
 
-        /* --- SİSTEM KOMUTA MERKEZİ KARTI --- */
         .command-center { background: var(--bg-card); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid var(--border-color); margin-bottom: 25px; border-top: 4px solid var(--god-accent); }
         .command-title { font-size: 16px; font-weight: 800; color: var(--text-main); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
         .command-grid { display: flex; gap: 20px; flex-wrap: wrap; }
@@ -248,7 +247,6 @@
     <div id="toast-container"></div>
 
     <script type="module">
-        // --- TEMA MOTORU ---
         const themeToggle = document.getElementById('themeToggle');
         const currentTheme = localStorage.getItem('godTheme') || 'light';
         
@@ -262,7 +260,6 @@
             }
         });
 
-        // --- TOAST MOTORU ---
         window.showToast = function(message, type = 'success', title = '') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -274,7 +271,6 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3500);
         }
 
-        // --- SKELETON OLUŞTURUCU ---
         function getSkeletonRows(colCount) {
             let rows = '';
             for(let i=0; i<4; i++) {
@@ -285,7 +281,6 @@
             return rows;
         }
 
-        // --- YETKİ KONTROLÜ ---
         if (!localStorage.getItem("userId") || localStorage.getItem("userRole") !== "god") { window.location.href = "login.html"; }
 
         const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
@@ -294,31 +289,41 @@
 
         document.getElementById('logoutBtn').addEventListener('click', () => { localStorage.clear(); window.location.href = "login.html"; });
 
-        // --- KOMUTA MERKEZİ AKSİYONLARI ---
-        document.getElementById('globalLockdownBtn').addEventListener('change', function(e) {
+        // --- GERÇEK KOMUTA MERKEZİ AKSİYONLARI ---
+        document.getElementById('globalLockdownBtn').addEventListener('change', async function(e) {
             const isLocked = e.target.checked;
-            // Not: Gerçek zamanlı tetikleme için buraya Firebase Global Settings API isteği atılmalı.
-            showToast(isLocked ? "Sistem kilitlendi. Müşteri işlemleri durduruldu!" : "Sistem kilidi açıldı. Akış normale döndü.", isLocked ? "error" : "success", "LOCKDOWN PROTOKOLÜ");
+            try {
+                await fetch(`${API_BASE}/sistem/kilit`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kilitDurumu: isLocked })
+                });
+                showToast(isLocked ? "Sistem kilitlendi. Müşteri işlemleri durduruldu!" : "Sistem kilidi açıldı. Akış normale döndü.", isLocked ? "error" : "success", "LOCKDOWN PROTOKOLÜ");
+            } catch (err) {
+                showToast("Sunucuya bağlanılamadı!", "error");
+                e.target.checked = !isLocked; 
+            }
         });
 
-        document.getElementById('sendGodVoiceBtn').addEventListener('click', function() {
+        document.getElementById('sendGodVoiceBtn').addEventListener('click', async function() {
             const msg = document.getElementById('godVoiceInput').value.trim();
             if(!msg) return showToast("Lütfen bir anons metni yazın.", "error");
-            // Not: Gerçek zamanlı tetikleme için buraya Firebase Global Settings API isteği atılmalı.
-            showToast(`"${msg}" anonsu tüm müşterilere iletildi.`, "info", "SİSTEM ANONSU");
-            document.getElementById('godVoiceInput').value = '';
+            try {
+                await fetch(`${API_BASE}/sistem/anons`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mesaj: msg, zaman: Date.now() })
+                });
+                showToast(`"${msg}" anonsu tüm müşterilere iletildi.`, "info", "SİSTEM ANONSU");
+                document.getElementById('godVoiceInput').value = '';
+            } catch (err) {
+                showToast("Anons gönderilemedi!", "error");
+            }
         });
 
-        // --- MÜŞTERİ LOG (BAŞARILI İŞLEM) ÇEKME ARKA PLANI ---
         async function fetchSuccessCount(userId, tdElementId) {
             try {
                 const res = await fetch(`${API_BASE}/logs-getir?userId=${userId}`);
                 const logs = await res.json();
                 let successCount = 0;
                 logs.forEach(log => {
-                    if(log.aksiyon && (log.aksiyon.includes("BAŞARILI") || log.aksiyon.includes("Dekont"))) {
-                        successCount++;
-                    }
+                    if(log.aksiyon && (log.aksiyon.includes("BAŞARILI") || log.aksiyon.includes("Dekont"))) { successCount++; }
                 });
                 document.getElementById(tdElementId).innerHTML = `<span class="success-badge">✓ ${successCount} İşlem</span>`;
             } catch (e) {
@@ -326,7 +331,6 @@
             }
         }
 
-        // --- MÜŞTERİLERİ LİSTELEME ---
         async function loadCustomers() {
             const tbody = document.getElementById('customerTableBody');
             tbody.innerHTML = getSkeletonRows(6);
@@ -367,8 +371,6 @@
                             </td>
                         `;
                         tbody.appendChild(tr);
-                        
-                        // Arka planda müşteri başarı skorunu çekip tabloya basar
                         fetchSuccessCount(data.docId, tdId);
                     }
                 });
@@ -382,7 +384,6 @@
             }
         }
 
-        // --- YENİ MÜŞTERİ EKLEME ---
         document.getElementById('addCustomerBtn').addEventListener('click', async () => {
             const passcode = document.getElementById('newPasscode').value.trim();
             const durationMonths = parseInt(document.getElementById('subDuration').value);
@@ -394,11 +395,8 @@
             const expireDateObj = new Date(today.setMonth(today.getMonth() + durationMonths));
             
             const musteriVerisi = {
-                passcode: passcode,
-                role: "customer", 
-                expireDate: expireDateObj.toLocaleDateString('tr-TR'),
-                createdDateStr: new Date().toLocaleDateString('tr-TR'),
-                banMessage: "Abonelik süreniz dolmuş veya askıya alınmıştır."
+                passcode: passcode, role: "customer", expireDate: expireDateObj.toLocaleDateString('tr-TR'),
+                createdDateStr: new Date().toLocaleDateString('tr-TR'), banMessage: "Abonelik süreniz dolmuş veya askıya alınmıştır."
             };
 
             try {
@@ -407,14 +405,11 @@
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(musteriVerisi)
                 });
                 if(res.ok) {
-                    document.getElementById('newPasscode').value = '';
-                    showToast("Yeni müşteri başarıyla sisteme kaydedildi.", "success");
-                    loadCustomers();
+                    document.getElementById('newPasscode').value = ''; showToast("Yeni müşteri başarıyla sisteme kaydedildi.", "success"); loadCustomers();
                 } else { showToast("Müşteri kaydı başarısız oldu.", "error"); }
             } catch (e) { showToast("Sunucuyla iletişim kurulamadı.", "error"); } finally { btn.textContent = "Sisteme Kaydet"; btn.disabled = false; }
         });
 
-        // --- DURUM GÜNCELLEME ---
         window.toggleStatus = async (id, status) => {
             try {
                 await fetch(`${API_BASE}/users/guncelle/${id}`, {
@@ -424,7 +419,6 @@
             } catch (e) { showToast("Durum güncellenemedi, sunucu hatası.", "error"); loadCustomers(); }
         };
 
-        // --- MODAL İŞLEMLERİ ---
         const modal = document.getElementById("editModal");
         document.getElementById("closeEditModal").onclick = () => { modal.style.display = "none"; }
         window.onclick = (e) => { if (e.target == modal) modal.style.display = "none"; }
