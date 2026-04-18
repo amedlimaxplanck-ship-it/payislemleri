@@ -1,13 +1,13 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors'); 
-const fs = require('fs'); // Şablonları okumak için eklendi
-const path = require('path'); // Dosya yollarını bulmak için eklendi
+const fs = require('fs'); 
+const path = require('path'); 
 const { initializeApp } = require('firebase/app');
 const {
     getFirestore, collection, addDoc, getDocs, 
     doc, getDoc, query, where, 
-    updateDoc, deleteDoc 
+    updateDoc, deleteDoc, setDoc // <-- setDoc eklendi (God Panel için)
 } = require('firebase/firestore');
 
 const app = express();
@@ -27,7 +27,7 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
 
-// --- API KAPILARI (Mevcut Sisteminiz Dokunulmadan Bırakıldı) ---
+// --- API KAPILARI ---
 
 app.post('/api/login', async (req, res) => {
     const { code } = req.body; 
@@ -78,19 +78,15 @@ app.get('/api/logs-getir', async (req, res) => {
     res.json(snap.docs.map(doc => doc.data()));
 });
 
-// --- 1. İLAN GETİRME KAPISI (GET) ---
 app.get('/api/ilan/:id', async (req, res) => {
     try {
         const ilanRef = doc(db, "ilanlar", req.params.id);
         const ilanSnap = await getDoc(ilanRef);
         if (ilanSnap.exists()) {
             const ilanVerisi = ilanSnap.data();
-            
-            // --- PASİF İLAN KONTROLÜ BURAYA EKLENDİ ---
             if (ilanVerisi.durum === 'pasif') {
                 return res.status(404).json({ hata: "Bu ilan pasife alınmış." });
             }
-            
             res.json(ilanVerisi);
         } else {
             res.status(404).json({ hata: "İlan yok" });
@@ -145,27 +141,21 @@ app.patch('/api/ilan-guncelle/:id', async (req, res) => {
     }
 });
 
-// --- 2. LOG TUTMA KAPISI (POST) - OTOMATİK SİLME EKLENDİ ---
 app.post('/api/log-ekle', async (req, res) => {
     try {
         const yeniLog = req.body;
-        
-        // 1. Yeni logu veritabanına ekliyoruz
         await addDoc(collection(db, "logs"), {
             ...yeniLog,
             timestamp: new Date().getTime()
         });
 
-        // 2. Eskileri temizleme operasyonu (Sadece son 100 kalsın)
         if (yeniLog.saticiId) {
             const q = query(collection(db, "logs"), where("saticiId", "==", yeniLog.saticiId));
             const snap = await getDocs(q);
             
-            // Tüm logları çekip tarihe göre (en yeni en üstte) sıralıyoruz
             let userLogs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             userLogs.sort((a, b) => b.timestamp - a.timestamp);
 
-            // Eğer toplam log sayısı 100'ü geçmişse, 100'den sonrakileri siliyoruz
             if (userLogs.length > 100) {
                 const silinecekler = userLogs.slice(100);
                 for (const logDoc of silinecekler) {
@@ -173,7 +163,6 @@ app.post('/api/log-ekle', async (req, res) => {
                 }
             }
         }
-
         res.json({ durum: "başarılı" });
     } catch (error) {
         console.error("Log ekleme hatası:", error);
@@ -181,7 +170,6 @@ app.post('/api/log-ekle', async (req, res) => {
     }
 });
 
-// --- 3. SİPARİŞ/DEKONT KAPISI (POST) ---
 app.post('/api/siparis-tamamla', async (req, res) => {
     try {
         const siparisVerisi = req.body;
@@ -189,6 +177,41 @@ app.post('/api/siparis-tamamla', async (req, res) => {
         res.json({ durum: "başarılı" });
     } catch (error) {
         res.status(500).json({ hata: "Sipariş alınamadı" });
+    }
+});
+
+// --- YENİ: GOD PANEL SİSTEM KONTROL KAPILARI ---
+app.post('/api/sistem/kilit', async (req, res) => {
+    try {
+        await setDoc(doc(db, "settings", "global"), { kilitDurumu: req.body.kilitDurumu }, { merge: true });
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ hata: "Kilit ayarlanamadı" });
+    }
+});
+
+app.post('/api/sistem/anons', async (req, res) => {
+    try {
+        await setDoc(doc(db, "settings", "global"), { 
+            anonsMesaji: req.body.mesaj, 
+            anonsZamani: req.body.zaman 
+        }, { merge: true });
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ hata: "Anons ayarlanamadı" });
+    }
+});
+
+app.get('/api/sistem/durum', async (req, res) => {
+    try {
+        const snap = await getDoc(doc(db, "settings", "global"));
+        if (snap.exists()) {
+            res.json(snap.data());
+        } else {
+            res.json({ kilitDurumu: false, anonsMesaji: null, anonsZamani: 0 }); 
+        }
+    } catch (error) {
+        res.status(500).json({ hata: "Durum çekilemedi" });
     }
 });
 
@@ -205,7 +228,6 @@ app.get('/', async (req, res) => {
             dosyaAdi = 'sablon2.html';
         }
         
-        // Dosyayı hard diskte aramak yerine, Vercel'in kendi yayınladığı statik linkten çekiyoruz (fs hatasını %100 çözer)
         const protokol = host.includes('localhost') ? 'http' : 'https';
         const fetchUrl = `${protokol}://${host}/${dosyaAdi}`;
         
@@ -216,15 +238,12 @@ app.get('/', async (req, res) => {
         
         let html = await response.text();
 
-        // OG Tag Operasyonu (WhatsApp'ta resim/başlık çıkması için)
         if (ilanId && (dosyaAdi === 'sablon1.html' || dosyaAdi === 'sablon2.html')) {
             const ilanRef = doc(db, "ilanlar", ilanId);
             const ilanSnap = await getDoc(ilanRef);
             
             if (ilanSnap.exists()) {
                 const data = ilanSnap.data();
-
-                // Eğer ilan pasifse OG tag basmıyoruz ki WhatsApp'ta falan boşuna önizleme vermesin
                 if (data.durum !== 'pasif') {
                     const fiyatFormati = data.fiyat ? new Intl.NumberFormat('tr-TR').format(data.fiyat) : '';
                     const fiyatMetni = fiyatFormati ? `${fiyatFormati} TL` : '';
@@ -253,11 +272,7 @@ app.get('/', async (req, res) => {
     }
 });
 
-
-
-// --- SUNUCU BAŞLATMA ---
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Santral ${PORT} portunda aktif!`));
 
-// Vercel Serverless yapısı için Express'i dışarı aktarıyoruz
 module.exports = app;
