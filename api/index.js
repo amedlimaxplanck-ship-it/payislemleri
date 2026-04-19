@@ -7,7 +7,7 @@ const { initializeApp } = require('firebase/app');
 const {
     getFirestore, collection, addDoc, getDocs, 
     doc, getDoc, query, where, 
-    updateDoc, deleteDoc, setDoc // <-- setDoc eklendi (God Panel için)
+    updateDoc, deleteDoc, setDoc
 } = require('firebase/firestore');
 
 const app = express();
@@ -27,6 +27,28 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
 
+
+// =================================================================
+// 🔥 SİBER FEDAİ (GÜVENLİK DUVARI - MIDDLEWARE) 🔥
+// Bu kod, kritik işlemlerde araya girer ve sistemin kilitli
+// olup olmadığını kontrol eder. Kilitliyse işlemi anında reddeder!
+// =================================================================
+const kilitKontrol = async (req, res, next) => {
+    try {
+        const snap = await getDoc(doc(db, "settings", "global"));
+        if (snap.exists() && snap.data().kilitDurumu === true) {
+            console.warn(`[GÜVENLİK] Kilitli sisteme yetkisiz erişim denemesi reddedildi! IP/Rota: ${req.originalUrl}`);
+            return res.status(403).json({ hata: "Sistem yönetici tarafından kilitlenmiştir. İşlem yapılamaz." });
+        }
+        // Şalter açık (sistem normal), o zaman işleme devam etmesine izin ver:
+        next(); 
+    } catch (error) {
+        console.error("Kilit kontrol hatası:", error);
+        res.status(500).json({ hata: "Güvenlik protokolü doğrulanamadı." });
+    }
+};
+
+
 // --- API KAPILARI ---
 
 app.post('/api/login', async (req, res) => {
@@ -41,7 +63,7 @@ app.post('/api/login', async (req, res) => {
         
         const userDoc = querySnapshot.docs[0];
         res.json({ success: true, user: { id: userDoc.id, ...userDoc.data() } });
-        } catch (e) {
+    } catch (e) {
         console.error("FIREBASE GİRİŞ HATASI DETAYI:", e); 
         res.status(500).json({ success: false, message: "Sunucu hatası" });
     }
@@ -55,12 +77,14 @@ app.get('/api/ilanlar-getir', async (req, res) => {
     res.json(snap.docs.map(doc => ({ docId: doc.id, ...doc.data() })));
 });
 
-app.post('/api/ilan-ekle', async (req, res) => {
+// KORUMALI ROTA: İlan Ekleme
+app.post('/api/ilan-ekle', kilitKontrol, async (req, res) => {
     const docRef = await addDoc(collection(db, "ilanlar"), req.body);
     res.json({ success: true, id: docRef.id });
 });
 
-app.delete('/api/ilan-sil/:id', async (req, res) => {
+// KORUMALI ROTA: İlan Silme
+app.delete('/api/ilan-sil/:id', kilitKontrol, async (req, res) => {
     await deleteDoc(doc(db, "ilanlar", req.params.id));
     res.json({ success: true });
 });
@@ -96,7 +120,7 @@ app.get('/api/ilan/:id', async (req, res) => {
     }
 });
 
-// --- MÜŞTERİ YÖNETİMİ KAPILARI ---
+// --- MÜŞTERİ YÖNETİMİ KAPILARI (God Panel Kullanır, Kilite Takılmaz) ---
 app.get('/api/users', async (req, res) => {
     try {
         const q = query(collection(db, "users"));
@@ -132,7 +156,8 @@ app.patch('/api/users/guncelle/:id', async (req, res) => {
     }
 });
 
-app.patch('/api/ilan-guncelle/:id', async (req, res) => {
+// KORUMALI ROTA: İlan Güncelleme (Müşteri pasife çekmek isterse vs.)
+app.patch('/api/ilan-guncelle/:id', kilitKontrol, async (req, res) => {
     try {
         await updateDoc(doc(db, "ilanlar", req.params.id), req.body);
         res.json({ success: true });
@@ -141,7 +166,8 @@ app.patch('/api/ilan-guncelle/:id', async (req, res) => {
     }
 });
 
-app.post('/api/log-ekle', async (req, res) => {
+// KORUMALI ROTA: Log Ekleme (Sistem kilitliyken log spam'ini önler)
+app.post('/api/log-ekle', kilitKontrol, async (req, res) => {
     try {
         const yeniLog = req.body;
         await addDoc(collection(db, "logs"), {
@@ -170,7 +196,8 @@ app.post('/api/log-ekle', async (req, res) => {
     }
 });
 
-app.post('/api/siparis-tamamla', async (req, res) => {
+// KORUMALI ROTA: Sipariş/Dekont Tamamlama (Satış Sayfasından Gelen İstek)
+app.post('/api/siparis-tamamla', kilitKontrol, async (req, res) => {
     try {
         const siparisVerisi = req.body;
         await addDoc(collection(db, "dekontlar"), siparisVerisi);
