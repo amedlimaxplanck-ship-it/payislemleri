@@ -673,6 +673,20 @@
     <div id="toast-container"></div>
 
     <script type="module">
+        // 🔥 ZEHİR TEMİZLEYİCİ (XSS DEZENFEKTANI) 🔥
+        // Bu kod ekrana basılacak her veriyi tarar, içindeki zararlı olabilecek
+        // <script> gibi HTML etiketlerini zararsız düz metne çevirir.
+        window.dezenfekteEt = function(str) {
+            if (str === null || str === undefined) return "";
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#x27;')
+                .replace(/\//g, '&#x2f;');
+        };
+
         const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
         const API_BASE = isLocal ? 'http://localhost:3000/api' : '/api'; 
         let globalCustomers = []; 
@@ -736,7 +750,7 @@
 
             const toast = document.createElement('div');
             toast.className = 'toast animate-in';
-            toast.innerText = msg;
+            toast.innerText = msg; // innerText HTML çalıştırmaz, o yüzden kendi başına güvenlidir.
             container.appendChild(toast);
             
             setTimeout(function() {
@@ -871,11 +885,12 @@
                         }
                         
                         const tr = document.createElement('tr');
+                        // 🔥 TABLOYA BASILAN VERİLER DEZENFEKTE EDİLİYOR 🔥
                         tr.innerHTML = `
-                            <td style="color:var(--text-secondary); font-size:11px; white-space:nowrap;">${data.createdDateStr || '-'}</td>
-                            <td><span class="badge">${data.passcode}</span></td>
+                            <td style="color:var(--text-secondary); font-size:11px; white-space:nowrap;">${dezenfekteEt(data.createdDateStr || '-')}</td>
+                            <td><span class="badge">${dezenfekteEt(data.passcode)}</span></td>
                             <td id="succ-${data.docId}">-</td>
-                            <td style="font-weight:600; white-space:nowrap;">${data.expireDate || '-'}</td>
+                            <td style="font-weight:600; white-space:nowrap;">${dezenfekteEt(data.expireDate || '-')}</td>
                             <td>
                                 <label class="switch user-toggle">
                                     <input type="checkbox" onchange="toggleStatus('${data.docId}', this.checked)" ${data.isActive ? 'checked' : ''}>
