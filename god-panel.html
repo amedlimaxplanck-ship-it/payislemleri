@@ -3,313 +3,245 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
-    <title>God Panel - Yönetim Komuta Merkezi</title>
+    <title>God Panel | Yönetim</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-        /* --- AÇIK/KOYU MOD RENK MOTORU (GOD MODE) --- */
         :root {
-            --bg-body: #f0f2f5;
-            --bg-card: rgba(255, 255, 255, 0.85); /* Açık mod buzlu cam */
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border-color: rgba(0, 0, 0, 0.08);
-            --table-header: rgba(0, 0, 0, 0.02);
-            --input-bg: rgba(0, 0, 0, 0.03);
-            --god-accent: #dc3545;
-            --god-header: #343a40;
-            --modal-bg: rgba(0,0,0,0.5);
-            --glow-red: rgba(220, 53, 69, 0.2);
+            --bg-base: #000000;
+            --bg-surface: #0a0a0b;
+            --bg-card: #121214;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.15);
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --accent-color: #ffffff; /* Ağır ve sade beyaz vurgu */
+            --danger-color: #ef4444;
+            --success-color: #10b981;
         }
 
-        [data-theme="dark"] {
-            --bg-body: #050505; /* Zifiri Karanlık */
-            --bg-card: rgba(24, 24, 27, 0.65); /* Koyu mod buzlu cam */
-            --text-main: #f8fafc;
-            --text-muted: #a1a1aa;
-            --border-color: rgba(255, 255, 255, 0.08);
-            --table-header: rgba(255, 255, 255, 0.02);
-            --input-bg: rgba(0, 0, 0, 0.2);
-            --god-accent: #ef4444; /* Kan Kırmızısı */
-            --god-header: #18181b;
-            --modal-bg: rgba(0,0,0,0.85);
-            --glow-red: rgba(239, 68, 68, 0.2);
-        }
-
-        /* --- SİSTEM SABİTLEME VE UX --- */
-        * { 
-            box-sizing: border-box; 
-            margin: 0; padding: 0; 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            transition: background-color 0.3s, border-color 0.3s, color 0.3s, box-shadow 0.3s;
-            -webkit-tap-highlight-color: transparent; /* Mobildeki ucuz mavi tıklama efektini siler */
-            user-select: none; /* Yanlışlıkla metin seçmeyi engeller */
-        }
-        
-        input, select, textarea { 
-            user-select: auto; /* Sadece inputların içi seçilebilir olsun */
-        }
-
+        /* --- SİSTEM SABİTLEME (ASLA KAYMAZ/ZOOMLAMAZ) --- */
         html, body {
-            width: 100%; height: 100%;
-            overscroll-behavior-y: none; /* Mobildeki lastik gibi esneme efektini engeller */
+            width: 100vw;
+            max-width: 100%;
+            min-height: 100dvh;
+            margin: 0; padding: 0;
+            overflow-x: hidden; /* Sağdaki iğrenç boşluğu engeller */
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            overscroll-behavior-y: none; /* Lastik gibi esnemeyi engeller */
+            -webkit-tap-highlight-color: transparent;
         }
 
-        body { 
-            background-color: var(--bg-body); 
-            padding: 25px; 
-            color: var(--text-main); 
-            line-height: 1.5; 
-            overflow-x: hidden;
-            position: relative;
-        }
+        body { padding: 20px; }
+        * { box-sizing: border-box; }
 
-        /* --- AMBIENT GLOW (Arka Plan Işıması) --- */
-        .ambient-glow {
-            position: fixed;
-            width: 600px; height: 600px;
-            border-radius: 50%;
-            background: radial-gradient(circle, var(--glow-red) 0%, transparent 60%);
-            filter: blur(80px);
-            top: -150px; right: -150px;
-            z-index: -1;
-            animation: pulseGlow 8s infinite alternate ease-in-out;
-            pointer-events: none;
+        /* --- MİNİMAL VE ELİT TASARIM BİLEŞENLERİ --- */
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--bg-surface); border: 1px solid var(--border-subtle);
+            padding: 16px 20px; border-radius: 16px; margin-bottom: 24px;
         }
-        @keyframes pulseGlow { 0% { opacity: 0.4; transform: scale(1); } 100% { opacity: 0.7; transform: scale(1.1); } }
+        .header h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+        .header h1 span { color: var(--text-secondary); font-weight: 500; }
 
-        /* --- ŞELALE (STAGGERED) YÜKLEME ANİMASYONU --- */
-        .animate-in { animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
-        .delay-1 { animation-delay: 0.1s; }
-        .delay-2 { animation-delay: 0.2s; }
-        .delay-3 { animation-delay: 0.3s; }
-        @keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* --- TASARIM BİLEŞENLERİ --- */
-        .header { 
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; 
-            background: var(--bg-card); padding: 15px 25px; border-radius: 16px; 
-            box-shadow: 0 4px 30px rgba(0,0,0,0.05); border: 1px solid var(--border-color); 
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border-top: 2px solid var(--god-accent); 
+        .logout-btn {
+            background: transparent; color: var(--text-primary);
+            border: 1px solid var(--border-subtle); padding: 8px 16px;
+            border-radius: 10px; font-size: 12px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: 0.2s;
         }
-        .header h1 { font-size: 22px; color: var(--text-main); font-weight: 800; letter-spacing: -0.5px; text-transform: uppercase;}
-        .header h1 span { color: var(--god-accent); text-shadow: 0 0 15px var(--glow-red); }
+        .logout-btn:active { background: rgba(255,255,255,0.1); transform: scale(0.96); }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-card {
+            background: var(--bg-surface); padding: 20px; border-radius: 16px;
+            border: 1px solid var(--border-subtle); display: flex; align-items: center;
+            justify-content: space-between; transition: 0.2s;
+        }
+        .stat-info h3 { font-size: 28px; font-weight: 800; margin-bottom: 4px; line-height: 1;}
+        .stat-info p { font-size: 10px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;}
+        .stat-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
         
-        .header-controls { display: flex; align-items: center; gap: 20px; }
-        
-        .theme-switch { position: relative; width: 48px; height: 24px; display: inline-block; }
-        .theme-switch input { opacity: 0; width: 0; height: 0; }
-        .theme-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 34px; border: 1px solid rgba(0,0,0,0.1); }
-        .theme-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 2px; bottom: 2px; background-color: white; transition: .4s cubic-bezier(0.68, -0.55, 0.265, 1.55); border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        input:checked + .theme-slider { background-color: var(--god-accent); border-color: var(--god-accent); box-shadow: 0 0 10px var(--glow-red); }
-        input:checked + .theme-slider:before { transform: translateX(24px); }
+        .icon-blue { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+        .icon-green { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .icon-red { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
 
-        .logout-btn { 
-            background: transparent; color: var(--text-main); border: 1px solid var(--border-color); 
-            padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 800; 
-            transition: all 0.2s; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;
+        .command-center {
+            background: var(--bg-surface); border: 1px solid var(--border-subtle);
+            border-radius: 16px; padding: 24px; margin-bottom: 24px;
         }
-        .logout-btn:hover { background: var(--god-accent); color: white; border-color: var(--god-accent); }
-        .logout-btn:active { transform: scale(0.95); } /* Haptic hissiyat */
+        .command-title { font-size: 12px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;}
+        .command-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 16px; }
+        
+        .command-box { background: var(--bg-card); border: 1px solid var(--border-subtle); padding: 20px; border-radius: 12px; }
+        .command-box h3 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+        .command-box p { font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;}
 
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 25px; }
-        .stat-card { 
-            background: var(--bg-card); padding: 25px 20px; border-radius: 16px; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03); display: flex; align-items: center; 
-            justify-content: space-between; border: 1px solid var(--border-color); 
-            backdrop-filter: blur(15px); transition: 0.3s;
-        }
-        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px var(--glow-red); border-color: var(--god-accent); }
-        .stat-info h3 { font-size: 36px; color: var(--text-main); margin-bottom: 5px; font-weight: 900; letter-spacing: -1px;}
-        .stat-info p { font-size: 11px; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 1px;}
-        .stat-icon { width: 50px; height: 50px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .grid-container { display: grid; grid-template-columns: 300px 1fr; gap: 24px; }
         
-        .bg-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); } 
-        .bg-green { background: linear-gradient(135deg, #10b981, #059669); } 
-        .bg-red { background: linear-gradient(135deg, var(--god-accent), #b91c1c); }
+        .card { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 24px; }
+        .card h2 { font-size: 16px; font-weight: 800; margin-bottom: 24px; letter-spacing: -0.3px;}
 
-        .command-center { 
-            background: var(--bg-card); padding: 25px; border-radius: 16px; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid var(--border-color); 
-            margin-bottom: 25px; backdrop-filter: blur(20px); border-left: 4px solid var(--god-accent); 
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-size: 11px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;}
+        
+        /* 16PX KURALI: iOS'un inputlara tıkladığında zoom yapmasını KESİNLİKLE engeller */
+        .form-group input, .form-group select, #godVoiceInput {
+            width: 100%; padding: 16px; border: 1px solid var(--border-subtle);
+            border-radius: 12px; background: var(--bg-card); color: var(--text-primary);
+            outline: none; font-size: 16px !important; transition: 0.2s; font-weight: 500;
         }
-        .command-title { font-size: 14px; font-weight: 800; color: var(--text-main); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-        .command-grid { display: flex; gap: 20px; flex-wrap: wrap; }
-        .command-box { flex: 1; min-width: 280px; background: var(--input-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); }
-        .command-box h3 { font-size: 12px; font-weight: 800; color: var(--text-main); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
-        .command-box p { font-size: 11px; color: var(--text-muted); margin-bottom: 15px; font-weight: 500;}
+        .form-group input:focus, .form-group select:focus, #godVoiceInput:focus { border-color: var(--text-secondary); }
 
-        .grid-container { display: grid; grid-template-columns: 1fr; gap: 20px; }
-        @media(min-width: 1024px) { .grid-container { grid-template-columns: 320px 1fr; } }
-        
-        .card { 
-            background: var(--bg-card); padding: 25px; border-radius: 16px; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid var(--border-color); 
-            backdrop-filter: blur(15px);
+        .btn-primary {
+            width: 100%; padding: 16px; background: var(--text-primary); color: var(--bg-base);
+            border: none; border-radius: 12px; font-size: 13px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: 0.2s;
         }
-        .card h2 { font-size: 15px; margin-bottom: 20px; color: var(--text-main); font-weight: 800; text-transform: uppercase; letter-spacing: 1px;}
-        
-        .form-group { margin-bottom: 18px; }
-        .form-group label { display: block; margin-bottom: 8px; font-size: 10px; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 1px;}
-        .form-group input, .form-group select { 
-            width: 100%; padding: 15px 15px; border: 1px solid var(--border-color); 
-            border-radius: 10px; outline: none; font-size: 14px; background: var(--input-bg); 
-            color: var(--text-main); transition: 0.3s; font-weight: 600;
-        }
-        .form-group input:focus, .form-group select:focus { border-color: var(--god-accent); box-shadow: 0 0 0 3px var(--glow-red);}
-        
-        .btn-primary { 
-            width: 100%; padding: 16px; background: linear-gradient(135deg, #3b82f6, #2563eb); 
-            color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 800; 
-            font-size: 12px; transition: 0.2s; text-transform: uppercase; letter-spacing: 1.5px;
-        }
-        /* Haptic hissiyat için active durumu eklendi */
-        .btn-primary:active { transform: scale(0.96); opacity: 0.9; } 
-        .btn-red { background: linear-gradient(135deg, var(--god-accent), #b91c1c); box-shadow: 0 4px 15px var(--glow-red);}
+        .btn-primary:active { transform: scale(0.97); opacity: 0.8; }
 
-        .table-responsive { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border-color);}
-        table { width: 100%; border-collapse: collapse; min-width: 700px; }
-        th, td { padding: 16px 20px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 13px; vertical-align: middle; color: var(--text-main);}
-        th { background-color: var(--table-header); font-weight: 800; color: var(--text-muted); text-transform: uppercase; font-size: 10px; letter-spacing: 1px;}
-        tr:hover { background-color: var(--table-header); }
+        .table-responsive { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border-subtle); background: var(--bg-card);}
+        table { width: 100%; border-collapse: collapse; min-width: 650px; }
+        th, td { padding: 16px 20px; text-align: left; border-bottom: 1px solid var(--border-subtle); font-size: 14px; }
+        th { font-size: 10px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;}
         
-        .passcode-badge { background: var(--input-bg); color: var(--text-main); padding: 8px 14px; border-radius: 8px; font-family: 'Courier New', Courier, monospace; font-size: 13px; font-weight: bold; letter-spacing: 2px; border: 1px solid var(--border-color);}
-        .success-badge { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 6px 12px; border-radius: 6px; font-weight: 800; font-size: 11px; display: inline-flex; align-items: center; gap: 5px; }
-        
+        .badge { padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; font-family: monospace; border: 1px solid var(--border-subtle); background: var(--bg-surface);}
+        .badge-success { color: var(--success-color); border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.05); font-family: inherit;}
+
+        /* Şalter tasarımı */
         .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ef4444; transition: .4s; border-radius: 24px; }
-        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2);}
-        input:checked + .slider { background-color: #10b981; }
-        input:checked + .slider:before { transform: translateX(20px); }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #27272a; transition: .3s; border-radius: 24px; border: 1px solid var(--border-subtle);}
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: var(--text-secondary); transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--text-primary); border-color: var(--text-primary);}
+        input:checked + .slider:before { transform: translateX(20px); background-color: var(--bg-base); }
 
-        .action-cell { display: flex; gap: 8px; }
-        .edit-btn { background: rgba(245, 158, 11, 0.1); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.3); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 10px; font-weight: 800; text-transform: uppercase; transition: 0.2s;}
-        .edit-btn:hover { background: #f59e0b; color: white; }
-        .edit-btn:active { transform: scale(0.92); }
+        .action-btn { background: transparent; color: var(--text-primary); border: 1px solid var(--border-subtle); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 11px; font-weight: 700; transition: 0.2s;}
+        .action-btn:active { background: var(--text-primary); color: var(--bg-base); transform: scale(0.95);}
 
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: var(--modal-bg); padding-top: 50px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);}
-        .modal-content { background-color: var(--bg-card); border: 1px solid var(--border-color); margin: auto; padding: 30px; border-radius: 20px; width: 90%; max-width: 500px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-        @keyframes slideDown { 0% {transform: translateY(30px) scale(0.95); opacity: 0;} 100% {transform: translateY(0) scale(1); opacity: 1;} }
-        .close-modal { color: var(--text-muted); float: right; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1; transition: 0.2s;}
-        .close-modal:hover { color: var(--god-accent); }
+        /* MODAL */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); padding: 20px; align-items: center; justify-content: center;}
+        .modal-content { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 30px; width: 100%; max-width: 400px; position: relative;}
+        .close-modal { position: absolute; right: 20px; top: 20px; color: var(--text-secondary); font-size: 24px; cursor: pointer; line-height: 1;}
 
-        /* --- SKELETON YÜKLEME --- */
-        .skeleton-row td { position: relative; overflow: hidden; }
-        .skeleton-box { height: 20px; background: var(--input-bg); border-radius: 6px; width: 100%; position: relative; overflow: hidden; }
-        .skeleton-box::after { content: ""; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); animation: skeletonSweep 1.5s infinite; }
-        @keyframes skeletonSweep { 100% { left: 100%; } }
+        #toast-container { position: fixed; bottom: 30px; right: 20px; left: 20px; z-index: 999999; display: flex; flex-direction: column; gap: 10px; align-items: center; pointer-events: none;}
+        .toast { background: var(--text-primary); color: var(--bg-base); padding: 14px 24px; border-radius: 30px; font-size: 13px; font-weight: 700; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); opacity: 0; transform: translateY(20px); transition: 0.3s; }
+        .toast.show { opacity: 1; transform: translateY(0); }
 
-        /* --- TOAST BİLDİRİMLERİ --- */
-        #toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 999999; display: flex; flex-direction: column; gap: 15px; pointer-events: none; }
-        .toast { min-width: 280px; background: var(--bg-card); border-left: 4px solid; padding: 15px 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); color: var(--text-main); font-weight: bold; font-size: 13px; opacity: 0; transform: translateX(100%); transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); border: 1px solid var(--border-color); backdrop-filter: blur(10px); }
-        .toast.show { opacity: 1; transform: translateX(0); }
-        .toast.success { border-left-color: #10b981; }
-        .toast.error { border-left-color: #ef4444; }
-        .toast.info { border-left-color: #3b82f6; }
-        .toast-title { font-size: 10px; text-transform: uppercase; opacity: 0.7; margin-bottom: 4px; font-weight: 800; letter-spacing: 0.5px;}
-
-        /* --- MOBİL UYUM VE STICKY TABLE --- */
+        /* MOBİL KUSURSUZ UYUM */
         @media (max-width: 768px) {
-            body { padding: 15px; }
-            .header { flex-direction: column; gap: 15px; align-items: flex-start; }
-            .header-controls { width: 100%; justify-content: space-between; }
-            .stats-grid { grid-template-columns: 1fr; gap: 15px; }
+            body { padding: 12px; }
+            .header { padding: 16px; margin-bottom: 16px; border-radius: 12px;}
             
-            /* Tablonun ilk hücresini sabitler */
-            th:first-child, td:first-child { position: sticky; left: 0; background-color: var(--bg-card); z-index: 2; border-right: 1px solid var(--border-color); }
-            th:first-child { z-index: 3; }
+            /* Üstteki 3 kartı temiz ve sıkışmadan gösterir */
+            .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px;}
+            .stat-card { padding: 16px 12px; flex-direction: column; text-align: center; justify-content: center; gap: 8px; border-radius: 12px;}
+            .stat-icon { display: none; /* Mobilde yer kaplamaması için ikon gizlendi */ }
+            .stat-info h3 { font-size: 24px; margin-bottom: 2px;}
+            
+            .command-center { padding: 16px; margin-bottom: 16px; border-radius: 12px;}
+            .command-grid { grid-template-columns: 1fr; gap: 12px; }
+            .command-box { padding: 16px; border-radius: 10px; }
+            
+            .grid-container { grid-template-columns: 1fr; gap: 16px; }
+            .card { padding: 16px; border-radius: 12px; }
+            
+            /* Tablo kaydırmasını düzeltir ve ilk sütunu sabitler */
+            .table-responsive { border-radius: 8px; border-left: none; border-right: none;}
+            th:first-child, td:first-child { position: sticky; left: 0; background: var(--bg-card); z-index: 2; border-right: 1px solid var(--border-subtle); }
+            
+            /* Mobilde Butonların dokunma alanını genişletir */
+            .btn-primary, .logout-btn { padding: 18px; font-size: 14px; }
+            
+            /* Toast mobilde ekranı kaplar */
+            #toast-container { right: 10px; left: 10px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="ambient-glow"></div>
+    <div class="header">
+        <h1>God<span>Panel</span></h1>
+        <button class="logout-btn" id="logoutBtn">Çıkış Yap</button>
+    </div>
 
-    <div class="header animate-in">
-        <h1>God <span>Panel</span></h1>
-        <div class="header-controls">
-            <label class="theme-switch">
-                <input type="checkbox" id="themeToggle">
-                <div class="theme-slider"></div>
-            </label>
-            <button class="logout-btn" id="logoutBtn">Sistemden Çık</button>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-info"><h3 id="statTotal">0</h3><p>Müşteri</p></div>
+            <div class="stat-icon icon-blue">👥</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-info"><h3 id="statActive">0</h3><p>Aktif</p></div>
+            <div class="stat-icon icon-green">✓</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-info"><h3 id="statPassive">0</h3><p>Pasif</p></div>
+            <div class="stat-icon icon-red">✕</div>
         </div>
     </div>
 
-    <div class="stats-grid animate-in delay-1">
-        <div class="stat-card">
-            <div class="stat-info"><h3 id="statTotal">0</h3><p>Toplam Müşteri</p></div>
-            <div class="stat-icon bg-blue">👥</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-info"><h3 id="statActive">0</h3><p>Aktif Müşteri</p></div>
-            <div class="stat-icon bg-green">✓</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-info"><h3 id="statPassive">0</h3><p>Pasif Müşteri</p></div>
-            <div class="stat-icon bg-red">✕</div>
-        </div>
-    </div>
-
-    <div class="command-center animate-in delay-2">
-        <div class="command-title"><span style="color:var(--god-accent);">🔥</span> Sistem Komuta Merkezi</div>
+    <div class="command-center">
+        <div class="command-title">Sistem Komuta Merkezi</div>
         <div class="command-grid">
             <div class="command-box">
-                <h3>Genel Sistem Kilidi (Lockdown)</h3>
-                <p>Müşteri panellerini anında kilitler ve işlem yapmalarını engeller.</p>
-                <label class="switch" style="transform: scale(1.1); transform-origin: left;">
-                    <input type="checkbox" id="globalLockdownBtn">
-                    <span class="slider" style="background-color: var(--text-muted);"></span>
-                </label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h3>Sistem Kilidi</h3>
+                    <label class="switch">
+                        <input type="checkbox" id="globalLockdownBtn">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <p>Tüm müşterilerin işlemlerini anında dondurur.</p>
             </div>
-            <div class="command-box" style="flex: 2;">
-                <h3>Sistem Anonsu (God Voice)</h3>
-                <p>Paneli açık olan tüm müşterilerin ekranına bildirim düşürür.</p>
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" id="godVoiceInput" placeholder="Tüm müşterilere gidecek mesajı yazın..." autocomplete="off">
-                    <button class="btn-primary" id="sendGodVoiceBtn" style="width: auto; padding: 0 25px;">Yayınla</button>
+            
+            <div class="command-box">
+                <h3>Genel Duyuru (Anons)</h3>
+                <p>Paneli açık olan tüm müşterilere bildirim düşürür.</p>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="godVoiceInput" placeholder="Yayınlanacak mesaj..." autocomplete="off">
+                    <button class="btn-primary" id="sendGodVoiceBtn" style="width: 100px;">Yayınla</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="grid-container animate-in delay-3">
+    <div class="grid-container">
         <div class="card" style="height: fit-content;">
             <h2>Müşteri Oluştur</h2>
             <div class="form-group">
-                <label>Müşteri Erişim Kodu (Şifre)</label>
+                <label>Erişim Kodu (Şifre)</label>
                 <input type="text" id="newPasscode" placeholder="Örn: VIP-1234" autocomplete="off">
             </div>
             <div class="form-group">
                 <label>Abonelik Süresi</label>
                 <select id="subDuration">
-                    <option value="1">1 Aylık Erişim</option>
-                    <option value="3">3 Aylık Erişim</option>
-                    <option value="6">6 Aylık Erişim</option>
-                    <option value="12">1 Yıllık (Sınırsız) Erişim</option>
+                    <option value="1">1 Aylık</option>
+                    <option value="3">3 Aylık</option>
+                    <option value="6">6 Aylık</option>
+                    <option value="12">1 Yıllık</option>
                 </select>
             </div>
-            <button class="btn-primary btn-red" id="addCustomerBtn">Sisteme Kaydet</button>
+            <button class="btn-primary" id="addCustomerBtn">Kaydet</button>
         </div>
 
-        <div class="card">
-            <h2>Müşteri Veritabanı</h2>
-            <div class="table-responsive">
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <h2 style="padding: 24px 24px 0 24px;">Müşteri Veritabanı</h2>
+            <div class="table-responsive" style="border: none; border-top: 1px solid var(--border-subtle); border-radius: 0;">
                 <table>
                     <thead>
                         <tr>
-                            <th>Kayıt Tarihi</th>
-                            <th>Erişim Kodu</th>
-                            <th>Başarılı İşlem</th>
-                            <th>Bitiş Tarihi</th>
+                            <th>Kayıt</th>
+                            <th>Kod</th>
+                            <th>Başarı</th>
+                            <th>Bitiş</th>
                             <th>Durum</th>
-                            <th>İşlemler</th>
+                            <th>Ayar</th>
                         </tr>
                     </thead>
-                    <tbody id="customerTableBody">
-                    </tbody>
+                    <tbody id="customerTableBody"></tbody>
                 </table>
             </div>
         </div>
@@ -318,195 +250,143 @@
     <div id="editModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" id="closeEditModal">&times;</span>
-            <h2 style="margin-bottom: 20px; font-size:16px; color:var(--text-main); border-bottom:1px solid var(--border-color); padding-bottom:15px; text-transform: uppercase; font-weight:800; letter-spacing:0.5px;">Müşteri Ayarları</h2>
+            <h2 style="margin-bottom: 24px; font-size: 18px; font-weight: 800;">Müşteri Ayarları</h2>
             
             <input type="hidden" id="editUserId">
             
             <div class="form-group">
-                <label>Erişim Kodu (Değiştirilemez)</label>
-                <input type="text" id="editPasscode" readonly style="background:var(--input-bg); cursor:not-allowed; opacity: 0.7;">
+                <label>Erişim Kodu</label>
+                <input type="text" id="editPasscode" readonly style="opacity: 0.5; pointer-events: none;">
             </div>
 
             <div class="form-group">
-                <label>Yeni Bitiş Tarihi (Süreyi Uzat)</label>
+                <label>Bitiş Tarihi</label>
                 <input type="date" id="editExpireDate">
             </div>
 
-            <div class="form-group">
-                <label>Pasif Durum (Ban) Mesajı</label>
-                <p style="font-size:11px; color:var(--text-muted); margin-bottom:8px;">Müşteri pasife çekildiğinde sisteme girerken bu mesajı görecek.</p>
-                <input type="text" id="editBanMessage" placeholder="Örn: Aboneliğiniz bitmiştir, Telegram'dan yazın.">
+            <div class="form-group" style="margin-bottom: 24px;">
+                <label>Ban Mesajı (Pasife Alınırsa Çıkar)</label>
+                <input type="text" id="editBanMessage" placeholder="Örn: Süreniz doldu.">
             </div>
 
-            <button class="btn-primary" id="saveEditBtn" style="background:linear-gradient(135deg, #10b981, #059669); margin-top: 10px;">Ayarları Güncelle</button>
+            <button class="btn-primary" id="saveEditBtn">Güncelle</button>
         </div>
     </div>
     
     <div id="toast-container"></div>
 
     <script type="module">
-        const themeToggle = document.getElementById('themeToggle');
-        const currentTheme = localStorage.getItem('godTheme') || 'light';
-        
-        if (currentTheme === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); themeToggle.checked = true; }
-
-        themeToggle.addEventListener('change', function(e) {
-            if (e.target.checked) {
-                document.documentElement.setAttribute('data-theme', 'dark'); localStorage.setItem('godTheme', 'dark'); showToast('Karanlık mod aktif.', 'info', 'SİSTEM');
-            } else {
-                document.documentElement.removeAttribute('data-theme'); localStorage.setItem('godTheme', 'light'); showToast('Aydınlık mod aktif.', 'info', 'SİSTEM');
-            }
-        });
-
-        window.showToast = function(message, type = 'success', title = '') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            let baslik = title || (type === 'success' ? 'BAŞARILI' : (type === 'error' ? 'HATA' : 'BİLGİ'));
-            toast.innerHTML = `<span class="toast-title">${baslik}</span><span>${message}</span>`;
-            container.appendChild(toast);
-            setTimeout(() => toast.classList.add('show'), 10);
-            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3500);
-        }
-
-        function getSkeletonRows(colCount) {
-            let rows = '';
-            for(let i=0; i<4; i++) {
-                let cols = '';
-                for(let j=0; j<colCount; j++) { cols += `<td><div class="skeleton-box"></div></td>`; }
-                rows += `<tr class="skeleton-row">${cols}</tr>`;
-            }
-            return rows;
-        }
-
-        if (!localStorage.getItem("userId") || localStorage.getItem("userRole") !== "god") { window.location.href = "login.html"; }
-
+        // --- TEMEL GÜVENLİK VE AYARLAR ---
         const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
-        const API_BASE = isLocal ? 'http://localhost:3000/api' : 'https://payislemlerim.vercel.app/api'; 
+        const API_BASE = isLocal ? 'http://localhost:3000/api' : '/api'; 
         let globalCustomers = []; 
 
-        document.getElementById('logoutBtn').addEventListener('click', () => { localStorage.clear(); window.location.href = "login.html"; });
+        if (!localStorage.getItem("userId") || localStorage.getItem("userRole") !== "god") { window.location.href = "login.html"; }
+        document.getElementById('logoutBtn').onclick = () => { localStorage.clear(); window.location.href = "login.html"; };
+
+        // --- PROFESYONEL TOAST ---
+        window.showToast = (msg) => {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerText = msg;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
+        };
 
         // --- SİSTEM DURUMUNU HAFIZADAN ÇEKME ---
         async function loadSystemStatus() {
             try {
-                const res = await fetch(`${API_BASE}/sistem/durum?t=${new Date().getTime()}`);
+                const res = await fetch(`${API_BASE}/sistem/durum?t=${Date.now()}`);
                 if(res.ok) {
                     const data = await res.json();
                     document.getElementById('globalLockdownBtn').checked = data.kilitDurumu === true;
-                    if(data.anonsMesaji) {
-                        document.getElementById('godVoiceInput').value = data.anonsMesaji;
-                    }
+                    if(data.anonsMesaji) document.getElementById('godVoiceInput').value = data.anonsMesaji;
                 }
-            } catch(e) {
-                console.error("Sistem durumu çekilemedi", e);
-            }
+            } catch(e) {}
         }
 
-        // --- GERÇEK KOMUTA MERKEZİ AKSİYONLARI ---
-        document.getElementById('globalLockdownBtn').addEventListener('change', async function(e) {
+        // --- KOMUT ATEŞLEME ---
+        document.getElementById('globalLockdownBtn').onchange = async (e) => {
             const isLocked = e.target.checked;
             try {
                 await fetch(`${API_BASE}/sistem/kilit`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kilitDurumu: isLocked })
                 });
-                showToast(isLocked ? "Sistem kilitlendi. Müşteri işlemleri durduruldu!" : "Sistem kilidi açıldı. Akış normale döndü.", isLocked ? "error" : "success", "LOCKDOWN PROTOKOLÜ");
-            } catch (err) {
-                showToast("Sunucuya bağlanılamadı!", "error");
-                e.target.checked = !isLocked; 
-            }
-        });
+                showToast(isLocked ? "Sistem kilitlendi." : "Sistem kilidi açıldı.");
+            } catch (err) { e.target.checked = !isLocked; }
+        };
 
-        document.getElementById('sendGodVoiceBtn').addEventListener('click', async function() {
+        document.getElementById('sendGodVoiceBtn').onclick = async () => {
             const msg = document.getElementById('godVoiceInput').value.trim();
             try {
                 await fetch(`${API_BASE}/sistem/anons`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mesaj: msg, zaman: Date.now() })
                 });
-                
-                if(msg === "") {
-                    showToast(`Sistem anonsu başarıyla kaldırıldı.`, "info", "SİSTEM ANONSU");
-                } else {
-                    showToast(`"${msg}" anonsu tüm müşterilere iletildi.`, "info", "SİSTEM ANONSU");
-                }
-            } catch (err) {
-                showToast("Anons işlemi başarısız!", "error");
-            }
-        });
+                showToast(msg === "" ? "Anons kaldırıldı." : "Anons yayınlandı.");
+            } catch (err) {}
+        };
 
-        async function fetchSuccessCount(userId, tdElementId) {
-            try {
-                const res = await fetch(`${API_BASE}/logs-getir?userId=${userId}`);
-                const logs = await res.json();
-                let successCount = 0;
-                logs.forEach(log => {
-                    if(log.aksiyon && (log.aksiyon.includes("BAŞARILI") || log.aksiyon.includes("Dekont"))) { successCount++; }
-                });
-                document.getElementById(tdElementId).innerHTML = `<span class="success-badge">✓ ${successCount} İşlem</span>`;
-            } catch (e) {
-                document.getElementById(tdElementId).innerHTML = `<span style="color:var(--text-muted); font-size:11px;">Hata</span>`;
-            }
-        }
-
+        // --- MÜŞTERİ YÜKLEME ---
         async function loadCustomers() {
             const tbody = document.getElementById('customerTableBody');
-            tbody.innerHTML = getSkeletonRows(6);
-
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Veriler yükleniyor...</td></tr>';
             try {
-                const cevap = await fetch(`${API_BASE}/users`);
-                globalCustomers = await cevap.json();
-                
+                const res = await fetch(`${API_BASE}/users`);
+                globalCustomers = await res.json();
                 tbody.innerHTML = ''; 
-                let total = 0, active = 0, passive = 0;
-                globalCustomers.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                let t=0, a=0, p=0;
+                globalCustomers.sort((x, y) => (y.createdAt || 0) - (x.createdAt || 0));
 
-                globalCustomers.forEach((data) => {
+                for(let data of globalCustomers) {
                     if(data.role === "customer") {
-                        total++;
-                        if(data.isActive) active++; else passive++;
-
-                        let kayitTarihi = data.createdDateStr || "-";
-                        if (data.createdAt && !data.createdDateStr) { kayitTarihi = new Date(data.createdAt).toLocaleDateString('tr-TR'); }
-
+                        t++; data.isActive ? a++ : p++;
                         const tr = document.createElement('tr');
-                        const tdId = `success-cell-${data.docId}`;
                         tr.innerHTML = `
-                            <td style="color:var(--text-muted); font-size:12px; font-weight:800; white-space:nowrap;">${kayitTarihi}</td>
-                            <td><span class="passcode-badge">${data.passcode}</span></td>
-                            <td id="${tdId}"><div class="skeleton-box" style="width:60px; height:20px;"></div></td>
-                            <td style="font-weight:800; color:#3b82f6; white-space:nowrap;">${data.expireDate || '-'}</td>
-                            <td>
-                                <label class="switch">
-                                    <input type="checkbox" onchange="toggleStatus('${data.docId}', this.checked)" ${data.isActive ? 'checked' : ''}>
-                                    <span class="slider"></span>
-                                </label>
-                            </td>
-                            <td>
-                                <div class="action-cell">
-                                    <button onclick="openEditModal('${data.docId}')" class="edit-btn">Ayar</button>
-                                </div>
-                            </td>
+                            <td style="color:var(--text-secondary); font-size:11px; white-space:nowrap;">${data.createdDateStr || '-'}</td>
+                            <td><span class="badge">${data.passcode}</span></td>
+                            <td id="succ-${data.docId}">-</td>
+                            <td style="font-weight:600; white-space:nowrap;">${data.expireDate || '-'}</td>
+                            <td><label class="switch"><input type="checkbox" onchange="toggleStatus('${data.docId}', this.checked)" ${data.isActive ? 'checked' : ''}><span class="slider"></span></label></td>
+                            <td><button onclick="openEditModal('${data.docId}')" class="action-btn">Düzenle</button></td>
                         `;
                         tbody.appendChild(tr);
-                        fetchSuccessCount(data.docId, tdId);
+                        fetchStats(data.docId);
                     }
-                });
-
-                document.getElementById('statTotal').innerText = total;
-                document.getElementById('statActive').innerText = active;
-                document.getElementById('statPassive').innerText = passive;
-            } catch (error) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:red; font-weight:bold;">Veriler çekilemedi. Bağlantıyı kontrol edin.</td></tr>';
-                showToast("Müşteri verileri çekilirken ağ hatası oluştu.", "error", "BAĞLANTI");
+                }
+                document.getElementById('statTotal').innerText = t;
+                document.getElementById('statActive').innerText = a;
+                document.getElementById('statPassive').innerText = p;
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--danger-color);">Bağlantı hatası.</td></tr>';
             }
         }
 
-        document.getElementById('addCustomerBtn').addEventListener('click', async () => {
+        async function fetchStats(id) {
+            try {
+                const res = await fetch(`${API_BASE}/logs-getir?userId=${id}`);
+                const logs = await res.json();
+                const count = logs.filter(l => l.aksiyon && (l.aksiyon.includes("BAŞARILI") || l.aksiyon.includes("Dekont"))).length;
+                document.getElementById(`succ-${id}`).innerHTML = `<span class="badge-success">${count}</span>`;
+            } catch (e) {}
+        }
+
+        window.toggleStatus = async (id, status) => {
+            await fetch(`${API_BASE}/users/guncelle/${id}`, {
+                method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isActive: status })
+            });
+            showToast(status ? "Müşteri aktif." : "Müşteri pasife çekildi.");
+            loadCustomers();
+        };
+
+        // --- YENİ MÜŞTERİ EKLEME ---
+        document.getElementById('addCustomerBtn').onclick = async () => {
             const passcode = document.getElementById('newPasscode').value.trim();
             const durationMonths = parseInt(document.getElementById('subDuration').value);
             const btn = document.getElementById('addCustomerBtn');
             
-            if(!passcode) return showToast("Lütfen müşteri için bir erişim kodu belirleyin.", "error");
+            if(!passcode) return showToast("Erişim kodu gerekli.");
 
             const today = new Date();
             const expireDateObj = new Date(today.setMonth(today.getMonth() + durationMonths));
@@ -517,25 +397,17 @@
             };
 
             try {
-                btn.textContent = "Kaydediliyor..."; btn.disabled = true;
+                btn.textContent = "BEKLEYİN..."; btn.disabled = true;
                 const res = await fetch(`${API_BASE}/users/ekle`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(musteriVerisi)
                 });
                 if(res.ok) {
-                    document.getElementById('newPasscode').value = ''; showToast("Yeni müşteri başarıyla sisteme kaydedildi.", "success"); loadCustomers();
-                } else { showToast("Müşteri kaydı başarısız oldu.", "error"); }
-            } catch (e) { showToast("Sunucuyla iletişim kurulamadı.", "error"); } finally { btn.textContent = "Sisteme Kaydet"; btn.disabled = false; }
-        });
-
-        window.toggleStatus = async (id, status) => {
-            try {
-                await fetch(`${API_BASE}/users/guncelle/${id}`, {
-                    method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isActive: status })
-                });
-                showToast(status ? "Müşteri aktif edildi." : "Müşteri pasife çekildi (Ban).", "info");
-            } catch (e) { showToast("Durum güncellenemedi, sunucu hatası.", "error"); loadCustomers(); }
+                    document.getElementById('newPasscode').value = ''; showToast("Müşteri kaydedildi."); loadCustomers();
+                } else { showToast("Kayıt başarısız."); }
+            } catch (e) { showToast("Bağlantı koptu."); } finally { btn.textContent = "KAYDET"; btn.disabled = false; }
         };
 
+        // --- MODAL İŞLEMLERİ ---
         const modal = document.getElementById("editModal");
         document.getElementById("closeEditModal").onclick = () => { modal.style.display = "none"; }
         window.onclick = (e) => { if (e.target == modal) modal.style.display = "none"; }
@@ -553,32 +425,32 @@
             document.getElementById('editUserId').value = id;
             document.getElementById('editPasscode').value = user.passcode;
             document.getElementById('editExpireDate').value = parseDateString(user.expireDate);
-            document.getElementById('editBanMessage').value = user.banMessage || "Abonelik süreniz dolmuş veya askıya alınmıştır.";
-            modal.style.display = "block";
+            document.getElementById('editBanMessage').value = user.banMessage || "Abonelik süreniz dolmuştur.";
+            modal.style.display = "flex";
         };
 
-        document.getElementById('saveEditBtn').addEventListener('click', async () => {
+        document.getElementById('saveEditBtn').onclick = async () => {
             const id = document.getElementById('editUserId').value;
             const newDateVal = document.getElementById('editExpireDate').value;
             const newBanMsg = document.getElementById('editBanMessage').value.trim();
             const btn = document.getElementById('saveEditBtn');
 
-            if(!newDateVal) return showToast("Lütfen geçerli bir bitiş tarihi seçin.", "error");
+            if(!newDateVal) return showToast("Geçerli bir tarih seçin.");
 
             const dateObj = new Date(newDateVal);
             const formattedDate = dateObj.toLocaleDateString('tr-TR');
 
             try {
-                btn.textContent = "Güncelleniyor..."; btn.disabled = true;
+                btn.textContent = "GÜNCELLENİYOR..."; btn.disabled = true;
                 await fetch(`${API_BASE}/users/guncelle/${id}`, {
                     method: 'PATCH', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ expireDate: formattedDate, banMessage: newBanMsg })
                 });
-                modal.style.display = "none"; showToast("Müşteri ayarları güncellendi.", "success"); loadCustomers();
-            } catch (error) { showToast("Ayarlar güncellenirken hata oluştu.", "error"); } finally { btn.textContent = "Ayarları Güncelle"; btn.disabled = false; }
-        });
+                modal.style.display = "none"; showToast("Ayarlar güncellendi."); loadCustomers();
+            } catch (error) { showToast("Hata oluştu."); } finally { btn.textContent = "GÜNCELLE"; btn.disabled = false; }
+        };
 
-        // Sayfa açılışında hem sistem durumunu (anons/kilit) hem de müşterileri yükle
+        // --- BAŞLATMA ---
         loadSystemStatus();
         loadCustomers();
     </script>
