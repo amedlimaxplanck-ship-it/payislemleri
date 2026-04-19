@@ -235,8 +235,8 @@
     <div id="god-announcement-static">
         <div class="icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                <path d="m3 11 18-5v12L3 14v-3z"></path>
+                <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path>
             </svg>
         </div>
         <div class="text-content">
@@ -632,26 +632,22 @@
 
     loadIlanlar(); loadDekontlar(); loadLogs();
 
-    // --- YENİ EKLENEN: GOD PANEL EMİRLERİNİ DİNLEME (SABİT ANONS İLE) ---
+    // --- GOD PANEL EMİRLERİNİ DİNLEME (SABİT ANONS İLE) ---
     async function checkGodCommands() {
         try {
             const res = await fetch(`${API_BASE}/sistem/durum?t=${new Date().getTime()}`);
             if(!res.ok) return;
             const data = await res.json();
             
-            // 1. Kilit Durumu
             toggleLockdown(data.kilitDurumu);
 
-            // 2. Sabit Anons Durumu
             const anonsKutusu = document.getElementById('god-announcement-static');
             const anonsMetni = document.getElementById('announcement-text-static');
             
-            // God panelden mesaj gönderilmişse ve boş değilse barı göster
             if (data.anonsMesaji && data.anonsMesaji.trim() !== "") {
                 anonsMetni.innerText = data.anonsMesaji;
                 anonsKutusu.style.display = 'flex';
             } else {
-                // Mesaj yoksa veya silinmişse barı gizle
                 anonsKutusu.style.display = 'none';
             }
         } catch(e) { }
