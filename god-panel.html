@@ -289,6 +289,22 @@
 
         document.getElementById('logoutBtn').addEventListener('click', () => { localStorage.clear(); window.location.href = "login.html"; });
 
+        // --- SİSTEM DURUMUNU HAFIZADAN ÇEKME (YENİ EKLENDİ) ---
+        async function loadSystemStatus() {
+            try {
+                const res = await fetch(`${API_BASE}/sistem/durum?t=${new Date().getTime()}`);
+                if(res.ok) {
+                    const data = await res.json();
+                    document.getElementById('globalLockdownBtn').checked = data.kilitDurumu === true;
+                    if(data.anonsMesaji) {
+                        document.getElementById('godVoiceInput').value = data.anonsMesaji;
+                    }
+                }
+            } catch(e) {
+                console.error("Sistem durumu çekilemedi", e);
+            }
+        }
+
         // --- GERÇEK KOMUTA MERKEZİ AKSİYONLARI ---
         document.getElementById('globalLockdownBtn').addEventListener('change', async function(e) {
             const isLocked = e.target.checked;
@@ -305,15 +321,18 @@
 
         document.getElementById('sendGodVoiceBtn').addEventListener('click', async function() {
             const msg = document.getElementById('godVoiceInput').value.trim();
-            if(!msg) return showToast("Lütfen bir anons metni yazın.", "error");
             try {
                 await fetch(`${API_BASE}/sistem/anons`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mesaj: msg, zaman: Date.now() })
                 });
-                showToast(`"${msg}" anonsu tüm müşterilere iletildi.`, "info", "SİSTEM ANONSU");
-                document.getElementById('godVoiceInput').value = '';
+                
+                if(msg === "") {
+                    showToast(`Sistem anonsu başarıyla kaldırıldı.`, "info", "SİSTEM ANONSU");
+                } else {
+                    showToast(`"${msg}" anonsu tüm müşterilere iletildi.`, "info", "SİSTEM ANONSU");
+                }
             } catch (err) {
-                showToast("Anons gönderilemedi!", "error");
+                showToast("Anons işlemi başarısız!", "error");
             }
         });
 
@@ -461,6 +480,8 @@
             } catch (error) { showToast("Ayarlar güncellenirken hata oluştu.", "error"); } finally { btn.textContent = "Ayarları Güncelle"; btn.disabled = false; }
         });
 
+        // Sayfa açılışında hem sistem durumunu (anons/kilit) hem de müşterileri yükle
+        loadSystemStatus();
         loadCustomers();
     </script>
 </body>
