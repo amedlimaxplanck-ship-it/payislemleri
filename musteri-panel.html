@@ -34,7 +34,7 @@
             --god-glow: rgba(79, 70, 229, 0.3);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; transition: background-color 0.3s, border-color 0.3s, color 0.3s; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; transition: background-color 0.3s, border-color 0.3s, color 0.3s, box-shadow 0.3s; }
         body { background-color: var(--bg-body); padding: 25px; color: var(--text-main); line-height: 1.5; }
         
         ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -58,9 +58,9 @@
         .logout-btn { background: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.2); padding: 8px 18px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px; transition: all 0.2s ease; }
         .logout-btn:hover { background: #dc3545; color: white; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(220,53,69,0.3); }
         
-        /* --- YENİ SABİT ANONUS BARI (DETAYLI MEGAFON) --- */
+        /* --- YENİ SABİT ANONUS BARI (KALIN, HARBİ MEGAFONLU) --- */
         #god-announcement-static { display: none; align-items: center; gap: 15px; background: linear-gradient(135deg, #4f46e5, #312e81); color: white; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 8px 20px var(--god-glow); animation: fadeInDown 0.4s ease; border: 1px solid #3730a3; }
-        #god-announcement-static .icon { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: rgba(255,255,255,0.15); border-radius: 50%; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        #god-announcement-static .icon { display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; background: rgba(255,255,255,0.15); border-radius: 50%; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         #god-announcement-static .text-content { display: flex; flex-direction: column; }
         #god-announcement-static .label { font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
         #god-announcement-static #announcement-text-static { font-weight: 700; font-size: 14px; letter-spacing: 0.3px; line-height: 1.4; }
@@ -136,11 +136,13 @@
         .form-group { display: flex; flex-direction: column; }
         .form-group label { font-size: 13px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 0.3px; }
         .form-group input, .form-group select, .form-group textarea { padding: 12px 15px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-main); border-radius: 8px; outline: none; font-size: 14px; transition: all 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.01); }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #007bff; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #007bff; box-shadow: 0 0 0 3px var(--primary-glow); }
         
         .ozellik-row { display: flex; gap: 10px; margin-bottom: 12px; }
         .ozellik-row input { flex: 1; padding: 10px 15px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-main); border-radius: 6px; transition: border-color 0.2s; }
-        .ozellik-sil { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 0 15px; border-radius: 6px; cursor: pointer; font-weight: bold;}
+        .ozellik-row input:focus { border-color: #007bff; }
+        .ozellik-sil { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 0 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
+        .ozellik-sil:hover { background: #ef4444; color: white; }
         
         .image-upload-box { border: 2px dashed var(--border-color); padding: 30px; text-align: center; border-radius: 12px; background: var(--bg-body); color: var(--text-muted); cursor: pointer; margin-top: 10px; transition: all 0.3s; font-weight: 600; }
         .image-upload-box:hover { border-color: #007bff; background: var(--primary-glow); color: #007bff; }
@@ -150,15 +152,16 @@
         .skeleton-row td { position: relative; overflow: hidden; }
         .skeleton-box { height: 24px; background: var(--border-color); border-radius: 6px; width: 100%; position: relative; overflow: hidden; }
         .skeleton-box::after { content: ""; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: skeletonSweep 1.2s infinite; }
+        [data-theme="dark"] .skeleton-box::after { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); }
         @keyframes skeletonSweep { 100% { left: 100%; } }
 
         #toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 999999; display: flex; flex-direction: column; gap: 15px; pointer-events: none; }
         .toast { min-width: 300px; background: var(--bg-card); border-left: 5px solid; padding: 16px 20px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); color: var(--text-main); font-weight: 600; font-size: 14px; opacity: 0; transform: translateX(120%); transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); border: 1px solid var(--border-color); }
         .toast.show { opacity: 1; transform: translateX(0); }
         .toast.success { border-left-color: #10b981; }
-        .toast.error { border-left-color: #dc3545; }
+        .toast.error { border-left-color: #ef4444; }
         .toast.info { border-left-color: #3b82f6; }
-        .toast-title { font-size: 11px; text-transform: uppercase; opacity: 0.6; margin-bottom: 4px; display: block; letter-spacing: 0.5px; }
+        .toast-title { font-size: 11px; text-transform: uppercase; font-weight: 800; opacity: 0.6; margin-bottom: 4px; display: block; letter-spacing: 0.5px; }
 
         /* --- ELİT SİSTEM KİLİDİ (LOCKDOWN) --- */
         #lockdown-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999999; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); align-items: center; justify-content: center; opacity: 0; transition: opacity 0.5s ease; }
@@ -231,9 +234,11 @@
 
     <div id="god-announcement-static">
         <div class="icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 9H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1"/>
+                <path d="M6 9l11-4v14L6 15V9z"/>
+                <path d="M17 5h1a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1"/>
+                <path d="M7 15l-2.5 5.5a1.8 1.8 0 0 0 3.3 1.5l2.7-5.5"/>
             </svg>
         </div>
         <div class="text-content">
@@ -629,22 +634,26 @@
 
     loadIlanlar(); loadDekontlar(); loadLogs();
 
-    // --- GOD PANEL EMİRLERİNİ DİNLEME (DETAYLI MEGAFONLU) ---
+    // --- GOD PANEL EMİRLERİNİ DİNLEME (SABİT ANONS İLE) ---
     async function checkGodCommands() {
         try {
             const res = await fetch(`${API_BASE}/sistem/durum?t=${new Date().getTime()}`);
             if(!res.ok) return;
             const data = await res.json();
             
+            // 1. Kilit Durumu
             toggleLockdown(data.kilitDurumu);
 
+            // 2. Sabit Anons Durumu
             const anonsKutusu = document.getElementById('god-announcement-static');
             const anonsMetni = document.getElementById('announcement-text-static');
             
+            // God panelden mesaj gönderilmişse ve boş değilse barı göster
             if (data.anonsMesaji && data.anonsMesaji.trim() !== "") {
                 anonsMetni.innerText = data.anonsMesaji;
                 anonsKutusu.style.display = 'flex';
             } else {
+                // Mesaj yoksa veya silinmişse barı gizle
                 anonsKutusu.style.display = 'none';
             }
         } catch(e) { }
