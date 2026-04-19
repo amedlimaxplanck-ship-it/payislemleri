@@ -677,8 +677,9 @@
         const API_BASE = isLocal ? 'http://localhost:3000/api' : '/api'; 
         let globalCustomers = []; 
 
-        // Güvenlik kontrolü
-        if (!localStorage.getItem("userId") || localStorage.getItem("userRole") !== "god") { 
+        // 🔥 GÜVENLİK: VIP BİLET (TOKEN) KONTROLÜ 🔥
+        const token = localStorage.getItem("token");
+        if (!localStorage.getItem("userId") || localStorage.getItem("userRole") !== "god" || !token) { 
             window.location.href = "login.html"; 
         }
         
@@ -750,10 +751,28 @@
             }, 3000);
         };
 
+        // Bilet (Token) süresi dolmuşsa adamı dışarı atan fonksiyon
+        function checkTokenError(res) {
+            if (res.status === 401 || res.status === 403) {
+                showToast("Oturum süreniz doldu veya yetkisiz işlem!");
+                setTimeout(() => {
+                    localStorage.clear();
+                    window.location.href = "login.html";
+                }, 2000);
+                return true;
+            }
+            return false;
+        }
+
         // --- SİSTEM DURUMUNU HAFIZADAN ÇEKME (KİLİT VE ANONS) ---
         async function loadSystemStatus() {
             try {
-                const res = await fetch(`${API_BASE}/sistem/durum?t=${Date.now()}`);
+                const res = await fetch(`${API_BASE}/sistem/durum?t=${Date.now()}`, {
+                    headers: { 'Authorization': `Bearer ${token}` } // Bilet Gösterimi
+                });
+                
+                if (checkTokenError(res)) return;
+
                 if(res.ok) {
                     const data = await res.json();
                     document.getElementById('globalLockdownBtn').checked = data.kilitDurumu === true;
@@ -772,11 +791,16 @@
             const isLocked = e.target.checked;
             
             try {
-                await fetch(`${API_BASE}/sistem/kilit`, {
+                const res = await fetch(`${API_BASE}/sistem/kilit`, {
                     method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` // Bilet Gösterimi
+                    }, 
                     body: JSON.stringify({ kilitDurumu: isLocked })
                 });
+
+                if (checkTokenError(res)) return;
                 
                 if (isLocked) {
                     showToast("Sistem kilitlendi.");
@@ -794,11 +818,16 @@
             const msg = document.getElementById('godVoiceInput').value.trim();
             
             try {
-                await fetch(`${API_BASE}/sistem/anons`, {
+                const res = await fetch(`${API_BASE}/sistem/anons`, {
                     method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` // Bilet Gösterimi
+                    }, 
                     body: JSON.stringify({ mesaj: msg, zaman: Date.now() })
                 });
+
+                if (checkTokenError(res)) return;
                 
                 if (msg === "") {
                     showToast("Anons kaldırıldı.");
@@ -816,7 +845,12 @@
             tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Veriler yükleniyor...</td></tr>';
             
             try {
-                const res = await fetch(`${API_BASE}/users`);
+                const res = await fetch(`${API_BASE}/users`, {
+                    headers: { 'Authorization': `Bearer ${token}` } // Bilet Gösterimi
+                });
+                
+                if (checkTokenError(res)) return;
+
                 globalCustomers = await res.json();
                 
                 tbody.innerHTML = ''; 
@@ -867,7 +901,12 @@
         // --- BAŞARILI İŞLEM (LOG) İSTATİSTİĞİ ÇEKME ---
         async function fetchStats(id) {
             try {
-                const res = await fetch(`${API_BASE}/logs-getir?userId=${id}`);
+                const res = await fetch(`${API_BASE}/logs-getir?userId=${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` } // Bilet Gösterimi
+                });
+
+                if (checkTokenError(res)) return;
+
                 const logs = await res.json();
                 
                 const count = logs.filter(function(l) {
@@ -884,11 +923,16 @@
         window.toggleStatus = async function(id, status) {
             try {
                 // 1. Veritabanını güncelle
-                await fetch(`${API_BASE}/users/guncelle/${id}`, {
+                const res = await fetch(`${API_BASE}/users/guncelle/${id}`, {
                     method: 'PATCH', 
-                    headers: { 'Content-Type': 'application/json' }, 
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` // Bilet Gösterimi
+                    }, 
                     body: JSON.stringify({ isActive: status })
                 });
+
+                if (checkTokenError(res)) return;
                 
                 // 2. İstatistik Sayılarını TABLOYU YENİLEMEDEN (ziplama yapmadan) el ile değiştir
                 const activeElem = document.getElementById('statActive');
@@ -907,11 +951,8 @@
                     passiveElem.innerText = passiveCount + 1;
                 }
                 
-                // ARTIK loadCustomers() ÇAĞRILMIYOR! SAYFA ZIPLAMIYOR!
-                
             } catch (e) {
                 showToast("Güncelleme başarısız!");
-                // Hata olursa kullanıcının bastığı şalteri geri eski haline al
                 const toggleInput = document.querySelector(`input[onchange="toggleStatus('${id}', this.checked)"]`);
                 if(toggleInput) {
                     toggleInput.checked = !status;
@@ -947,9 +988,14 @@
                 
                 const res = await fetch(`${API_BASE}/users/ekle`, {
                     method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` // Bilet Gösterimi
+                    }, 
                     body: JSON.stringify(musteriVerisi)
                 });
+
+                if (checkTokenError(res)) return;
                 
                 if(res.ok) {
                     document.getElementById('newPasscode').value = ''; 
@@ -1021,14 +1067,19 @@
                 btn.textContent = "GÜNCELLENİYOR..."; 
                 btn.disabled = true;
                 
-                await fetch(`${API_BASE}/users/guncelle/${id}`, {
+                const res = await fetch(`${API_BASE}/users/guncelle/${id}`, {
                     method: 'PATCH', 
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` // Bilet Gösterimi
+                    },
                     body: JSON.stringify({ 
                         expireDate: formattedDate, 
                         banMessage: newBanMsg 
                     })
                 });
+
+                if (checkTokenError(res)) return;
                 
                 modal.style.display = "none"; 
                 showToast("Müşteri ayarları güncellendi."); 
