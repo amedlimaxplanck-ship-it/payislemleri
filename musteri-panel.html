@@ -896,8 +896,101 @@
         #lockdown-overlay.active .lockdown-card { 
             transform: translateY(0); 
         }
+        
+        /* 🔥 YENİ: OTURUM SONLANDIRILDI (KICK) EKRANI 🔥 */
+        #kick-overlay {
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            z-index: 999999999; 
+            background: rgba(255, 255, 255, 0.7); 
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px); 
+            align-items: center; 
+            justify-content: center; 
+            opacity: 0; 
+            transition: opacity 0.4s ease; 
+        }
 
-        /* --- HAVALI BOŞ DURUM (EMPTY STATE) EKLENDİ --- */
+        [data-theme="dark"] #kick-overlay { 
+            background: rgba(9, 9, 11, 0.85); 
+        }
+
+        .kick-card {
+            background: var(--bg-card); 
+            padding: 40px; 
+            border-radius: 20px; 
+            text-align: center; 
+            max-width: 420px; 
+            box-shadow: 0 30px 60px -12px rgba(239, 68, 68, 0.25); 
+            border: 1px solid rgba(239, 68, 68, 0.3); 
+            transform: scale(0.95); 
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+
+        .kick-card svg {
+            width: 60px;
+            height: 60px;
+            stroke: #ef4444;
+            margin-bottom: 20px;
+            animation: pulseWarning 2s infinite;
+        }
+
+        @keyframes pulseWarning {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.5)); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .kick-card h2 {
+            font-size: 22px;
+            font-weight: 800;
+            color: #ef4444;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kick-card p {
+            font-size: 14px;
+            color: var(--text-main);
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .kick-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .kick-btn:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        #kick-overlay.active { 
+            display: flex; 
+            opacity: 1; 
+        }
+
+        #kick-overlay.active .kick-card { 
+            transform: scale(1); 
+        }
+
+        /* --- HAVALI BOŞ DURUM (EMPTY STATE) --- */
         .empty-state {
             display: flex;
             flex-direction: column;
@@ -1098,7 +1191,7 @@
                 font-size: 18px; 
             }
 
-            .lockdown-card { 
+            .lockdown-card, .kick-card { 
                 margin: 15px; 
                 padding: 25px; 
             }
@@ -1114,6 +1207,19 @@
             </svg>
             <h2>Sistem Erişimi Duraklatıldı</h2>
             <p>Güvenlik protokolleri gereği hesabınızın işlemleri geçici olarak durdurulmuştur. Lütfen destek ile iletişime geçin.</p>
+        </div>
+    </div>
+
+    <div id="kick-overlay">
+        <div class="kick-card">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <h2>Oturum Sonlandırıldı!</h2>
+            <p>Hesabınıza başka bir cihazdan giriş yapıldığı veya oturum süreniz dolduğu için güvenliğiniz amacıyla sistemden çıkarıldınız.</p>
+            <button class="kick-btn" onclick="window.location.href='login.html'">Giriş Ekranına Dön</button>
         </div>
     </div>
 
@@ -1340,17 +1446,29 @@
                 .replace(/\//g, '&#x2f;');
         };
 
+        // --- BİLET (TOKEN) & KOLTUK KAPMACA HATA KONTROLÜ ---
+        function checkTokenError(res) {
+            if (res.status === 401 || res.status === 403) {
+                // Hata aldığımızda ekrana bulanık KICK menüsünü indiriyoruz
+                document.getElementById('kick-overlay').classList.add('active');
+                document.body.style.overflow = 'hidden';
+                localStorage.clear();
+                return true;
+            }
+            return false;
+        }
+
         // --- 1 DAKİKA HAREKETSİZLİKTE ÇIKIŞ (IDLE TIMEOUT) ---
         let inactivityTime = function () {
             let time;
             const outTime = 60000; 
 
             function logoutUser() {
-                showToast('Hareketsizlik nedeniyle güvenli çıkış yapıldı.', 'info');
-                setTimeout(function() {
-                    localStorage.clear(); 
-                    window.location.href = "login.html"; 
-                }, 1500);
+                // Adam inaktif kalınca da şutlama menüsünü gösteriyoruz
+                document.getElementById('kick-overlay').classList.add('active');
+                document.querySelector('.kick-card p').innerText = "1 dakika boyunca hiçbir işlem yapmadığınız için güvenliğiniz amacıyla sistemden çıkarıldınız.";
+                document.body.style.overflow = 'hidden';
+                localStorage.clear();
             }
 
             function resetTimer() { 
@@ -1449,19 +1567,6 @@
             }, 3500);
         }
 
-        // --- BİLET (TOKEN) HATA KONTROLÜ ---
-        function checkTokenError(res) {
-            if (res.status === 401 || res.status === 403) {
-                showToast("Oturum süreniz doldu veya yetkisiz işlem!", "error");
-                setTimeout(function() {
-                    localStorage.clear();
-                    window.location.href = "login.html";
-                }, 2000);
-                return true;
-            }
-            return false;
-        }
-
         // --- DİĞER FONKSİYONLAR ---
         window.customConfirm = function(message, callback) {
             const modal = document.getElementById('confirmModal');
@@ -1554,7 +1659,6 @@
                 globalIlanlar = await cevap.json();
                 document.getElementById('stat-ilan').innerText = globalIlanlar.length;
                 
-                // 🔥 BOŞ DURUM (EMPTY STATE) UYGULANDI 🔥
                 if (globalIlanlar.length === 0) { 
                     tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">
                         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"></path><polygon points="18 2 22 6 12 16 8 16 8 12 18 2"></polygon></svg>
@@ -1636,7 +1740,6 @@
                 
                 document.getElementById('stat-dekont').innerText = dekontlar.length;
                 
-                // 🔥 BOŞ DURUM (EMPTY STATE) UYGULANDI 🔥
                 if (dekontlar.length === 0) { 
                     tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">
                         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -1709,7 +1812,6 @@
                 const sonYuzLog = logs.slice(0, 100);
                 document.getElementById('stat-log').innerText = sonYuzLog.length;
                 
-                // 🔥 BOŞ DURUM (EMPTY STATE) UYGULANDI 🔥
                 if (sonYuzLog.length === 0) { 
                     tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">
                         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
@@ -2029,7 +2131,12 @@
         // --- GOD PANEL EMİRLERİNİ DİNLEME VE KONTROL ---
         async function checkGodCommands() {
             try {
-                const res = await fetch(`${API_BASE}/sistem/durum?t=${new Date().getTime()}`);
+                const res = await fetch(`${API_BASE}/sistem/durum?t=${new Date().getTime()}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                
+                if (checkTokenError(res)) return;
+                
                 if(!res.ok) return;
                 
                 const data = await res.json();
