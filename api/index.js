@@ -4,6 +4,7 @@ const cors = require('cors');
 const fs = require('fs'); 
 const path = require('path'); 
 const jwt = require('jsonwebtoken'); // VIP BİLET BASICI
+const rateLimit = require('express-rate-limit'); // ŞİFRE DENEME KALKANI
 const { initializeApp } = require('firebase/app');
 const {
     getFirestore, collection, addDoc, getDocs, 
@@ -30,6 +31,19 @@ const firebaseConfig = {
 
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
+
+
+// =================================================================
+// 🔥 GÜVENLİK DUVARI: RATE LIMIT (BRUTE FORCE ENGELLEYİCİ) 🔥
+// Aynı IP'den saniyeler içinde binlerce şifre denenmesini engeller.
+// =================================================================
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 dakika bekleme süresi
+    max: 10, // 15 dakika içinde en fazla 10 yanlış/doğru deneme hakkı
+    message: { success: false, message: "Çok fazla deneme yaptınız. Lütfen 15 dakika sonra tekrar deneyin." },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 
 
 // =================================================================
@@ -79,8 +93,8 @@ const kilitKontrol = async (req, res, next) => {
 
 // --- API KAPILARI ---
 
-// GİRİŞ VE BİLET BASIMI
-app.post('/api/login', async (req, res) => {
+// GİRİŞ VE BİLET BASIMI (Rate Limit Koruması Eklendi)
+app.post('/api/login', loginLimiter, async (req, res) => {
     const { code } = req.body; 
     try {
         const q = query(collection(db, "users"), where("passcode", "==", code));
