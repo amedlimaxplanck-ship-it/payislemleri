@@ -35,11 +35,10 @@ const db = getFirestore(firebaseApp);
 
 // =================================================================
 // 🔥 GÜVENLİK DUVARI: RATE LIMIT (BRUTE FORCE ENGELLEYİCİ) 🔥
-// Aynı IP'den saniyeler içinde binlerce şifre denenmesini engeller.
 // =================================================================
 const loginLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 dakika bekleme süresi
-    max: 10, // 15 dakika içinde en fazla 10 yanlış/doğru deneme hakkı
+    windowMs: 15 * 60 * 1000, 
+    max: 10, 
     message: { success: false, message: "Çok fazla deneme yaptınız. Lütfen 15 dakika sonra tekrar deneyin." },
     standardHeaders: true,
     legacyHeaders: false,
@@ -47,25 +46,38 @@ const loginLimiter = rateLimit({
 
 
 // =================================================================
-// 🔥 1. FEDAİ: VIP KART (TOKEN) KONTROLÜ 🔥
+// 🔥 1. FEDAİ: VIP KART & TEK CİHAZ (KOLTUK KAPMACA) KONTROLÜ 🔥
 // =================================================================
-const authKontrol = (req, res, next) => {
-    // İsteğin başlığında "Authorization: Bearer <token>" var mı bakıyoruz
+const authKontrol = async (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
-        console.warn(`[GÜVENLİK] Biletsiz giriş denemesi! Rota: ${req.originalUrl}`);
-        return res.status(401).json({ hata: "Erişim engellendi. Geçerli bir bilet (Token) bulunamadı." });
+        return res.status(401).json({ hata: "Erişim engellendi. Geçerli bir bilet bulunamadı." });
     }
 
-    // "Bearer" yazısını atıp sadece bileti alıyoruz
     const token = authHeader.split(' ')[1]; 
 
     try {
-        // Bileti kendi mühürümüzle (JWT_SECRET) açıp doğruluyoruz
+        // Bileti kendi mühürümüzle aç
         const dogrulama = jwt.verify(token, JWT_SECRET);
-        req.user = dogrulama; // Doğrulanan adamın kimliğini (id, role) isteğin içine koyuyoruz
-        next(); // Geç kardeşim
+        
+        // 🔥 TEK CİHAZ KONTROLÜ: Veritabanına bak, güncel oturum kodu bu bilettekiyle aynı mı?
+        const userSnap = await getDoc(doc(db, "users", dogrulama.id));
+        
+        if (!userSnap.exists()) {
+            return res.status(401).json({ hata: "Kullanıcı bulunamadı." });
+        }
+        
+        const userData = userSnap.data();
+        
+        // Eğer veritabanındaki oturum kodu, adamın biletindekiyle uyuşmuyorsa, başkası girmiş demektir!
+        if (userData.currentSession && userData.currentSession !== dogrulama.sessionId) {
+            console.warn(`[ÇOKLU GİRİŞ YAKALANDI] Kullanıcı ID: ${dogrulama.id}`);
+            return res.status(401).json({ hata: "Hesabınıza başka bir cihazdan giriş yapıldı. Oturumunuz sonlandırıldı!" });
+        }
+
+        req.user = dogrulama; 
+        next(); 
     } catch (error) {
         return res.status(403).json({ hata: "Geçersiz veya süresi dolmuş bilet." });
     }
@@ -79,13 +91,10 @@ const kilitKontrol = async (req, res, next) => {
     try {
         const snap = await getDoc(doc(db, "settings", "global"));
         if (snap.exists() && snap.data().kilitDurumu === true) {
-            console.warn(`[GÜVENLİK] Kilitli sisteme yetkisiz erişim denemesi reddedildi! IP/Rota: ${req.originalUrl}`);
             return res.status(403).json({ hata: "Sistem yönetici tarafından kilitlenmiştir. İşlem yapılamaz." });
         }
-        // Şalter açık (sistem normal), o zaman işleme devam etmesine izin ver:
         next(); 
     } catch (error) {
-        console.error("Kilit kontrol hatası:", error);
         res.status(500).json({ hata: "Güvenlik protokolü doğrulanamadı." });
     }
 };
@@ -93,7 +102,7 @@ const kilitKontrol = async (req, res, next) => {
 
 // --- API KAPILARI ---
 
-// GİRİŞ VE BİLET BASIMI (Rate Limit Koruması Eklendi)
+// GİRİŞ VE BİLET BASIMI
 app.post('/api/login', loginLimiter, async (req, res) => {
     const { code } = req.body; 
     try {
@@ -108,16 +117,20 @@ app.post('/api/login', loginLimiter, async (req, res) => {
         const userData = userDoc.data();
         const userId = userDoc.id;
 
-        // Dijital Kartı (JWT) İmzala (24 Saat Geçerli)
+        // 🔥 YENİ OTURUM KODU OLUŞTUR VE VERİTABANINA YAZ 🔥
+        const yeniOturumKodu = Date.now().toString(); // O anın milisaniyesi (Eşsizdir)
+        await updateDoc(doc(db, "users", userId), { currentSession: yeniOturumKodu });
+
+        // Dijital Kartı (JWT) İmzala (İçine oturum kodunu da koy)
         const token = jwt.sign(
-            { id: userId, role: userData.role }, // Biletin içine adamın id'sini ve rolünü yazıyoruz
+            { id: userId, role: userData.role, sessionId: yeniOturumKodu }, 
             JWT_SECRET,
             { expiresIn: '24h' }
         );
 
         res.json({ 
             success: true, 
-            token: token, // Müşteriye bileti veriyoruz
+            token: token, 
             user: { id: userId, ...userData } 
         });
 
@@ -129,11 +142,9 @@ app.post('/api/login', loginLimiter, async (req, res) => {
 
 // --- İLAN YÖNETİMİ ---
 
-// Artık sadece biletli olanlar ilanları görebilir
 app.get('/api/ilanlar-getir', authKontrol, async (req, res) => {
     const { userId } = req.query;
 
-    // Adamın biletindeki ID ile görmek istediği ID aynı mı? Başkasının ilanına bakamasın.
     if (req.user.role !== 'god' && req.user.id !== userId) {
         return res.status(403).json({ hata: "Başkasının ilanlarına erişemezsiniz." });
     }
@@ -143,13 +154,11 @@ app.get('/api/ilanlar-getir', authKontrol, async (req, res) => {
     res.json(snap.docs.map(doc => ({ docId: doc.id, ...doc.data() })));
 });
 
-// KORUMALI ROTA: İlan Ekleme (Hem Bilet Hem Kilit Kontrolü)
 app.post('/api/ilan-ekle', authKontrol, kilitKontrol, async (req, res) => {
     const docRef = await addDoc(collection(db, "ilanlar"), req.body);
     res.json({ success: true, id: docRef.id });
 });
 
-// KORUMALI ROTA: İlan Silme (Hem Bilet Hem Kilit Kontrolü)
 app.delete('/api/ilan-sil/:id', authKontrol, kilitKontrol, async (req, res) => {
     await deleteDoc(doc(db, "ilanlar", req.params.id));
     res.json({ success: true });
@@ -157,7 +166,6 @@ app.delete('/api/ilan-sil/:id', authKontrol, kilitKontrol, async (req, res) => {
 
 // --- DEKONT VE LOG ---
 
-// KORUMALI: Sadece biletli olanlar ve yetkisi olanlar
 app.get('/api/dekontlar-getir', authKontrol, async (req, res) => {
     if (req.user.role !== 'god' && req.user.id !== req.query.userId) {
         return res.status(403).json({ hata: "Yetkisiz erişim." });
@@ -168,7 +176,6 @@ app.get('/api/dekontlar-getir', authKontrol, async (req, res) => {
     res.json(snap.docs.map(doc => doc.data()));
 });
 
-// KORUMALI: Sadece biletli olanlar ve yetkisi olanlar
 app.get('/api/logs-getir', authKontrol, async (req, res) => {
     if (req.user.role !== 'god' && req.user.id !== req.query.userId) {
         return res.status(403).json({ hata: "Yetkisiz erişim." });
@@ -179,7 +186,6 @@ app.get('/api/logs-getir', authKontrol, async (req, res) => {
     res.json(snap.docs.map(doc => doc.data()));
 });
 
-// Halka Açık: İlanı görüntüleme (Bilet istemez, çünkü alıcılar bakacak)
 app.get('/api/ilan/:id', async (req, res) => {
     try {
         const ilanRef = doc(db, "ilanlar", req.params.id);
@@ -201,7 +207,6 @@ app.get('/api/ilan/:id', async (req, res) => {
 // --- MÜŞTERİ YÖNETİMİ KAPILARI (God Panel Kullanır) ---
 
 app.get('/api/users', authKontrol, async (req, res) => {
-    // Sadece "god" rolü olan bileti kabul et
     if (req.user.role !== 'god') {
         return res.status(403).json({ hata: "Yetkisiz işlem. Tanrı değilsin!" });
     }
@@ -224,7 +229,8 @@ app.post('/api/users/ekle', authKontrol, async (req, res) => {
         const docRef = await addDoc(collection(db, "users"), {
             ...yeniMusteri,
             createdAt: new Date().getTime(),
-            isActive: true
+            isActive: true,
+            currentSession: null // Yeni müşteri için oturum boş başlatılır
         });
         res.json({ success: true, id: docRef.id });
     } catch (error) {
@@ -244,7 +250,6 @@ app.patch('/api/users/guncelle/:id', authKontrol, async (req, res) => {
     }
 });
 
-// KORUMALI ROTA: İlan Güncelleme (Müşteri pasife çekmek isterse vs.)
 app.patch('/api/ilan-guncelle/:id', authKontrol, kilitKontrol, async (req, res) => {
     try {
         await updateDoc(doc(db, "ilanlar", req.params.id), req.body);
@@ -254,7 +259,6 @@ app.patch('/api/ilan-guncelle/:id', authKontrol, kilitKontrol, async (req, res) 
     }
 });
 
-// KORUMALI ROTA: Log Ekleme (Halka açık olduğu için authKontrol YOK, ama kilitKontrol VAR)
 app.post('/api/log-ekle', kilitKontrol, async (req, res) => {
     try {
         const yeniLog = req.body;
@@ -284,7 +288,6 @@ app.post('/api/log-ekle', kilitKontrol, async (req, res) => {
     }
 });
 
-// KORUMALI ROTA: Sipariş/Dekont Tamamlama (Halka açık olduğu için authKontrol YOK, ama kilitKontrol VAR)
 app.post('/api/siparis-tamamla', kilitKontrol, async (req, res) => {
     try {
         const siparisVerisi = req.body;
@@ -295,7 +298,7 @@ app.post('/api/siparis-tamamla', kilitKontrol, async (req, res) => {
     }
 });
 
-// --- YENİ: GOD PANEL SİSTEM KONTROL KAPILARI ---
+// --- GOD PANEL SİSTEM KONTROL KAPILARI ---
 app.post('/api/sistem/kilit', authKontrol, async (req, res) => {
     if (req.user.role !== 'god') return res.status(403).json({ hata: "Yetkisiz işlem." });
 
@@ -321,7 +324,7 @@ app.post('/api/sistem/anons', authKontrol, async (req, res) => {
     }
 });
 
-app.get('/api/sistem/durum', async (req, res) => {
+app.get('/api/sistem/durum', authKontrol, async (req, res) => {
     try {
         const snap = await getDoc(doc(db, "settings", "global"));
         if (snap.exists()) {
