@@ -897,6 +897,53 @@
             transform: translateY(0); 
         }
 
+        /* --- HAVALI BOŞ DURUM (EMPTY STATE) EKLENDİ --- */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 50px 20px;
+            color: var(--text-muted);
+            text-align: center;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .empty-state svg {
+            width: 72px;
+            height: 72px;
+            margin-bottom: 18px;
+            opacity: 0.6;
+            stroke: var(--text-muted);
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+            animation: floatIcon 4s ease-in-out infinite;
+        }
+
+        @keyframes floatIcon {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-12px) scale(1.05); stroke: #007bff; opacity: 1; filter: drop-shadow(0 15px 25px rgba(0,123,255,0.3)); }
+            100% { transform: translateY(0px); }
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            letter-spacing: -0.3px;
+        }
+
+        .empty-state p {
+            font-size: 13px;
+            max-width: 320px;
+            line-height: 1.6;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* --- MOBİL UYUMLULUK DÜZENLEMESİ --- */
         @media (max-width: 768px) {
             body { 
@@ -1282,8 +1329,6 @@
 
     <script type="module">
         // 🔥 ZEHİR TEMİZLEYİCİ (XSS DEZENFEKTANI) 🔥
-        // Bu kod ekrana basılacak her veriyi tarar, içindeki zararlı olabilecek
-        // <script> gibi HTML etiketlerini zararsız düz metne çevirir.
         window.dezenfekteEt = function(str) {
             if (str === null || str === undefined) return "";
             return String(str)
@@ -1359,17 +1404,15 @@
         window.showToast = function(message, type = 'success', title = '') {
             const container = document.getElementById('toast-container');
             
-            // Spam Koruması: Ekranda zaten aynı mesaj varsa yenisini çıkarma
             const existingToasts = container.querySelectorAll('.toast');
             for (let i = 0; i < existingToasts.length; i++) {
                 const t = existingToasts[i];
                 const spans = t.querySelectorAll('span');
                 if (spans.length > 1 && spans[1].innerText === message) {
-                    return; // Mesaj aynı, iptal et
+                    return; 
                 }
             }
 
-            // Ekranda en fazla 2 bildirim olsun, eskisini sil
             if (existingToasts.length >= 2) {
                 existingToasts[0].classList.remove('show');
                 setTimeout(function() {
@@ -1448,7 +1491,7 @@
         }
 
         const userId = localStorage.getItem("userId"); 
-        const token = localStorage.getItem("token"); // VIP BİLET ALINDI
+        const token = localStorage.getItem("token"); 
         
         if (!userId || !token) { 
             window.location.href = "login.html"; 
@@ -1511,8 +1554,13 @@
                 globalIlanlar = await cevap.json();
                 document.getElementById('stat-ilan').innerText = globalIlanlar.length;
                 
+                // 🔥 BOŞ DURUM (EMPTY STATE) UYGULANDI 🔥
                 if (globalIlanlar.length === 0) { 
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Henüz ilanınız bulunmamaktadır.</td></tr>'; 
+                    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"></path><polygon points="18 2 22 6 12 16 8 16 8 12 18 2"></polygon></svg>
+                        <h3>Aktif İlan Bulunamadı</h3>
+                        <p>Şu an vitrinde sergilenen bir ilanınız yok. Yukarıdaki butonu kullanarak hemen ilk ilanınızı oluşturun.</p>
+                    </div></td></tr>`; 
                     return; 
                 }
                 
@@ -1523,7 +1571,6 @@
                     const pttavmLink = `https://payislemlerim-pttavm.vercel.app/?ilan=${data.docId}`;
                     
                     const tr = document.createElement('tr');
-                    // 🔥 BÜTÜN VERİLER DEZENFEKTE EDİLİYOR 🔥
                     tr.innerHTML = `
                         <td>
                             <img src="${dezenfekteEt(data.anaResim || '')}" class="thumb-img">
@@ -1589,14 +1636,18 @@
                 
                 document.getElementById('stat-dekont').innerText = dekontlar.length;
                 
+                // 🔥 BOŞ DURUM (EMPTY STATE) UYGULANDI 🔥
                 if (dekontlar.length === 0) { 
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Henüz dekont yok.</td></tr>'; 
+                    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        <h3>Dekont Kaydı Yok</h3>
+                        <p>Henüz onaylanmış bir satışınız veya sisteme düşen bir alıcı dekontu bulunmuyor.</p>
+                    </div></td></tr>`; 
                     return; 
                 }
                 
                 let yeniHtml = '';
                 dekontlar.forEach(function(data) {
-                    // 🔥 DEKONT VERİLERİ DEZENFEKTE EDİLİYOR 🔥
                     yeniHtml += `
                     <tr>
                         <td>${dezenfekteEt(data.tarih)} - ${dezenfekteEt(data.saat)}</td>
@@ -1658,8 +1709,13 @@
                 const sonYuzLog = logs.slice(0, 100);
                 document.getElementById('stat-log').innerText = sonYuzLog.length;
                 
+                // 🔥 BOŞ DURUM (EMPTY STATE) UYGULANDI 🔥
                 if (sonYuzLog.length === 0) { 
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Log bulunmamaktadır.</td></tr>'; 
+                    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                        <h3>Sistem Logu Temiz</h3>
+                        <p>Hesabınızda henüz hiçbir işlem hareketi, güvenlik uyarısı veya sistem bağlantısı kaydedilmemiş.</p>
+                    </div></td></tr>`; 
                     return; 
                 }
                 
@@ -1677,7 +1733,6 @@
                         badgeClass = "badge-danger"; 
                     }
                     
-                    // 🔥 LOG VERİLERİ DEZENFEKTE EDİLİYOR 🔥
                     yeniHtml += `
                     <tr>
                         <td><b>${dezenfekteEt(data.tarih)}</b><br><small>${dezenfekteEt(data.saat)}</small></td>
