@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>Sistem Girişi | Güvenli Erişim Protokolü</title>
     <style>
         * {
@@ -13,20 +13,23 @@
         }
         
         body {
-            /* Zifiri Karanlık Ana Arka Plan */
             background-color: #050505;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            /* Dinamik mobil yüksekliği (Klavye açılınca sapıtmaması için) */
+            min-height: 100vh;
+            min-height: 100dvh; 
             color: #f8fafc;
-            overflow: hidden;
+            overflow-x: hidden; /* Sadece yatay taşmayı gizle */
             position: relative;
+            padding: 20px;
         }
 
         /* --- AMBIENT GLOW (Arka Plandaki Uçuşan Sisler) --- */
+        /* absolute yerine fixed yapıldı ki klavye açılınca yerinden oynamasın */
         .glow-blob {
-            position: absolute;
+            position: fixed; 
             border-radius: 50%;
             filter: blur(120px);
             z-index: 1;
@@ -36,13 +39,13 @@
 
         .glow-1 {
             width: 500px; height: 500px;
-            background: #1e3a8a; /* Derin Gece Mavisi */
+            background: #1e3a8a; 
             top: -150px; left: -200px;
         }
 
         .glow-2 {
             width: 450px; height: 450px;
-            background: #4c1d95; /* Koyu Lüks Mor */
+            background: #4c1d95; 
             bottom: -150px; right: -150px;
             animation-delay: -7s;
         }
@@ -53,9 +56,10 @@
             100% { transform: translate(-40px, -60px) scale(0.9); }
         }
 
-        /* --- TAKIMYILDIZ AĞI (Moving Constellation Network) --- */
+        /* --- TAKIMYILDIZ AĞI --- */
+        /* absolute yerine fixed yapıldı */
         .constellation {
-            position: absolute;
+            position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
             background-size: 50px 50px;
@@ -69,11 +73,12 @@
             to { background-position: 500px 500px; }
         }
 
-        /* Canlı Sistem Saati ve Güvenlik İbaresi */
+        /* Canlı Sistem Saati */
+        /* absolute yerine fixed yapıldı */
         .system-clock {
-            position: absolute;
+            position: fixed;
             top: 25px;
-            right: 35px;
+            right: 25px;
             font-family: 'Courier New', Courier, monospace;
             font-size: 12px;
             color: #475569;
@@ -104,7 +109,7 @@
             100% { transform: scale(0.95); opacity: 0.5; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
 
-        /* Ana Giriş Kutusu (Gerçek Buzlu Cam) */
+        /* Ana Giriş Kutusu */
         .login-container {
             background-color: rgba(15, 23, 42, 0.4);
             backdrop-filter: blur(25px);
@@ -190,7 +195,6 @@
             font-weight: normal;
         }
 
-        /* Apple Tarzı Premium Buton */
         button {
             width: 100%;
             padding: 18px;
@@ -224,7 +228,6 @@
             box-shadow: none;
         }
 
-        /* Spinner (Yükleme Halkası) */
         .spinner {
             border: 3px solid rgba(15, 23, 42, 0.1);
             border-top: 3px solid #0f172a;
@@ -237,7 +240,6 @@
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Hata Mesajı (Kırmızı Titreyen Kutu) */
         #error-message {
             background-color: rgba(220, 38, 38, 0.12);
             color: #fca5a5;
@@ -258,7 +260,6 @@
             50% { transform: translateX(5px); }
         }
 
-        /* Anonim Güvenlik İbaresi */
         .security-footer {
             margin-top: 35px;
             font-size: 10px;
@@ -266,6 +267,12 @@
             font-family: 'Courier New', Courier, monospace;
             text-transform: uppercase;
             letter-spacing: 1px;
+        }
+        
+        /* Mobil Ekranlar İçin Ufak Düzeltmeler */
+        @media (max-width: 480px) {
+            .login-container { padding: 40px 30px; }
+            .system-clock { top: 15px; right: 15px; font-size: 10px; }
         }
     </style>
 </head>
@@ -340,7 +347,6 @@
             loginBtn.disabled = true;
 
             try {
-                // Senin orijinal API rotan (Yerel testteysen yerel sunucuya atar, Vercel'deysen normal çalışır)
                 const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
                 const apiUrl = isLocal ? 'http://localhost:3000/api/login' : '/api/login';
 
@@ -352,7 +358,6 @@
 
                 const sonuc = await cevap.json();
 
-                // Senin orijinal yetkilendirme ve yönlendirme mantığın
                 if (sonuc.success) {
                     localStorage.setItem("userId", sonuc.user.id);
                     localStorage.setItem("userRole", sonuc.user.role);
@@ -383,7 +388,7 @@
             }
         });
 
-        // Enter tuşuyla girebilme rahatlığı
+        // Enter tuşuyla girebilme
         accessCodeInput.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') loginBtn.click();
         });
