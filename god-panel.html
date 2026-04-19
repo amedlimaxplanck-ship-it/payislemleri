@@ -635,7 +635,7 @@
                             <th>Başarı</th>
                             <th>Bitiş</th>
                             <th>Durum</th>
-                            <th>İşlem</th>
+                            <th>Ayar</th>
                         </tr>
                     </thead>
                     <tbody id="customerTableBody"></tbody>
@@ -652,7 +652,7 @@
             <input type="hidden" id="editUserId">
             
             <div class="form-group">
-                <label>Erişim Kodu (Değiştirilemez)</label>
+                <label>Erişim Kodu</label>
                 <input type="text" id="editPasscode" readonly style="opacity: 0.5; pointer-events: none;">
             </div>
 
@@ -691,7 +691,6 @@
         // --- TEMA MOTORU (DARK/LIGHT) ---
         const themeToggle = document.getElementById('themeToggle');
         
-        // God Panel'in ağırlığını korumak için varsayılan olarak "dark" gelir.
         const currentTheme = localStorage.getItem('godTheme') || 'dark';
         
         if (currentTheme === 'dark') { 
@@ -881,24 +880,42 @@
             }
         }
 
-        // --- MÜŞTERİ DURUMU DEĞİŞTİRME ---
+        // --- ZIPLAMA VE YENİLEME SORUNUNU ÇÖZEN GÜNCELLEME KODU ---
         window.toggleStatus = async function(id, status) {
             try {
+                // 1. Veritabanını güncelle
                 await fetch(`${API_BASE}/users/guncelle/${id}`, {
                     method: 'PATCH', 
                     headers: { 'Content-Type': 'application/json' }, 
                     body: JSON.stringify({ isActive: status })
                 });
                 
+                // 2. İstatistik Sayılarını TABLOYU YENİLEMEDEN (ziplama yapmadan) el ile değiştir
+                const activeElem = document.getElementById('statActive');
+                const passiveElem = document.getElementById('statPassive');
+                
+                let activeCount = parseInt(activeElem.innerText) || 0;
+                let passiveCount = parseInt(passiveElem.innerText) || 0;
+                
                 if (status) {
                     showToast("Müşteri aktif edildi.");
+                    activeElem.innerText = activeCount + 1;
+                    passiveElem.innerText = passiveCount - 1;
                 } else {
                     showToast("Müşteri pasife çekildi.");
+                    activeElem.innerText = activeCount - 1;
+                    passiveElem.innerText = passiveCount + 1;
                 }
                 
-                loadCustomers();
+                // ARTIK loadCustomers() ÇAĞRILMIYOR! SAYFA ZIPLAMIYOR!
+                
             } catch (e) {
                 showToast("Güncelleme başarısız!");
+                // Hata olursa kullanıcının bastığı şalteri geri eski haline al
+                const toggleInput = document.querySelector(`input[onchange="toggleStatus('${id}', this.checked)"]`);
+                if(toggleInput) {
+                    toggleInput.checked = !status;
+                }
             }
         };
 
@@ -944,7 +961,7 @@
             } catch (e) { 
                 showToast("Bağlantı koptu."); 
             } finally { 
-                btn.textContent = "SİSTEME KAYDET"; 
+                btn.textContent = "KAYDET"; 
                 btn.disabled = false; 
             }
         };
