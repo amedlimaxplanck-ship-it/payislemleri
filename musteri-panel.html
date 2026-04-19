@@ -625,13 +625,13 @@
 
     loadIlanlar(); loadDekontlar(); loadLogs();
 
-        // --- YENİ EKLENEN: GOD PANEL EMİRLERİNİ DİNLEME ---
-    let sonAnonsZamani = 0;
-    let ilkKontrol = true; // Sayfa ilk açıldığında eski anonsları yutması için bayrak
+    // --- YENİ EKLENEN: GOD PANEL EMİRLERİNİ DİNLEME (CACHE BUSTING İLE) ---
+    let sonAnonsZamani = null;
 
     async function checkGodCommands() {
         try {
-            const res = await fetch(`${API_BASE}/sistem/durum`);
+            // "?t=" ekleyerek tarayıcının eski veriyi (cache) kullanmasını engelliyoruz
+            const res = await fetch(`${API_BASE}/sistem/durum?t=${new Date().getTime()}`);
             if(!res.ok) return;
             const data = await res.json();
             
@@ -639,26 +639,28 @@
             toggleLockdown(data.kilitDurumu);
 
             // 2. Anons Durumu
-            if (ilkKontrol) {
-                // Sayfa ilk yüklendiğinde hafızaya sadece son zamanı al, ekrana basma
-                sonAnonsZamani = data.anonsZamani || 0;
-                ilkKontrol = false;
-            } else {
-                // Eğer yeni bir anons geldiyse (zaman öncekinden büyükse) ekrana bas!
-                if (data.anonsMesaji && data.anonsZamani > sonAnonsZamani) {
-                    showGodAnnouncement(data.anonsMesaji);
-                    sonAnonsZamani = data.anonsZamani;
-                }
+            const currentZaman = data.anonsZamani || 0;
+            
+            if (sonAnonsZamani === null) {
+                // Sayfa ilk açıldığında hafızaya al, ekrana basma (eski mesajları yut)
+                sonAnonsZamani = currentZaman;
+            } else if (currentZaman > sonAnonsZamani) {
+                // Yeni bir anons gelmiş!
+                showGodAnnouncement(data.anonsMesaji);
+                sonAnonsZamani = currentZaman;
             }
         } catch(e) { }
     }
 
-    // Her 5 saniyede bir Vercel'i yoklar
+    // Sayfa açılır açılmaz anında kontrol et ki 5 saniye boşluk olmasın
+    checkGodCommands();
+
+    // Ardından her 3 saniyede bir tetikte bekle
     setInterval(() => {
         loadLogs(true);
         loadDekontlar(true); 
         checkGodCommands();
-    }, 5000);
+    }, 3000);
 
     </script>
 
