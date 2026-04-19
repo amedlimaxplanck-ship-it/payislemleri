@@ -16,7 +16,7 @@ app.use(cors());
 app.use(express.json()); 
 
 // Mühür için gizli anahtar
-const JWT_SECRET = process.env.JWT_SECRET || 'MaximillienSynthetixSecretKey2026';
+const JWT_SECRET = process.env.JWT_SECRET || 'SuperGizliAnahtar2026';
 
 // --- KASA BAĞLANTISI ---
 const firebaseConfig = {
