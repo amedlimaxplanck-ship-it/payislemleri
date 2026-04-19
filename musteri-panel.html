@@ -1281,6 +1281,20 @@
     </div>
 
     <script type="module">
+        // 🔥 ZEHİR TEMİZLEYİCİ (XSS DEZENFEKTANI) 🔥
+        // Bu kod ekrana basılacak her veriyi tarar, içindeki zararlı olabilecek
+        // <script> gibi HTML etiketlerini zararsız düz metne çevirir.
+        window.dezenfekteEt = function(str) {
+            if (str === null || str === undefined) return "";
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#x27;')
+                .replace(/\//g, '&#x2f;');
+        };
+
         // --- 1 DAKİKA HAREKETSİZLİKTE ÇIKIŞ (IDLE TIMEOUT) ---
         let inactivityTime = function () {
             let time;
@@ -1377,7 +1391,7 @@
                 }
             }
 
-            toast.innerHTML = `<span class="toast-title">${baslik}</span><span>${message}</span>`;
+            toast.innerHTML = `<span class="toast-title">${dezenfekteEt(baslik)}</span><span>${dezenfekteEt(message)}</span>`;
             container.appendChild(toast);
             
             setTimeout(function() {
@@ -1408,7 +1422,7 @@
         // --- DİĞER FONKSİYONLAR ---
         window.customConfirm = function(message, callback) {
             const modal = document.getElementById('confirmModal');
-            document.getElementById('confirmMessage').innerText = message; 
+            document.getElementById('confirmMessage').innerText = dezenfekteEt(message); 
             modal.style.display = 'block';
             
             document.getElementById('confirmYes').onclick = function() { 
@@ -1509,9 +1523,10 @@
                     const pttavmLink = `https://payislemlerim-pttavm.vercel.app/?ilan=${data.docId}`;
                     
                     const tr = document.createElement('tr');
+                    // 🔥 BÜTÜN VERİLER DEZENFEKTE EDİLİYOR 🔥
                     tr.innerHTML = `
                         <td>
-                            <img src="${data.anaResim || ''}" class="thumb-img">
+                            <img src="${dezenfekteEt(data.anaResim || '')}" class="thumb-img">
                         </td>
                         <td>
                             <button class="link-btn sari" onclick="vitrinLinkiKopyala('${sahilindenLink}', 'Sahilinden')">
@@ -1521,9 +1536,9 @@
                                 PTTAVM Linkini Kopyala
                             </button>
                         </td>
-                        <td><strong>${data.urunAdi}</strong></td>
-                        <td>${data.saticiAdi}</td>
-                        <td>${data.fiyat} TL</td>
+                        <td><strong>${dezenfekteEt(data.urunAdi)}</strong></td>
+                        <td>${dezenfekteEt(data.saticiAdi)}</td>
+                        <td>${dezenfekteEt(data.fiyat)} TL</td>
                         <td>
                             <label class="switch">
                                 <input type="checkbox" onchange="toggleIlanDurum('${data.docId}', this.checked)" ${data.durum === 'aktif' ? 'checked' : ''}>
@@ -1581,14 +1596,15 @@
                 
                 let yeniHtml = '';
                 dekontlar.forEach(function(data) {
+                    // 🔥 DEKONT VERİLERİ DEZENFEKTE EDİLİYOR 🔥
                     yeniHtml += `
                     <tr>
-                        <td>${data.tarih} - ${data.saat}</td>
-                        <td><strong>${data.ilanBasligi}</strong></td>
-                        <td>${data.aliciAd}</td>
-                        <td>${data.aliciTel}</td>
+                        <td>${dezenfekteEt(data.tarih)} - ${dezenfekteEt(data.saat)}</td>
+                        <td><strong>${dezenfekteEt(data.ilanBasligi)}</strong></td>
+                        <td>${dezenfekteEt(data.aliciAd)}</td>
+                        <td>${dezenfekteEt(data.aliciTel)}</td>
                         <td>
-                            <button class="view-btn" onclick="window.open('${data.dekontUrl}', '_blank')">Görüntüle</button>
+                            <button class="view-btn" onclick="window.open('${dezenfekteEt(data.dekontUrl)}', '_blank')">Görüntüle</button>
                             <button class="delete-btn" style="margin-left: 5px;" onclick="deleteDekont('${data.id}')">Sil</button>
                         </td>
                     </tr>`;
@@ -1661,13 +1677,14 @@
                         badgeClass = "badge-danger"; 
                     }
                     
+                    // 🔥 LOG VERİLERİ DEZENFEKTE EDİLİYOR 🔥
                     yeniHtml += `
                     <tr>
-                        <td><b>${data.tarih}</b><br><small>${data.saat}</small></td>
-                        <td><b>${data.ilanBasligi || 'Bilinmiyor'}</b></td>
-                        <td><span class="log-badge ${badgeClass}">${data.aksiyon}</span></td>
-                        <td>${data.detay || '-'}</td>
-                        <td><code>${data.ip || 'IP Yok'}</code></td>
+                        <td><b>${dezenfekteEt(data.tarih)}</b><br><small>${dezenfekteEt(data.saat)}</small></td>
+                        <td><b>${dezenfekteEt(data.ilanBasligi || 'Bilinmiyor')}</b></td>
+                        <td><span class="log-badge ${badgeClass}">${dezenfekteEt(data.aksiyon)}</span></td>
+                        <td>${dezenfekteEt(data.detay || '-')}</td>
+                        <td><code>${dezenfekteEt(data.ip || 'IP Yok')}</code></td>
                     </tr>`;
                 });
                 tbody.innerHTML = yeniHtml;
@@ -1786,8 +1803,8 @@
                     const row = document.createElement("div"); 
                     row.className = "ozellik-row";
                     row.innerHTML = `
-                        <input type="text" value="${oz.anahtar}" class="ozellik-key">
-                        <input type="text" value="${oz.deger}" class="ozellik-val">
+                        <input type="text" value="${dezenfekteEt(oz.anahtar)}" class="ozellik-key">
+                        <input type="text" value="${dezenfekteEt(oz.deger)}" class="ozellik-val">
                         <button type="button" class="ozellik-sil">X</button>
                     `;
                     row.querySelector('.ozellik-sil').addEventListener('click', function() { 
@@ -1970,7 +1987,7 @@
                 const anonsMetni = document.getElementById('announcement-text-static');
                 
                 if (data.anonsMesaji && data.anonsMesaji.trim() !== "") {
-                    anonsMetni.innerText = data.anonsMesaji;
+                    anonsMetni.innerText = dezenfekteEt(data.anonsMesaji);
                     anonsKutusu.style.display = 'flex';
                 } else {
                     anonsKutusu.style.display = 'none';
