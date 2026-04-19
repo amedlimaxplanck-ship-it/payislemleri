@@ -7,17 +7,36 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
+        /* --- AÇIK MOD (LIGHT THEME - Varsayılan) --- */
         :root {
+            --bg-base: #f4f4f5; /* Göz yormayan açık gri arka plan */
+            --bg-surface: #ffffff; /* Bembeyaz kartlar */
+            --bg-card: #fafafa; /* Kutu içleri için hafif kırık beyaz */
+            --border-subtle: rgba(0, 0, 0, 0.08);
+            --text-primary: #09090b; /* Kömür Karası Yazı */
+            --text-secondary: #71717a; /* Yumuşak Gri */
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --switch-bg: #e4e4e7;
+            --switch-knob: #ffffff;
+            --modal-overlay: rgba(255, 255, 255, 0.85);
+            --toast-bg: #09090b;
+            --toast-text: #ffffff;
+        }
+
+        /* --- KOYU MOD (DARK THEME - Şalter Açılınca) --- */
+        [data-theme="dark"] {
             --bg-base: #000000;
             --bg-surface: #0a0a0b;
             --bg-card: #121214;
             --border-subtle: rgba(255, 255, 255, 0.08);
-            --border-hover: rgba(255, 255, 255, 0.15);
             --text-primary: #ffffff;
             --text-secondary: #a1a1aa;
-            --accent-color: #ffffff;
-            --danger-color: #ef4444;
-            --success-color: #10b981;
+            --switch-bg: #27272a;
+            --switch-knob: #a1a1aa;
+            --modal-overlay: rgba(0, 0, 0, 0.85);
+            --toast-bg: #ffffff;
+            --toast-text: #000000;
         }
 
         /* --- SİSTEM SABİTLEME (ASLA KAYMAZ/ZOOMLAMAZ) --- */
@@ -34,6 +53,7 @@
             -webkit-font-smoothing: antialiased;
             overscroll-behavior-y: none;
             -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.4s, color 0.4s;
         }
 
         body { 
@@ -43,6 +63,7 @@
         
         * { 
             box-sizing: border-box; 
+            transition: background-color 0.3s, border-color 0.3s, color 0.3s;
         }
 
         input, select, textarea { 
@@ -68,8 +89,14 @@
         }
 
         .header h1 span { 
-            color: var(--text-secondary); 
-            font-weight: 500; 
+            color: var(--danger-color); 
+            font-weight: 800; 
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
         .logout-btn {
@@ -87,9 +114,27 @@
         }
 
         .logout-btn:active { 
-            background: rgba(255,255,255,0.1); 
+            background: var(--danger-color); 
+            color: white;
+            border-color: var(--danger-color);
             transform: scale(0.96); 
         }
+
+        /* Gündüz/Gece Şalteri */
+        .theme-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .theme-switch input { opacity: 0; width: 0; height: 0; }
+        .theme-slider { 
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; 
+            background-color: var(--switch-bg); transition: .3s; border-radius: 24px; 
+            border: 1px solid var(--border-subtle);
+        }
+        .theme-slider:before { 
+            position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; 
+            background-color: var(--switch-knob); transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .theme-switch input:checked + .theme-slider { background-color: var(--text-primary); border-color: var(--text-primary);}
+        .theme-switch input:checked + .theme-slider:before { transform: translateX(20px); background-color: var(--bg-base); }
+
 
         .stats-grid { 
             display: grid; 
@@ -106,7 +151,6 @@
             display: flex; 
             align-items: center;
             justify-content: space-between; 
-            transition: 0.2s;
         }
 
         .stat-info h3 { 
@@ -232,7 +276,7 @@
         }
 
         .form-group input:focus, .form-group select:focus, #godVoiceInput:focus { 
-            border-color: var(--text-secondary); 
+            border-color: var(--text-primary); 
         }
 
         .btn-primary {
@@ -300,7 +344,7 @@
             font-family: inherit;
         }
 
-        /* Apple tarzı şalter tasarımı */
+        /* --- APPLE TARZI RENKLİ ŞALTERLER (Toggles) --- */
         .switch { 
             position: relative; 
             display: inline-block; 
@@ -318,7 +362,7 @@
             position: absolute; 
             cursor: pointer; 
             top: 0; left: 0; right: 0; bottom: 0; 
-            background-color: #27272a; 
+            background-color: var(--switch-bg); 
             transition: .3s; 
             border-radius: 24px; 
             border: 1px solid var(--border-subtle);
@@ -331,20 +375,22 @@
             width: 16px; 
             left: 3px; 
             bottom: 3px; 
-            background-color: var(--text-secondary); 
+            background-color: var(--switch-knob); 
             transition: .3s; 
             border-radius: 50%; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
         }
 
         /* 1. Müşteri Tablosu Toggles: Kapalıyken Kırmızı, Açıkken Yeşil */
-        .user-toggle .slider { background-color: var(--danger-color); }
+        .user-toggle .slider { background-color: var(--danger-color); border-color: var(--danger-color); }
+        .user-toggle .slider:before { background-color: #ffffff; }
         .user-toggle input:checked + .slider { background-color: var(--success-color); border-color: var(--success-color); }
-        .user-toggle input:checked + .slider:before { transform: translateX(20px); background-color: var(--bg-base); }
+        .user-toggle input:checked + .slider:before { transform: translateX(20px); background-color: #ffffff; }
 
         /* 2. Sistem Kilidi Toggle: Kapalıyken Gri, Açıkken (Kilitliyken) Kırmızı */
-        .lockdown-toggle .slider { background-color: #27272a; }
+        .lockdown-toggle .slider { background-color: var(--switch-bg); }
         .lockdown-toggle input:checked + .slider { background-color: var(--danger-color); border-color: var(--danger-color); }
-        .lockdown-toggle input:checked + .slider:before { transform: translateX(20px); background-color: var(--text-primary); }
+        .lockdown-toggle input:checked + .slider:before { transform: translateX(20px); background-color: #ffffff; }
 
         .action-btn { 
             background: transparent; 
@@ -371,8 +417,9 @@
             z-index: 1000; 
             left: 0; top: 0; 
             width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.8); 
-            backdrop-filter: blur(5px); 
+            background: var(--modal-overlay); 
+            backdrop-filter: blur(8px); 
+            -webkit-backdrop-filter: blur(8px);
             padding: 20px; 
             align-items: center; 
             justify-content: center;
@@ -386,6 +433,7 @@
             width: 100%; 
             max-width: 400px; 
             position: relative;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.1);
         }
 
         .close-modal { 
@@ -412,14 +460,14 @@
         }
 
         .toast { 
-            background: var(--text-primary); 
-            color: var(--bg-base); 
+            background: var(--toast-bg); 
+            color: var(--toast-text); 
             padding: 14px 24px; 
             border-radius: 30px; 
             font-size: 13px; 
             font-weight: 700; 
             text-align: center; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
             opacity: 0; 
             transform: translateY(20px); 
             transition: 0.3s; 
@@ -432,9 +480,7 @@
 
         /* MOBİL KUSURSUZ UYUM */
         @media (max-width: 768px) {
-            body { 
-                padding: 12px; 
-            }
+            body { padding: 12px; }
 
             .header { 
                 padding: 16px; 
@@ -460,55 +506,20 @@
             .stat-icon { display: none; }
             .stat-info h3 { font-size: 24px; margin-bottom: 2px;}
             
-            .command-center { 
-                padding: 16px; 
-                margin-bottom: 16px; 
-                border-radius: 12px;
-            }
-
-            .command-grid { 
-                grid-template-columns: 1fr; 
-                gap: 12px; 
-            }
-
-            .command-box { 
-                padding: 16px; 
-                border-radius: 10px; 
-            }
+            .command-center { padding: 16px; margin-bottom: 16px; border-radius: 12px;}
+            .command-grid { grid-template-columns: 1fr; gap: 12px; }
+            .command-box { padding: 16px; border-radius: 10px; }
             
-            .grid-container { 
-                grid-template-columns: 1fr; 
-                gap: 16px; 
-            }
-
-            .card { 
-                padding: 16px; 
-                border-radius: 12px; 
-            }
+            .grid-container { grid-template-columns: 1fr; gap: 16px; }
+            .card { padding: 16px; border-radius: 12px; }
             
-            .table-responsive { 
-                border-radius: 8px; 
-                border-left: none; 
-                border-right: none;
-            }
-
+            .table-responsive { border-radius: 8px; border-left: none; border-right: none;}
             th:first-child, td:first-child { 
-                position: sticky; 
-                left: 0; 
-                background: var(--bg-card); 
-                z-index: 2; 
-                border-right: 1px solid var(--border-subtle); 
+                position: sticky; left: 0; background: var(--bg-card); z-index: 2; border-right: 1px solid var(--border-subtle); 
             }
             
-            .btn-primary, .logout-btn { 
-                padding: 18px; 
-                font-size: 14px; 
-            }
-            
-            #toast-container { 
-                right: 10px; 
-                left: 10px; 
-            }
+            .btn-primary, .logout-btn { padding: 18px; font-size: 14px; }
+            #toast-container { right: 10px; left: 10px; }
         }
     </style>
 </head>
@@ -516,7 +527,13 @@
 
     <div class="header">
         <h1>God<span>Panel</span></h1>
-        <button class="logout-btn" id="logoutBtn">Çıkış Yap</button>
+        <div class="header-controls">
+            <label class="theme-switch" title="Gece/Gündüz Modu">
+                <input type="checkbox" id="themeToggle">
+                <span class="theme-slider"></span>
+            </label>
+            <button class="logout-btn" id="logoutBtn">Çıkış Yap</button>
+        </div>
     </div>
 
     <div class="stats-grid">
@@ -636,21 +653,43 @@
     <div id="toast-container"></div>
 
     <script type="module">
-        // --- TEMEL GÜVENLİK VE AYARLAR ---
         const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
         const API_BASE = isLocal ? 'http://localhost:3000/api' : '/api'; 
         let globalCustomers = []; 
 
-        // Güvenlik kontrolü
         if (!localStorage.getItem("userId") || localStorage.getItem("userRole") !== "god") { 
             window.location.href = "login.html"; 
         }
         
-        // Çıkış Yap Butonu
         document.getElementById('logoutBtn').onclick = () => { 
             localStorage.clear(); 
             window.location.href = "login.html"; 
         };
+
+        // --- TEMA MOTORU (DARK/LIGHT) ---
+        const themeToggle = document.getElementById('themeToggle');
+        // God Panel'in ağırlığını korumak için varsayılan olarak "dark" gelir.
+        const currentTheme = localStorage.getItem('godTheme') || 'dark';
+        
+        if (currentTheme === 'dark') { 
+            document.documentElement.setAttribute('data-theme', 'dark'); 
+            themeToggle.checked = true; 
+        } else {
+            document.documentElement.setAttribute('data-theme', 'light'); 
+            themeToggle.checked = false; 
+        }
+
+        themeToggle.addEventListener('change', function(e) {
+            if (e.target.checked) {
+                document.documentElement.setAttribute('data-theme', 'dark'); 
+                localStorage.setItem('godTheme', 'dark'); 
+                showToast('Koyu moda geçildi.');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light'); 
+                localStorage.setItem('godTheme', 'light'); 
+                showToast('Açık moda geçildi.');
+            }
+        });
 
         // --- PROFESYONEL TOAST BİLDİRİMİ ---
         window.showToast = (msg) => {
@@ -764,7 +803,6 @@
                         `;
                         tbody.appendChild(tr);
                         
-                        // Başarılı işlem sayısını asenkron olarak çek
                         fetchStats(data.docId);
                     }
                 }
@@ -805,7 +843,6 @@
                     showToast("Müşteri pasife çekildi.");
                 }
                 
-                // İstatistikleri güncellemek için tabloyu yenile
                 loadCustomers();
             } catch (e) {
                 showToast("Güncelleme başarısız!");
@@ -872,7 +909,6 @@
             }
         }
 
-        // Tarih formatını input[type="date"] için (YYYY-MM-DD) çevirme aracı
         function parseDateString(dateStr) {
             if(!dateStr) return "";
             const parts = dateStr.split(".");
@@ -882,7 +918,6 @@
             return "";
         }
 
-        // Modalı Açar
         window.openEditModal = (id) => {
             const user = globalCustomers.find(u => u.docId === id);
             if(!user) return;
@@ -895,7 +930,6 @@
             modal.style.display = "flex";
         };
 
-        // Modal'daki ayarları kaydeder
         document.getElementById('saveEditBtn').onclick = async () => {
             const id = document.getElementById('editUserId').value;
             const newDateVal = document.getElementById('editExpireDate').value;
