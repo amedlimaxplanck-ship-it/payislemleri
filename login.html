@@ -17,17 +17,14 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            /* Dinamik mobil yüksekliği (Klavye açılınca sapıtmaması için) */
             min-height: 100vh;
             min-height: 100dvh; 
             color: #f8fafc;
-            overflow-x: hidden; /* Sadece yatay taşmayı gizle */
+            overflow-x: hidden; 
             position: relative;
             padding: 20px;
         }
 
-        /* --- AMBIENT GLOW (Arka Plandaki Uçuşan Sisler) --- */
-        /* absolute yerine fixed yapıldı ki klavye açılınca yerinden oynamasın */
         .glow-blob {
             position: fixed; 
             border-radius: 50%;
@@ -56,8 +53,6 @@
             100% { transform: translate(-40px, -60px) scale(0.9); }
         }
 
-        /* --- TAKIMYILDIZ AĞI --- */
-        /* absolute yerine fixed yapıldı */
         .constellation {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -73,8 +68,6 @@
             to { background-position: 500px 500px; }
         }
 
-        /* Canlı Sistem Saati */
-        /* absolute yerine fixed yapıldı */
         .system-clock {
             position: fixed;
             top: 25px;
@@ -109,7 +102,6 @@
             100% { transform: scale(0.95); opacity: 0.5; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
 
-        /* Ana Giriş Kutusu */
         .login-container {
             background-color: rgba(15, 23, 42, 0.4);
             backdrop-filter: blur(25px);
@@ -269,7 +261,6 @@
             letter-spacing: 1px;
         }
         
-        /* Mobil Ekranlar İçin Ufak Düzeltmeler */
         @media (max-width: 480px) {
             .login-container { padding: 40px 30px; }
             .system-clock { top: 15px; right: 15px; font-size: 10px; }
@@ -341,12 +332,12 @@
                 return;
             }
 
-            // Tasarım animasyonunu başlat
             btnText.style.display = 'none';
             btnSpinner.style.display = 'block';
             loginBtn.disabled = true;
 
             try {
+                // Vercel linkin: Eğer yerelde çalışıyorsan localhost'a, değilse direkt /api rotasına atar
                 const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
                 const apiUrl = isLocal ? 'http://localhost:3000/api/login' : '/api/login';
 
@@ -359,8 +350,10 @@
                 const sonuc = await cevap.json();
 
                 if (sonuc.success) {
+                    // 🔥 İŞTE SİHRİN OLDUĞU YER: VIP BİLETİ CEBİMİZE KOYUYORUZ 🔥
                     localStorage.setItem("userId", sonuc.user.id);
                     localStorage.setItem("userRole", sonuc.user.role);
+                    localStorage.setItem("token", sonuc.token); 
                     
                     if (sonuc.user.role === "god") {
                         window.location.href = "god-panel.html"; 
@@ -380,7 +373,6 @@
                 console.error("Hata Detayı:", error);
                 showError("Sunucu bağlantı hatası. Vercel uykuda veya internet yok.");
             } finally {
-                // Tasarım animasyonunu durdur
                 btnText.style.display = 'block';
                 btnText.innerText = "Tekrar Dene";
                 btnSpinner.style.display = 'none';
