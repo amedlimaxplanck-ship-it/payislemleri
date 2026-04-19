@@ -18,7 +18,7 @@
             --input-bg: #ffffff;
             --modal-bg: rgba(15, 23, 42, 0.4);
             --primary-glow: rgba(0, 123, 255, 0.2);
-            --god-glow: rgba(245, 158, 11, 0.3);
+            --god-glow: rgba(79, 70, 229, 0.25);
         }
 
         [data-theme="dark"] {
@@ -31,7 +31,7 @@
             --input-bg: #18181b;
             --modal-bg: rgba(0, 0, 0, 0.6);
             --primary-glow: rgba(0, 123, 255, 0.4);
-            --god-glow: rgba(245, 158, 11, 0.2);
+            --god-glow: rgba(79, 70, 229, 0.3);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; transition: background-color 0.3s, border-color 0.3s, color 0.3s, box-shadow 0.3s; }
@@ -58,10 +58,12 @@
         .logout-btn { background: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.2); padding: 8px 18px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px; transition: all 0.2s ease; }
         .logout-btn:hover { background: #dc3545; color: white; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(220,53,69,0.3); }
         
-        /* --- YENİ SABİT ANONUS BARI --- */
-        #god-announcement-static { display: none; align-items: center; gap: 12px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 14px 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px var(--god-glow); animation: fadeInDown 0.4s ease; border: 1px solid #b45309; }
-        #god-announcement-static .icon { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(0,0,0,0.15); border-radius: 50%; }
-        #god-announcement-static span { font-weight: 700; font-size: 14px; letter-spacing: 0.3px; }
+        /* --- YENİ SABİT ANONUS BARI (DEEP INDIGO MEGAFONLU) --- */
+        #god-announcement-static { display: none; align-items: center; gap: 15px; background: linear-gradient(135deg, #4f46e5, #312e81); color: white; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 8px 20px var(--god-glow); animation: fadeInDown 0.4s ease; border: 1px solid #3730a3; }
+        #god-announcement-static .icon { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: rgba(255,255,255,0.15); border-radius: 50%; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        #god-announcement-static .text-content { display: flex; flex-direction: column; }
+        #god-announcement-static .label { font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
+        #god-announcement-static #announcement-text-static { font-weight: 700; font-size: 14px; letter-spacing: 0.3px; line-height: 1.4; }
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
         .dashboard-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 25px; } 
@@ -171,21 +173,21 @@
         #lockdown-overlay.active { display: flex; opacity: 1; }
         #lockdown-overlay.active .lockdown-card { transform: translateY(0); }
 
-        /* --- YENİ EKLENEN: MOBİL UYUMLULUK DÜZENLEMESİ (3 KART YAN YANA) --- */
+        /* --- MOBİL UYUMLULUK DÜZENLEMESİ (3 KART YAN YANA) --- */
         @media (max-width: 768px) {
             body { padding: 12px; }
             .header { flex-direction: column; gap: 15px; align-items: flex-start; border-radius: 10px; padding: 15px; }
             .header-controls { width: 100%; justify-content: space-between; }
             
-            /* DANA GİBİ KARTLARI YAN YANA MİNİK HALE GETİRİYORUZ */
             .dashboard-cards { grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
             .stat-card { padding: 12px 5px; border-radius: 8px; border-bottom-width: 3px; }
             .stat-card h3 { font-size: 20px; margin-bottom: 2px; }
             .stat-card p { font-size: 9px; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
             
-            #god-announcement-static { padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; font-size: 12px; }
-            #god-announcement-static .icon { width: 22px; height: 22px; }
-            #god-announcement-static span { font-size: 12px; }
+            #god-announcement-static { padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; gap: 12px;}
+            #god-announcement-static .icon { width: 30px; height: 30px; }
+            #god-announcement-static .label { font-size: 9px; }
+            #god-announcement-static #announcement-text-static { font-size: 13px; }
 
             .tabs { flex-wrap: wrap; gap: 5px; padding: 5px; }
             .tab-btn { flex: 1 1 45%; padding: 10px; font-size: 13px; border-radius: 6px; }
@@ -231,8 +233,16 @@
     </div>
 
     <div id="god-announcement-static">
-        <div class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
-        <span id="announcement-text-static">Sistem mesajı burada görünecek.</span>
+        <div class="icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+        </div>
+        <div class="text-content">
+            <span class="label">YÖNETİCİ DUYURUSU</span>
+            <span id="announcement-text-static">Sistem mesajı burada görünecek.</span>
+        </div>
     </div>
 
     <div class="dashboard-cards">
