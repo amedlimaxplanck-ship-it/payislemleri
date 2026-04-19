@@ -34,180 +34,1027 @@
             --god-glow: rgba(79, 70, 229, 0.3);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; transition: background-color 0.3s, border-color 0.3s, color 0.3s, box-shadow 0.3s; }
-        body { background-color: var(--bg-body); padding: 25px; color: var(--text-main); line-height: 1.5; }
-        
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        [data-theme="dark"] ::-webkit-scrollbar-thumb { background: #3f3f46; }
-        [data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            transition: background-color 0.3s, border-color 0.3s, color 0.3s, box-shadow 0.3s; 
+        }
 
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: var(--bg-card); padding: 18px 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid var(--border-color); backdrop-filter: blur(10px); }
-        .header h1 { font-size: 22px; font-weight: 800; background: linear-gradient(135deg, #007bff, #00d2ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px; }
+        body { 
+            background-color: var(--bg-body); 
+            padding: 25px; 
+            color: var(--text-main); 
+            line-height: 1.5; 
+        }
         
-        .header-controls { display: flex; align-items: center; gap: 20px; }
-        .theme-switch { position: relative; width: 52px; height: 26px; display: inline-block; }
-        .theme-switch input { opacity: 0; width: 0; height: 0; }
-        .theme-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e2e8f0; transition: .4s; border-radius: 34px; border: 1px solid rgba(0,0,0,0.05); }
-        .theme-slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 2px; background-color: white; transition: .4s cubic-bezier(0.68, -0.55, 0.265, 1.55); border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        input:checked + .theme-slider { background-color: #007bff; border-color: #007bff; }
-        input:checked + .theme-slider:before { transform: translateX(24px); }
+        ::-webkit-scrollbar { 
+            width: 8px; 
+            height: 8px; 
+        }
 
-        .logout-btn { background: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.2); padding: 8px 18px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px; transition: all 0.2s ease; }
-        .logout-btn:hover { background: #dc3545; color: white; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(220,53,69,0.3); }
-        
-        /* --- YENİ SABİT ANONUS BARI (KALIN, HARBİ MEGAFONLU) --- */
-        #god-announcement-static { display: none; align-items: center; gap: 15px; background: linear-gradient(135deg, #4f46e5, #312e81); color: white; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 8px 20px var(--god-glow); animation: fadeInDown 0.4s ease; border: 1px solid #3730a3; }
-        #god-announcement-static .icon { display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; background: rgba(255,255,255,0.15); border-radius: 50%; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        #god-announcement-static .text-content { display: flex; flex-direction: column; }
-        #god-announcement-static .label { font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
-        #god-announcement-static #announcement-text-static { font-weight: 700; font-size: 14px; letter-spacing: 0.3px; line-height: 1.4; }
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        ::-webkit-scrollbar-track { 
+            background: transparent; 
+        }
 
-        .dashboard-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 25px; } 
-        .stat-card { background: var(--bg-card); padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-bottom: 4px solid #007bff; transition: all 0.3s ease; }
-        .stat-card h3 { font-size: 32px; font-weight: 800; color: var(--text-main); margin-bottom: 5px; }
-        .stat-card p { font-size: 12px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        ::-webkit-scrollbar-thumb { 
+            background: #cbd5e1; 
+            border-radius: 10px; 
+        }
 
-        .search-container { margin-bottom: 25px; }
-        .search-input { width: 100%; padding: 16px 20px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 10px; font-size: 15px; outline: none; transition: all 0.3s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
-        .search-input:focus { border-color: #007bff; box-shadow: 0 0 0 4px var(--primary-glow); transform: translateY(-1px); }
+        ::-webkit-scrollbar-thumb:hover { 
+            background: #94a3b8; 
+        }
 
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; background: var(--bg-card); padding: 8px; border-radius: 10px; border: 1px solid var(--border-color); }
-        .tab-btn { padding: 12px 20px; background: transparent; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; color: var(--text-muted); transition: all 0.3s ease; flex: 1; text-align: center; font-size: 14px; }
-        .tab-btn:hover { color: var(--text-main); background: var(--bg-body); }
-        .tab-btn.active { background: #007bff; color: white; box-shadow: 0 4px 12px var(--primary-glow); }
-        
-        .tab-content { display: none; background: var(--bg-card); padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid var(--border-color); }
-        .tab-content.active { display: block; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-        @keyframes slideUp { from {opacity: 0; transform: translateY(10px);} to {opacity: 1; transform: translateY(0);} }
-        
-        .table-container { overflow-x: auto; margin-top: 15px; border-radius: 8px; border: 1px solid var(--border-color); position: relative; }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th, td { padding: 16px 20px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 14px; vertical-align: middle; color: var(--text-main); }
-        th { background-color: var(--table-header); color: var(--text-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; position: sticky; top: 0; z-index: 10; }
-        tbody tr { transition: background-color 0.2s ease; }
-        tbody tr:hover { background-color: var(--table-header); }
-        
-        .log-badge { display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; }
-        .badge-primary { background-color: rgba(0, 123, 255, 0.1); color: #007bff; border: 1px solid rgba(0,123,255,0.2); }
-        .badge-success { background-color: rgba(40, 167, 69, 0.1); color: #28a745; border: 1px solid rgba(40,167,69,0.2); }
-        .badge-danger { background-color: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220,53,69,0.2); }
-        .badge-secondary { background-color: rgba(108, 117, 125, 0.1); color: #6c757d; border: 1px solid rgba(108,117,125,0.2); }
-        
-        .btn-primary { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 700; margin-bottom: 15px; display: inline-block; font-size: 14px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4); }
-        
-        .action-btn { background: rgba(245, 158, 11, 0.1); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.3); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-right: 5px; font-weight: 700; transition: all 0.2s ease; }
-        .action-btn:hover { background: #f59e0b; color: white; }
-        
-        .delete-btn { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; transition: all 0.2s ease; }
-        .delete-btn:hover { background: #ef4444; color: white; }
-        
-        .link-btn { border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; width: 100%; margin-bottom:8px; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.2s; background: var(--input-bg); }
-        .link-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
-        .link-btn.sari { border-color: #fef08a; color: #a16207; background: rgba(254, 240, 138, 0.2); }
-        .link-btn.sari:hover { background: #fef08a; color: #713f12; border-color: #fde047; }
-        .link-btn.kirmizi { border-color: #fecaca; color: #b91c1c; background: rgba(254, 202, 202, 0.2); }
-        .link-btn.kirmizi:hover { background: #fecaca; color: #991b1b; border-color: #fca5a5; }
+        [data-theme="dark"] ::-webkit-scrollbar-thumb { 
+            background: #3f3f46; 
+        }
 
-        .view-btn { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.3); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; transition: all 0.2s ease; }
-        .view-btn:hover { background: #8b5cf6; color: white; }
-        
-        .thumb-img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; background: var(--border-color); display: block; border: 2px solid var(--bg-body); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        [data-theme="dark"] ::-webkit-scrollbar-thumb:hover { 
+            background: #52525b; 
+        }
 
-        .switch { position: relative; display: inline-block; width: 46px; height: 26px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e2e8f0; transition: .4s; border-radius: 26px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s cubic-bezier(0.68, -0.55, 0.265, 1.55); border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        input:checked + .slider { background-color: #10b981; }
-        input:checked + .slider:before { transform: translateX(20px); }
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 20px; 
+            background: var(--bg-card); 
+            padding: 18px 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03); 
+            border: 1px solid var(--border-color); 
+            backdrop-filter: blur(10px); 
+        }
 
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: var(--modal-bg); backdrop-filter: blur(8px); padding-top: 40px; }
-        .modal-content { background-color: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); margin: auto; padding: 30px; border-radius: 16px; width: 95%; max-width: 750px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); animation: modalPop 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-        @keyframes modalPop { 0% { opacity: 0; transform: scale(0.95) translateY(20px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
-        .close-modal { color: var(--text-muted); float: right; font-size: 28px; font-weight: bold; cursor: pointer; transition: color 0.2s; line-height: 1; }
-        .close-modal:hover { color: var(--text-main); }
+        .header h1 { 
+            font-size: 22px; 
+            font-weight: 800; 
+            background: linear-gradient(135deg, #007bff, #00d2ff); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            letter-spacing: -0.5px; 
+        }
         
-        .form-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px; }
-        @media(min-width: 600px) { .form-grid { grid-template-columns: 1fr 1fr; } }
-        .form-group { display: flex; flex-direction: column; }
-        .form-group label { font-size: 13px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 0.3px; }
-        .form-group input, .form-group select, .form-group textarea { padding: 12px 15px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-main); border-radius: 8px; outline: none; font-size: 14px; transition: all 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.01); }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #007bff; box-shadow: 0 0 0 3px var(--primary-glow); }
-        
-        .ozellik-row { display: flex; gap: 10px; margin-bottom: 12px; }
-        .ozellik-row input { flex: 1; padding: 10px 15px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-main); border-radius: 6px; transition: border-color 0.2s; }
-        .ozellik-row input:focus { border-color: #007bff; }
-        .ozellik-sil { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 0 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
-        .ozellik-sil:hover { background: #ef4444; color: white; }
-        
-        .image-upload-box { border: 2px dashed var(--border-color); padding: 30px; text-align: center; border-radius: 12px; background: var(--bg-body); color: var(--text-muted); cursor: pointer; margin-top: 10px; transition: all 0.3s; font-weight: 600; }
-        .image-upload-box:hover { border-color: #007bff; background: var(--primary-glow); color: #007bff; }
-        .image-preview-container { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 15px; }
-        .preview-img { width: 90px; height: 90px; object-fit: cover; border-radius: 8px; border: 2px solid var(--border-color); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .header-controls { 
+            display: flex; 
+            align-items: center; 
+            gap: 20px; 
+        }
 
-        .skeleton-row td { position: relative; overflow: hidden; }
-        .skeleton-box { height: 24px; background: var(--border-color); border-radius: 6px; width: 100%; position: relative; overflow: hidden; }
-        .skeleton-box::after { content: ""; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: skeletonSweep 1.2s infinite; }
-        [data-theme="dark"] .skeleton-box::after { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); }
-        @keyframes skeletonSweep { 100% { left: 100%; } }
+        .theme-switch { 
+            position: relative; 
+            width: 52px; 
+            height: 26px; 
+            display: inline-block; 
+        }
 
-        #toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 999999; display: flex; flex-direction: column; gap: 15px; pointer-events: none; }
-        .toast { min-width: 300px; background: var(--bg-card); border-left: 5px solid; padding: 16px 20px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); color: var(--text-main); font-weight: 600; font-size: 14px; opacity: 0; transform: translateX(120%); transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); border: 1px solid var(--border-color); }
-        .toast.show { opacity: 1; transform: translateX(0); }
-        .toast.success { border-left-color: #10b981; }
-        .toast.error { border-left-color: #ef4444; }
-        .toast.info { border-left-color: #3b82f6; }
-        .toast-title { font-size: 11px; text-transform: uppercase; font-weight: 800; opacity: 0.6; margin-bottom: 4px; display: block; letter-spacing: 0.5px; }
+        .theme-switch input { 
+            opacity: 0; 
+            width: 0; 
+            height: 0; 
+        }
+
+        .theme-slider { 
+            position: absolute; 
+            cursor: pointer; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0; 
+            background-color: #e2e8f0; 
+            transition: .4s; 
+            border-radius: 34px; 
+            border: 1px solid rgba(0,0,0,0.05); 
+        }
+
+        .theme-slider:before { 
+            position: absolute; 
+            content: ""; 
+            height: 20px; 
+            width: 20px; 
+            left: 3px; 
+            bottom: 2px; 
+            background-color: white; 
+            transition: .4s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
+            border-radius: 50%; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
+        }
+
+        input:checked + .theme-slider { 
+            background-color: #007bff; 
+            border-color: #007bff; 
+        }
+
+        input:checked + .theme-slider:before { 
+            transform: translateX(24px); 
+        }
+
+        .logout-btn { 
+            background: rgba(220, 53, 69, 0.1); 
+            color: #dc3545; 
+            border: 1px solid rgba(220, 53, 69, 0.2); 
+            padding: 8px 18px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 700; 
+            font-size: 13px; 
+            transition: all 0.2s ease; 
+        }
+
+        .logout-btn:hover { 
+            background: #dc3545; 
+            color: white; 
+            transform: translateY(-1px); 
+            box-shadow: 0 4px 10px rgba(220,53,69,0.3); 
+        }
+        
+        /* --- YENİ SABİT ANONUS BARI (DETAYLI MEGAFON) --- */
+        #god-announcement-static { 
+            display: none; 
+            align-items: center; 
+            gap: 15px; 
+            background: linear-gradient(135deg, #4f46e5, #312e81); 
+            color: white; 
+            padding: 16px 20px; 
+            border-radius: 12px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 8px 20px var(--god-glow); 
+            animation: fadeInDown 0.4s ease; 
+            border: 1px solid #3730a3; 
+        }
+
+        #god-announcement-static .icon { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            width: 36px; 
+            height: 36px; 
+            background: rgba(255,255,255,0.15); 
+            border-radius: 50%; 
+            flex-shrink: 0; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+        }
+
+        #god-announcement-static .text-content { 
+            display: flex; 
+            flex-direction: column; 
+        }
+
+        #god-announcement-static .label { 
+            font-size: 10px; 
+            font-weight: 800; 
+            color: rgba(255,255,255,0.7); 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            margin-bottom: 3px; 
+        }
+
+        #god-announcement-static #announcement-text-static { 
+            font-weight: 700; 
+            font-size: 14px; 
+            letter-spacing: 0.3px; 
+            line-height: 1.4; 
+        }
+
+        @keyframes fadeInDown { 
+            from { opacity: 0; transform: translateY(-10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        .dashboard-cards { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 20px; 
+            margin-bottom: 25px; 
+        } 
+
+        .stat-card { 
+            background: var(--bg-card); 
+            padding: 20px; 
+            border-radius: 12px; 
+            text-align: center; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02); 
+            border: 1px solid var(--border-color); 
+            border-bottom: 4px solid #007bff; 
+            transition: all 0.3s ease; 
+        }
+
+        .stat-card h3 { 
+            font-size: 32px; 
+            font-weight: 800; 
+            color: var(--text-main); 
+            margin-bottom: 5px; 
+        }
+
+        .stat-card p { 
+            font-size: 12px; 
+            color: var(--text-muted); 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+        }
+
+        .search-container { 
+            margin-bottom: 25px; 
+        }
+
+        .search-input { 
+            width: 100%; 
+            padding: 16px 20px; 
+            background: var(--input-bg); 
+            border: 1px solid var(--border-color); 
+            color: var(--text-main); 
+            border-radius: 10px; 
+            font-size: 15px; 
+            outline: none; 
+            transition: all 0.3s ease; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02); 
+        }
+
+        .search-input:focus { 
+            border-color: #007bff; 
+            box-shadow: 0 0 0 4px var(--primary-glow); 
+            transform: translateY(-1px); 
+        }
+
+        .tabs { 
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 20px; 
+            background: var(--bg-card); 
+            padding: 8px; 
+            border-radius: 10px; 
+            border: 1px solid var(--border-color); 
+        }
+
+        .tab-btn { 
+            padding: 12px 20px; 
+            background: transparent; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            color: var(--text-muted); 
+            transition: all 0.3s ease; 
+            flex: 1; 
+            text-align: center; 
+            font-size: 14px; 
+        }
+
+        .tab-btn:hover { 
+            color: var(--text-main); 
+            background: var(--bg-body); 
+        }
+
+        .tab-btn.active { 
+            background: #007bff; 
+            color: white; 
+            box-shadow: 0 4px 12px var(--primary-glow); 
+        }
+        
+        .tab-content { 
+            display: none; 
+            background: var(--bg-card); 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03); 
+            border: 1px solid var(--border-color); 
+        }
+
+        .tab-content.active { 
+            display: block; 
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+
+        @keyframes slideUp { 
+            from {opacity: 0; transform: translateY(10px);} 
+            to {opacity: 1; transform: translateY(0);} 
+        }
+        
+        .table-container { 
+            overflow-x: auto; 
+            margin-top: 15px; 
+            border-radius: 8px; 
+            border: 1px solid var(--border-color); 
+            position: relative; 
+        }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            min-width: 800px; 
+        }
+
+        th, td { 
+            padding: 16px 20px; 
+            text-align: left; 
+            border-bottom: 1px solid var(--border-color); 
+            font-size: 14px; 
+            vertical-align: middle; 
+            color: var(--text-main); 
+        }
+
+        th { 
+            background-color: var(--table-header); 
+            color: var(--text-muted); 
+            font-size: 12px; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+            position: sticky; 
+            top: 0; 
+            z-index: 10; 
+        }
+
+        tbody tr { 
+            transition: background-color 0.2s ease; 
+        }
+
+        tbody tr:hover { 
+            background-color: var(--table-header); 
+        }
+        
+        .log-badge { 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 6px 12px; 
+            border-radius: 6px; 
+            font-size: 11px; 
+            font-weight: 700; 
+            color: #fff; 
+            white-space: nowrap; 
+        }
+
+        .badge-primary { 
+            background-color: rgba(0, 123, 255, 0.1); 
+            color: #007bff; 
+            border: 1px solid rgba(0,123,255,0.2); 
+        }
+
+        .badge-success { 
+            background-color: rgba(40, 167, 69, 0.1); 
+            color: #28a745; 
+            border: 1px solid rgba(40,167,69,0.2); 
+        }
+
+        .badge-danger { 
+            background-color: rgba(220, 53, 69, 0.1); 
+            color: #dc3545; 
+            border: 1px solid rgba(220,53,69,0.2); 
+        }
+
+        .badge-secondary { 
+            background-color: rgba(108, 117, 125, 0.1); 
+            color: #6c757d; 
+            border: 1px solid rgba(108,117,125,0.2); 
+        }
+        
+        .btn-primary { 
+            background: linear-gradient(135deg, #10b981, #059669); 
+            color: white; 
+            border: none; 
+            padding: 12px 24px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 700; 
+            margin-bottom: 15px; 
+            display: inline-block; 
+            font-size: 14px; 
+            transition: all 0.3s ease; 
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); 
+        }
+
+        .btn-primary:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4); 
+        }
+        
+        .action-btn { 
+            background: rgba(245, 158, 11, 0.1); 
+            color: #d97706; 
+            border: 1px solid rgba(245, 158, 11, 0.3); 
+            padding: 8px 14px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 12px; 
+            margin-right: 5px; 
+            font-weight: 700; 
+            transition: all 0.2s ease; 
+        }
+
+        .action-btn:hover { 
+            background: #f59e0b; 
+            color: white; 
+        }
+        
+        .delete-btn { 
+            background: rgba(239, 68, 68, 0.1); 
+            color: #ef4444; 
+            border: 1px solid rgba(239, 68, 68, 0.3); 
+            padding: 8px 14px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 12px; 
+            font-weight: 700; 
+            transition: all 0.2s ease; 
+        }
+
+        .delete-btn:hover { 
+            background: #ef4444; 
+            color: white; 
+        }
+        
+        .link-btn { 
+            border: 1px solid var(--border-color); 
+            padding: 8px 12px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 12px; 
+            font-weight: 600; 
+            width: 100%; 
+            margin-bottom: 8px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 5px; 
+            transition: all 0.2s; 
+            background: var(--input-bg); 
+        }
+
+        .link-btn:hover { 
+            transform: translateY(-1px); 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05); 
+        }
+
+        .link-btn.sari { 
+            border-color: #fef08a; 
+            color: #a16207; 
+            background: rgba(254, 240, 138, 0.2); 
+        }
+
+        .link-btn.sari:hover { 
+            background: #fef08a; 
+            color: #713f12; 
+            border-color: #fde047; 
+        }
+
+        .link-btn.kirmizi { 
+            border-color: #fecaca; 
+            color: #b91c1c; 
+            background: rgba(254, 202, 202, 0.2); 
+        }
+
+        .link-btn.kirmizi:hover { 
+            background: #fecaca; 
+            color: #991b1b; 
+            border-color: #fca5a5; 
+        }
+
+        .view-btn { 
+            background: rgba(139, 92, 246, 0.1); 
+            color: #8b5cf6; 
+            border: 1px solid rgba(139, 92, 246, 0.3); 
+            padding: 8px 14px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 12px; 
+            font-weight: 700; 
+            transition: all 0.2s ease; 
+        }
+
+        .view-btn:hover { 
+            background: #8b5cf6; 
+            color: white; 
+        }
+        
+        .thumb-img { 
+            width: 56px; 
+            height: 56px; 
+            object-fit: cover; 
+            border-radius: 8px; 
+            background: var(--border-color); 
+            display: block; 
+            border: 2px solid var(--bg-body); 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+        }
+
+        .switch { 
+            position: relative; 
+            display: inline-block; 
+            width: 46px; 
+            height: 26px; 
+        }
+
+        .switch input { 
+            opacity: 0; 
+            width: 0; 
+            height: 0; 
+        }
+
+        .slider { 
+            position: absolute; 
+            cursor: pointer; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0; 
+            background-color: #e2e8f0; 
+            transition: .4s; 
+            border-radius: 26px; 
+        }
+
+        .slider:before { 
+            position: absolute; 
+            content: ""; 
+            height: 18px; 
+            width: 18px; 
+            left: 4px; 
+            bottom: 4px; 
+            background-color: white; 
+            transition: .4s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
+            border-radius: 50%; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
+        }
+
+        input:checked + .slider { 
+            background-color: #10b981; 
+        }
+
+        input:checked + .slider:before { 
+            transform: translateX(20px); 
+        }
+
+        .modal { 
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0; 
+            top: 0; 
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: var(--modal-bg); 
+            backdrop-filter: blur(8px); 
+            padding-top: 40px; 
+        }
+
+        .modal-content { 
+            background-color: var(--bg-card); 
+            color: var(--text-main); 
+            border: 1px solid var(--border-color); 
+            margin: auto; 
+            padding: 30px; 
+            border-radius: 16px; 
+            width: 95%; 
+            max-width: 750px; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
+            animation: modalPop 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+
+        @keyframes modalPop { 
+            0% { opacity: 0; transform: scale(0.95) translateY(20px); } 
+            100% { opacity: 1; transform: scale(1) translateY(0); } 
+        }
+
+        .close-modal { 
+            color: var(--text-muted); 
+            float: right; 
+            font-size: 28px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: color 0.2s; 
+            line-height: 1; 
+        }
+
+        .close-modal:hover { 
+            color: var(--text-main); 
+        }
+        
+        .form-grid { 
+            display: grid; 
+            grid-template-columns: 1fr; 
+            gap: 20px; 
+            margin-top: 20px; 
+        }
+
+        @media(min-width: 600px) { 
+            .form-grid { 
+                grid-template-columns: 1fr 1fr; 
+            } 
+        }
+
+        .form-group { 
+            display: flex; 
+            flex-direction: column; 
+        }
+
+        .form-group label { 
+            font-size: 13px; 
+            font-weight: 700; 
+            color: var(--text-muted); 
+            margin-bottom: 8px; 
+            letter-spacing: 0.3px; 
+        }
+
+        .form-group input, .form-group select, .form-group textarea { 
+            padding: 12px 15px; 
+            border: 1px solid var(--border-color); 
+            background: var(--input-bg); 
+            color: var(--text-main); 
+            border-radius: 8px; 
+            outline: none; 
+            font-size: 14px; 
+            transition: all 0.2s; 
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.01); 
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { 
+            border-color: #007bff; 
+            box-shadow: 0 0 0 3px var(--primary-glow); 
+        }
+        
+        .ozellik-row { 
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 12px; 
+        }
+
+        .ozellik-row input { 
+            flex: 1; 
+            padding: 10px 15px; 
+            border: 1px solid var(--border-color); 
+            background: var(--input-bg); 
+            color: var(--text-main); 
+            border-radius: 6px; 
+            transition: border-color 0.2s; 
+        }
+
+        .ozellik-row input:focus { 
+            border-color: #007bff; 
+        }
+
+        .ozellik-sil { 
+            background: rgba(239, 68, 68, 0.1); 
+            color: #ef4444; 
+            border: 1px solid rgba(239, 68, 68, 0.3); 
+            padding: 0 15px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            transition: all 0.2s; 
+        }
+
+        .ozellik-sil:hover { 
+            background: #ef4444; 
+            color: white; 
+        }
+        
+        .image-upload-box { 
+            border: 2px dashed var(--border-color); 
+            padding: 30px; 
+            text-align: center; 
+            border-radius: 12px; 
+            background: var(--bg-body); 
+            color: var(--text-muted); 
+            cursor: pointer; 
+            margin-top: 10px; 
+            transition: all 0.3s; 
+            font-weight: 600; 
+        }
+
+        .image-upload-box:hover { 
+            border-color: #007bff; 
+            background: var(--primary-glow); 
+            color: #007bff; 
+        }
+
+        .image-preview-container { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 12px; 
+            margin-top: 15px; 
+        }
+
+        .preview-img { 
+            width: 90px; 
+            height: 90px; 
+            object-fit: cover; 
+            border-radius: 8px; 
+            border: 2px solid var(--border-color); 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+        }
+
+        .skeleton-row td { 
+            position: relative; 
+            overflow: hidden; 
+        }
+
+        .skeleton-box { 
+            height: 24px; 
+            background: var(--border-color); 
+            border-radius: 6px; 
+            width: 100%; 
+            position: relative; 
+            overflow: hidden; 
+        }
+
+        .skeleton-box::after { 
+            content: ""; 
+            position: absolute; 
+            top: 0; 
+            left: -100%; 
+            width: 50%; 
+            height: 100%; 
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); 
+            animation: skeletonSweep 1.2s infinite; 
+        }
+
+        [data-theme="dark"] .skeleton-box::after { 
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); 
+        }
+
+        @keyframes skeletonSweep { 
+            100% { left: 100%; } 
+        }
+
+        #toast-container { 
+            position: fixed; 
+            bottom: 30px; 
+            right: 30px; 
+            z-index: 999999; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            pointer-events: none; 
+        }
+
+        .toast { 
+            min-width: 300px; 
+            background: var(--bg-card); 
+            border-left: 5px solid; 
+            padding: 16px 20px; 
+            border-radius: 10px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            color: var(--text-main); 
+            font-weight: 600; 
+            font-size: 14px; 
+            opacity: 0; 
+            transform: translateX(120%); 
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
+            border: 1px solid var(--border-color); 
+        }
+
+        .toast.show { 
+            opacity: 1; 
+            transform: translateX(0); 
+        }
+
+        .toast.success { 
+            border-left-color: #10b981; 
+        }
+
+        .toast.error { 
+            border-left-color: #ef4444; 
+        }
+
+        .toast.info { 
+            border-left-color: #3b82f6; 
+        }
+
+        .toast-title { 
+            font-size: 11px; 
+            text-transform: uppercase; 
+            font-weight: 800; 
+            opacity: 0.6; 
+            margin-bottom: 4px; 
+            display: block; 
+            letter-spacing: 0.5px; 
+        }
 
         /* --- ELİT SİSTEM KİLİDİ (LOCKDOWN) --- */
-        #lockdown-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999999; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); align-items: center; justify-content: center; opacity: 0; transition: opacity 0.5s ease; }
-        [data-theme="dark"] #lockdown-overlay { background: rgba(9, 9, 11, 0.7); }
-        .lockdown-card { background: var(--bg-card); padding: 40px; border-radius: 20px; text-align: center; max-width: 400px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15); border: 1px solid var(--border-color); transform: translateY(20px); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
-        .lockdown-card svg { width: 48px; height: 48px; fill: #ef4444; margin-bottom: 15px; }
-        .lockdown-card h2 { font-size: 20px; font-weight: 800; color: var(--text-main); margin-bottom: 10px; }
-        .lockdown-card p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
-        #lockdown-overlay.active { display: flex; opacity: 1; }
-        #lockdown-overlay.active .lockdown-card { transform: translateY(0); }
-
-        /* --- MOBİL UYUMLULUK DÜZENLEMESİ (3 KART YAN YANA) --- */
-        @media (max-width: 768px) {
-            body { padding: 12px; }
-            .header { flex-direction: column; gap: 15px; align-items: flex-start; border-radius: 10px; padding: 15px; }
-            .header-controls { width: 100%; justify-content: space-between; }
-            
-            .dashboard-cards { grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-            .stat-card { padding: 12px 5px; border-radius: 8px; border-bottom-width: 3px; }
-            .stat-card h3 { font-size: 20px; margin-bottom: 2px; }
-            .stat-card p { font-size: 9px; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-            
-            #god-announcement-static { padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; gap: 12px;}
-            #god-announcement-static .icon { width: 30px; height: 30px; }
-            #god-announcement-static .label { font-size: 9px; }
-            #god-announcement-static #announcement-text-static { font-size: 13px; }
-
-            .tabs { flex-wrap: wrap; gap: 5px; padding: 5px; }
-            .tab-btn { flex: 1 1 45%; padding: 10px; font-size: 13px; border-radius: 6px; }
-            .search-input { padding: 12px 15px; font-size: 14px; }
-            .tab-content { padding: 15px; }
-            .table-container { padding-bottom: 10px; border-radius: 6px; overflow-x: auto; position: relative; }
-            th, td { padding: 10px; font-size: 13px; white-space: nowrap; } 
-            .form-grid { grid-template-columns: 1fr; gap: 12px; }
-            .modal { padding-top: 20px; }
-            .modal-content { width: 95%; padding: 20px; border-radius: 12px; margin-top: 10px; }
-            .btn-primary { width: 100%; margin-left: 0; margin-bottom: 10px; font-size: 13px; }
-            #toast-container { bottom: 20px; right: 10px; left: 10px; }
-            .toast { min-width: 100%; }
-            th:first-child, td:first-child { position: sticky; left: 0; background-color: var(--bg-card); z-index: 2; }
-            td:first-child { box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
-            th:first-child { z-index: 11; box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
+        #lockdown-overlay { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            z-index: 99999999; 
+            background: rgba(255, 255, 255, 0.6); 
+            backdrop-filter: blur(15px); 
+            -webkit-backdrop-filter: blur(15px); 
+            align-items: center; 
+            justify-content: center; 
+            opacity: 0; 
+            transition: opacity 0.5s ease; 
         }
+
+        [data-theme="dark"] #lockdown-overlay { 
+            background: rgba(9, 9, 11, 0.7); 
+        }
+
+        .lockdown-card { 
+            background: var(--bg-card); 
+            padding: 40px; 
+            border-radius: 20px; 
+            text-align: center; 
+            max-width: 400px; 
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15); 
+            border: 1px solid var(--border-color); 
+            transform: translateY(20px); 
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+
+        .lockdown-card svg { 
+            width: 48px; 
+            height: 48px; 
+            fill: #ef4444; 
+            margin-bottom: 15px; 
+        }
+
+        .lockdown-card h2 { 
+            font-size: 20px; 
+            font-weight: 800; 
+            color: var(--text-main); 
+            margin-bottom: 10px; 
+        }
+
+        .lockdown-card p { 
+            font-size: 14px; 
+            color: var(--text-muted); 
+            line-height: 1.6; 
+        }
+
+        #lockdown-overlay.active { 
+            display: flex; 
+            opacity: 1; 
+        }
+
+        #lockdown-overlay.active .lockdown-card { 
+            transform: translateY(0); 
+        }
+
+        /* --- MOBİL UYUMLULUK DÜZENLEMESİ --- */
+        @media (max-width: 768px) {
+            body { 
+                padding: 12px; 
+            }
+
+            .header { 
+                flex-direction: column; 
+                gap: 15px; 
+                align-items: flex-start; 
+                border-radius: 10px; 
+                padding: 15px; 
+            }
+
+            .header-controls { 
+                width: 100%; 
+                justify-content: space-between; 
+            }
+            
+            .dashboard-cards { 
+                grid-template-columns: repeat(3, 1fr); 
+                gap: 10px; 
+                margin-bottom: 15px; 
+            }
+
+            .stat-card { 
+                padding: 12px 5px; 
+                border-radius: 8px; 
+                border-bottom-width: 3px; 
+            }
+
+            .stat-card h3 { 
+                font-size: 20px; 
+                margin-bottom: 2px; 
+            }
+
+            .stat-card p { 
+                font-size: 9px; 
+                letter-spacing: 0; 
+                white-space: nowrap; 
+                overflow: hidden; 
+                text-overflow: ellipsis; 
+            }
+            
+            #god-announcement-static { 
+                padding: 12px 15px; 
+                border-radius: 8px; 
+                margin-bottom: 15px; 
+                gap: 12px;
+            }
+
+            #god-announcement-static .icon { 
+                width: 30px; 
+                height: 30px; 
+            }
+
+            #god-announcement-static .label { 
+                font-size: 9px; 
+            }
+
+            #god-announcement-static #announcement-text-static { 
+                font-size: 13px; 
+            }
+
+            .tabs { 
+                flex-wrap: wrap; 
+                gap: 5px; 
+                padding: 5px; 
+            }
+
+            .tab-btn { 
+                flex: 1 1 45%; 
+                padding: 10px; 
+                font-size: 13px; 
+                border-radius: 6px; 
+            }
+
+            .search-input { 
+                padding: 12px 15px; 
+                font-size: 14px; 
+            }
+
+            .tab-content { 
+                padding: 15px; 
+            }
+
+            .table-container { 
+                padding-bottom: 10px; 
+                border-radius: 6px; 
+                overflow-x: auto; 
+                position: relative; 
+            }
+
+            th, td { 
+                padding: 10px; 
+                font-size: 13px; 
+                white-space: nowrap; 
+            } 
+
+            .form-grid { 
+                grid-template-columns: 1fr; 
+                gap: 12px; 
+            }
+
+            .modal { 
+                padding-top: 20px; 
+            }
+
+            .modal-content { 
+                width: 95%; 
+                padding: 20px; 
+                border-radius: 12px; 
+                margin-top: 10px; 
+            }
+
+            .btn-primary { 
+                width: 100%; 
+                margin-left: 0; 
+                margin-bottom: 10px; 
+                font-size: 13px; 
+            }
+
+            #toast-container { 
+                bottom: 20px; 
+                right: 10px; 
+                left: 10px; 
+            }
+
+            .toast { 
+                min-width: 100%; 
+            }
+
+            th:first-child, td:first-child { 
+                position: sticky; 
+                left: 0; 
+                background-color: var(--bg-card); 
+                z-index: 2; 
+            }
+
+            td:first-child { 
+                box-shadow: 2px 0 5px rgba(0,0,0,0.05); 
+            }
+
+            th:first-child { 
+                z-index: 11; 
+                box-shadow: 2px 0 5px rgba(0,0,0,0.05); 
+            }
+        }
+
         @media (max-width: 480px) {
-            .header h1 { font-size: 18px; }
-            .lockdown-card { margin: 15px; padding: 25px; }
+            .header h1 { 
+                font-size: 18px; 
+            }
+
+            .lockdown-card { 
+                margin: 15px; 
+                padding: 25px; 
+            }
         }
     </style>
 </head>
@@ -215,7 +1062,9 @@
 
     <div id="lockdown-overlay">
         <div class="lockdown-card">
-            <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>
+            <svg viewBox="0 0 24 24">
+                <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
+            </svg>
             <h2>Sistem Erişimi Duraklatıldı</h2>
             <p>Güvenlik protokolleri gereği hesabınızın işlemleri geçici olarak durdurulmuştur. Lütfen destek ile iletişime geçin.</p>
         </div>
@@ -248,9 +1097,18 @@
     </div>
 
     <div class="dashboard-cards">
-        <div class="stat-card"><h3 id="stat-ilan">0</h3><p>Aktif İlan</p></div>
-        <div class="stat-card"><h3 id="stat-dekont">0</h3><p>Gelen Dekont</p></div>
-        <div class="stat-card"><h3 id="stat-log">0</h3><p>Sistem Logu</p></div>
+        <div class="stat-card">
+            <h3 id="stat-ilan">0</h3>
+            <p>Aktif İlan</p>
+        </div>
+        <div class="stat-card">
+            <h3 id="stat-dekont">0</h3>
+            <p>Gelen Dekont</p>
+        </div>
+        <div class="stat-card">
+            <h3 id="stat-log">0</h3>
+            <p>Sistem Logu</p>
+        </div>
     </div>
 
     <div class="search-container">
@@ -298,7 +1156,9 @@
                     </tr>
                 </thead>
                 <tbody id="dekontlarTableBody">
-                    <tr><td colspan="5" style="text-align:center; padding: 20px;">Dekontlar yükleniyor...</td></tr>
+                    <tr>
+                        <td colspan="5" style="text-align:center; padding: 20px;">Dekontlar yükleniyor...</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -317,7 +1177,9 @@
                     </tr>
                 </thead>
                 <tbody id="loglarTableBody">
-                    <tr><td colspan="5" style="text-align:center; padding: 20px;">Sistem logları yükleniyor...</td></tr>
+                    <tr>
+                        <td colspan="5" style="text-align:center; padding: 20px;">Sistem logları yükleniyor...</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -345,10 +1207,22 @@
                 <input type="hidden" id="editIlanId"> 
                 
                 <div class="form-grid">
-                    <div class="form-group"><label>Ürün / İlan Adı</label><input type="text" id="urunAdi" required></div>
-                    <div class="form-group"><label>Satıcı Adı Soyadı</label><input type="text" id="saticiAdi" required></div>
-                    <div class="form-group"><label>Satıcı Telefon</label><input type="tel" id="saticiTel" required></div>
-                    <div class="form-group"><label>Ürün Şehri</label><input type="text" id="sehir" required></div>
+                    <div class="form-group">
+                        <label>Ürün / İlan Adı</label>
+                        <input type="text" id="urunAdi" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Satıcı Adı Soyadı</label>
+                        <input type="text" id="saticiAdi" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Satıcı Telefon</label>
+                        <input type="tel" id="saticiTel" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Ürün Şehri</label>
+                        <input type="text" id="sehir" required>
+                    </div>
                     
                     <div class="form-group">
                         <label>Ürün Kategorisi</label>
@@ -360,14 +1234,32 @@
                             <option value="Diger">Diğer</option>
                         </select>
                     </div>
-                    <div class="form-group"><label>Kategori Ağacı (Örn: Elektronik > Telefon > Apple)</label><input type="text" id="kategoriAgaci"></div>
-                    <div class="form-group"><label>Ürün Fiyatı (TL)</label><input type="number" id="fiyat" required></div>
-                    <div class="form-group"><label>Satıcı Hesap Aç. Tarihi (Örn: Eylül 2021)</label><input type="text" id="hesapTarihi" required></div>
+                    <div class="form-group">
+                        <label>Kategori Ağacı (Örn: Elektronik > Telefon > Apple)</label>
+                        <input type="text" id="kategoriAgaci">
+                    </div>
+                    <div class="form-group">
+                        <label>Ürün Fiyatı (TL)</label>
+                        <input type="number" id="fiyat" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Satıcı Hesap Aç. Tarihi (Örn: Eylül 2021)</label>
+                        <input type="text" id="hesapTarihi" required>
+                    </div>
                 </div>
 
-                <div class="form-group" style="margin-top: 15px;"><label>IBAN ve Açıklama</label><input type="text" id="iban" placeholder="TR00 0000... - Alıcı Adı" required></div>
-                <div class="form-group" style="margin-top: 15px;"><label>Ödeme Yöntemi</label><input type="text" id="odemeYontemi" value="Havale / EFT" required></div>
-                <div class="form-group" style="margin-top: 15px;"><label>Ürün Açıklaması</label><textarea id="urunAciklamasi" rows="3"></textarea></div>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>IBAN ve Açıklama</label>
+                    <input type="text" id="iban" placeholder="TR00 0000... - Alıcı Adı" required>
+                </div>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>Ödeme Yöntemi</label>
+                    <input type="text" id="odemeYontemi" value="Havale / EFT" required>
+                </div>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>Ürün Açıklaması</label>
+                    <textarea id="urunAciklamasi" rows="3"></textarea>
+                </div>
 
                 <div style="margin-top: 20px; background: var(--bg-body); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
                     <h3 style="font-size: 15px; margin-bottom: 10px; color: var(--text-main);">Ek Özellikler (Dinamik)</h3>
@@ -389,285 +1281,656 @@
     </div>
 
     <script type="module">
-    let inactivityTime = function () {
-        let time;
-        const outTime = 60000; 
+        // --- 1 DAKİKA HAREKETSİZLİKTE ÇIKIŞ (IDLE TIMEOUT) ---
+        let inactivityTime = function () {
+            let time;
+            const outTime = 60000; 
 
-        function logoutUser() {
-            showToast('Hareketsizlik nedeniyle güvenli çıkış yapıldı.', 'info');
-            setTimeout(() => { localStorage.clear(); window.location.href = "login.html"; }, 1500);
-        }
+            function logoutUser() {
+                showToast('Hareketsizlik nedeniyle güvenli çıkış yapıldı.', 'info');
+                setTimeout(function() {
+                    localStorage.clear(); 
+                    window.location.href = "login.html"; 
+                }, 1500);
+            }
 
-        function resetTimer() { clearTimeout(time); time = setTimeout(logoutUser, outTime); }
+            function resetTimer() { 
+                clearTimeout(time); 
+                time = setTimeout(logoutUser, outTime); 
+            }
 
-        window.onload = resetTimer; document.onmousemove = resetTimer; document.onkeydown = resetTimer;
-        document.ontouchstart = resetTimer; document.onclick = resetTimer;
-    };
-    inactivityTime();
-
-    window.toggleLockdown = function(isLocked) {
-        const overlay = document.getElementById('lockdown-overlay');
-        if(isLocked) { overlay.classList.add('active'); document.body.style.overflow = 'hidden'; } 
-        else { overlay.classList.remove('active'); document.body.style.overflow = 'auto'; }
-    }
-
-    const themeToggle = document.getElementById('themeToggle');
-    const currentTheme = localStorage.getItem('panelTheme') || 'light';
-    if (currentTheme === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); themeToggle.checked = true; }
-    themeToggle.addEventListener('change', function(e) {
-        if (e.target.checked) { document.documentElement.setAttribute('data-theme', 'dark'); localStorage.setItem('panelTheme', 'dark'); showToast('Karanlık mod aktif.', 'info', 'SİSTEM'); } 
-        else { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('panelTheme', 'light'); showToast('Aydınlık mod aktif.', 'info', 'SİSTEM'); }
-    });
-
-    window.showToast = function(message, type = 'success', title = '') {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div'); toast.className = `toast ${type}`;
-        let baslik = title || (type === 'success' ? 'BAŞARILI' : (type === 'error' ? 'HATA' : 'BİLGİ'));
-        toast.innerHTML = `<span class="toast-title">${baslik}</span><span>${message}</span>`;
-        container.appendChild(toast);
-        setTimeout(() => toast.classList.add('show'), 10);
-        setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3500);
-    }
-
-    window.customConfirm = function(message, callback) {
-        const modal = document.getElementById('confirmModal');
-        document.getElementById('confirmMessage').innerText = message; modal.style.display = 'block';
-        document.getElementById('confirmYes').onclick = () => { modal.style.display = 'none'; callback(); };
-        document.getElementById('confirmNo').onclick = () => { modal.style.display = 'none'; };
-    }
-
-    function getSkeletonRows(colCount) {
-        let rows = '';
-        for(let i=0; i<3; i++) {
-            let cols = '';
-            for(let j=0; j<colCount; j++) { cols += `<td><div class="skeleton-box"></div></td>`; }
-            rows += `<tr class="skeleton-row">${cols}</tr>`;
-        }
-        return rows;
-    }
-
-    if (!localStorage.getItem("userId")) { window.location.href = "login.html"; }
-    const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
-    const API_BASE = isLocal ? 'http://localhost:3000/api' : 'https://payislemlerim.vercel.app/api'; 
-    const userId = localStorage.getItem("userId"); 
-    let globalIlanlar = []; 
-
-    document.getElementById('logoutBtn').addEventListener('click', () => { localStorage.clear(); window.location.href = "login.html"; });
-
-    window.switchTab = function(tabId, event) {
-        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active'); event.currentTarget.classList.add('active');
-        document.getElementById('searchInput').value = ''; searchTable('');
-    };
-
-    document.getElementById('searchInput').addEventListener('input', function(e) { searchTable(e.target.value.toLowerCase()); });
-    function searchTable(term) {
-        const activeTable = document.querySelector('.tab-content.active tbody');
-        if(activeTable) { Array.from(activeTable.rows).forEach(row => { row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none'; }); }
-    }
-
-    window.vitrinLinkiKopyala = function(url, platform) {
-        navigator.clipboard.writeText(url).then(() => { showToast(`${platform} bağlantısı panoya kopyalandı!`, 'success'); })
-        .catch(err => { showToast(`Kopyalama başarısız. Manuel kopyalayın.`, 'error'); });
-    }
-
-    async function loadIlanlar() {
-        const tbody = document.getElementById('ilanlarTableBody'); tbody.innerHTML = getSkeletonRows(7); 
-        try {
-            const cevap = await fetch(`${API_BASE}/ilanlar-getir?userId=${userId}`); globalIlanlar = await cevap.json();
-            document.getElementById('stat-ilan').innerText = globalIlanlar.length;
-            if (globalIlanlar.length === 0) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Henüz ilanınız bulunmamaktadır.</td></tr>'; return; }
-            tbody.innerHTML = ''; 
-            globalIlanlar.forEach((data) => {
-                const sahilindenLink = `https://payislemleri-sahibinden.vercel.app/?ilan=${data.docId}`;
-                const pttavmLink = `https://payislemlerim-pttavm.vercel.app/?ilan=${data.docId}`;
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><img src="${data.anaResim || ''}" class="thumb-img"></td>
-                    <td><button class="link-btn sari" onclick="vitrinLinkiKopyala('${sahilindenLink}', 'Sahilinden')">Sahibinden Linkini Kopyala</button><button class="link-btn kirmizi" onclick="vitrinLinkiKopyala('${pttavmLink}', 'PttAVM')">PTTAVM Linkini Kopyala</button></td>
-                    <td><strong>${data.urunAdi}</strong></td><td>${data.saticiAdi}</td><td>${data.fiyat} TL</td>
-                    <td><label class="switch"><input type="checkbox" onchange="toggleIlanDurum('${data.docId}', this.checked)" ${data.durum === 'aktif' ? 'checked' : ''}><span class="slider"></span></label></td>
-                    <td><button onclick="editIlan('${data.docId}')" class="action-btn">Düzenle</button><button onclick="deleteIlan('${data.docId}')" class="delete-btn">Sil</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        } catch (error) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; showToast("İlanlar çekilirken ağ hatası.", "error", "BAĞLANTI"); }
-    }
-
-    async function loadDekontlar(gizli = false) {
-        const tbody = document.getElementById('dekontlarTableBody'); if (!gizli) tbody.innerHTML = getSkeletonRows(5);
-        try {
-            const cevap = await fetch(`${API_BASE}/dekontlar-getir?userId=${userId}`); const dekontlar = await cevap.json();
-            dekontlar.sort((a, b) => {
-                const parseDate = (t, s) => { if(!t || !s) return 0; const p = t.split('.'); const tp = s.split(':'); if(p.length === 3 && tp.length >= 2) return new Date(p[2], p[1]-1, p[0], tp[0], tp[1]).getTime(); return 0; };
-                return parseDate(b.tarih, b.saat) - parseDate(a.tarih, a.saat);
-            });
-            document.getElementById('stat-dekont').innerText = dekontlar.length;
-            if (dekontlar.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Henüz dekont yok.</td></tr>'; return; }
-            let yeniHtml = '';
-            dekontlar.forEach((data) => {
-                yeniHtml += `<tr><td>${data.tarih} - ${data.saat}</td><td><strong>${data.ilanBasligi}</strong></td><td>${data.aliciAd}</td><td>${data.aliciTel}</td><td><button class="view-btn" onclick="window.open('${data.dekontUrl}', '_blank')">Görüntüle</button><button class="delete-btn" style="margin-left: 5px;" onclick="deleteDekont('${data.id}')">Sil</button></td></tr>`;
-            });
-            tbody.innerHTML = yeniHtml;
-        } catch (error) { if(!gizli) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; }
-    }
-
-    window.deleteDekont = async (id) => {
-        customConfirm("Bu dekontu kalıcı olarak silmek istediğinize emin misiniz?", async () => {
-            try { await fetch(`${API_BASE}/dekont-sil/${id}`, { method: 'DELETE' }); showToast("Dekont başarıyla silindi.", "success"); loadDekontlar(); } catch (err) { showToast("Silme işlemi başarısız.", "error"); }
-        });
-    };
-
-    async function loadLogs(gizli = false) {
-        const tbody = document.getElementById('loglarTableBody'); if (!gizli) tbody.innerHTML = getSkeletonRows(5);
-        try {
-            const cevap = await fetch(`${API_BASE}/logs-getir?userId=${userId}`); const logs = await cevap.json();
-            logs.sort((a, b) => b.timestamp - a.timestamp); const sonYuzLog = logs.slice(0, 100);
-            document.getElementById('stat-log').innerText = sonYuzLog.length;
-            if (sonYuzLog.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Log bulunmamaktadır.</td></tr>'; return; }
-            let yeniHtml = '';
-            sonYuzLog.forEach((data) => {
-                let badgeClass = "badge-secondary"; 
-                if(data.aksiyon.includes("Satın Al") || data.aksiyon.includes("Adres")) badgeClass = "badge-primary"; 
-                if(data.aksiyon.includes("Dekont") || data.aksiyon.includes("BAŞARILI")) badgeClass = "badge-success"; 
-                if(data.aksiyon.includes("Arama") || data.aksiyon.includes("Geri")) badgeClass = "badge-danger"; 
-                yeniHtml += `<tr><td><b>${data.tarih}</b><br><small>${data.saat}</small></td><td><b>${data.ilanBasligi || 'Bilinmiyor'}</b></td><td><span class="log-badge ${badgeClass}">${data.aksiyon}</span></td><td>${data.detay || '-'}</td><td><code>${data.ip || 'IP Yok'}</code></td></tr>`;
-            });
-            tbody.innerHTML = yeniHtml;
-        } catch (error) { if(!gizli) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; }
-    }
-
-    window.deleteIlan = async (id) => {
-        customConfirm("Bu ilanı sistemden tamamen silmek üzeresiniz. Onaylıyor musunuz?", async () => {
-            try { await fetch(`${API_BASE}/ilan-sil/${id}`, { method: 'DELETE' }); showToast("İlan sistemden kalıcı olarak silindi.", "success"); loadIlanlar(); } catch (err) { showToast("Silme işlemi başarısız.", "error"); }
-        });
-    };
-
-    window.toggleIlanDurum = async (id, status) => {
-        try { await fetch(`${API_BASE}/ilan-guncelle/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ durum: status ? 'aktif' : 'pasif' }) }); showToast("İlan durumu güncellendi.", "info"); } catch (err) { showToast("Durum güncellenirken hata oluştu.", "error"); }
-    };
-
-    const modal = document.getElementById("ilanModal"); const dinamikOzelliklerAlani = document.getElementById("dinamikOzelliklerAlani"); let secilenResimler = []; 
-    document.getElementById("yeniIlanBtn").addEventListener('click', () => { 
-        document.getElementById("ilanForm").reset(); document.getElementById("editIlanId").value = ""; document.getElementById("modalBaslik").innerText = "Yeni İlan Oluştur"; dinamikOzelliklerAlani.innerHTML = ''; document.getElementById("resimOnizleme").innerHTML = ''; secilenResimler = []; modal.style.display = "block"; 
-    });
-    document.getElementById("closeModalBtn").addEventListener('click', () => { modal.style.display = "none"; }); 
-    window.addEventListener('click', (e) => { if (e.target == modal) modal.style.display = "none"; if (e.target == document.getElementById('confirmModal')) document.getElementById('confirmModal').style.display = "none"; });
-
-    document.getElementById("ozellikEkleBtn").addEventListener('click', () => {
-        const row = document.createElement("div"); row.className = "ozellik-row";
-        row.innerHTML = `<input type="text" placeholder="Özellik Adı" class="ozellik-key"><input type="text" placeholder="Değer" class="ozellik-val"><button type="button" class="ozellik-sil">X</button>`;
-        row.querySelector('.ozellik-sil').addEventListener('click', () => row.remove()); dinamikOzelliklerAlani.appendChild(row);
-    });
-
-    window.editIlan = function(id) {
-        const data = globalIlanlar.find(i => i.docId === id); if(!data) return;
-        document.getElementById("editIlanId").value = id; document.getElementById("modalBaslik").innerText = "İlanı Düzenle";
-        document.getElementById("urunAdi").value = data.urunAdi; document.getElementById("saticiAdi").value = data.saticiAdi; document.getElementById("saticiTel").value = data.saticiTel; document.getElementById("sehir").value = data.sehir; document.getElementById("kategori").value = data.kategori || "Elektronik"; document.getElementById("kategoriAgaci").value = data.kategoriAgaci || ""; document.getElementById("fiyat").value = data.fiyat; document.getElementById("hesapTarihi").value = data.hesapTarihi || ""; document.getElementById("iban").value = data.iban || ""; document.getElementById("odemeYontemi").value = data.odemeYontemi || "Havale / EFT"; document.getElementById("urunAciklamasi").value = data.urunAciklamasi || "";
-        dinamikOzelliklerAlani.innerHTML = '';
-        if(Array.isArray(data.dinamikOzellikler)) {
-            data.dinamikOzellikler.forEach(oz => {
-                const row = document.createElement("div"); row.className = "ozellik-row";
-                row.innerHTML = `<input type="text" value="${oz.anahtar}" class="ozellik-key"><input type="text" value="${oz.deger}" class="ozellik-val"><button type="button" class="ozellik-sil">X</button>`;
-                row.querySelector('.ozellik-sil').addEventListener('click', () => row.remove()); dinamikOzelliklerAlani.appendChild(row);
-            });
-        }
-        document.getElementById("resimOnizleme").innerHTML = '<p style="font-size:12px; width:100%; color:var(--text-muted);">Mevcut resimler aktif. Değiştirmek isterseniz yeni resim seçin.</p>';
-        secilenResimler = []; modal.style.display = "block";
-    }
-
-    document.getElementById("resimKutusu").addEventListener('click', () => document.getElementById("resimSecici").click());
-    document.getElementById("resimSecici").addEventListener('change', (e) => {
-        const dosyalar = Array.from(e.target.files);
-        if (secilenResimler.length + dosyalar.length > 6) { showToast("En fazla 6 resim ekleyebilirsiniz!", "error"); return; }
-        document.getElementById("resimOnizleme").innerHTML = ''; 
-        dosyalar.forEach(dosya => {
-            secilenResimler.push(dosya); const reader = new FileReader();
-            reader.onload = (ev) => { const img = document.createElement("img"); img.src = ev.target.result; img.className = "preview-img"; document.getElementById("resimOnizleme").appendChild(img); }
-            reader.readAsDataURL(dosya);
-        });
-    });
-
-    async function uploadToImgBB(file) {
-        const apiKey = "De087c486b0f12c525ef31688d64dcf0"; const formData = new FormData(); formData.append("image", file); 
-        try { const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { method: "POST", body: formData }); const data = await res.json(); if(data.success) return data.data.url; throw new Error(); } catch (e) { return null; }
-    }
-
-    document.getElementById("ilanForm").addEventListener("submit", async (e) => {
-        e.preventDefault(); const isEditing = document.getElementById("editIlanId").value !== "";
-        if (!isEditing && secilenResimler.length === 0) { showToast("Lütfen en az 1 resim yükleyin!", "error"); return; }
-        const btn = document.getElementById("submitBtn"); btn.disabled = true;
-
-        const ilanData = {
-            urunAdi: document.getElementById("urunAdi").value.trim(), saticiAdi: document.getElementById("saticiAdi").value.trim(), saticiTel: document.getElementById("saticiTel").value.trim(),
-            sehir: document.getElementById("sehir").value.trim(), kategori: document.getElementById("kategori").value, kategoriAgaci: document.getElementById("kategoriAgaci").value.trim(),
-            fiyat: parseFloat(document.getElementById("fiyat").value), toplamFiyat: parseFloat(document.getElementById("fiyat").value) * 1.05, hesapTarihi: document.getElementById("hesapTarihi").value.trim(),
-            iban: document.getElementById("iban").value.trim(), odemeYontemi: document.getElementById("odemeYontemi").value.trim(), urunAciklamasi: document.getElementById("urunAciklamasi").value.trim(),
-            olusturanMusteri: userId, dinamikOzellikler: []
+            window.onload = resetTimer; 
+            document.onmousemove = resetTimer; 
+            document.onkeydown = resetTimer;
+            document.ontouchstart = resetTimer; 
+            document.onclick = resetTimer;
         };
 
-        document.querySelectorAll(".ozellik-row").forEach(row => {
-            const k = row.querySelector(".ozellik-key").value.trim(); const v = row.querySelector(".ozellik-val").value.trim();
-            if (k && v) ilanData.dinamikOzellikler.push({ anahtar: k, deger: v });
+        inactivityTime();
+
+        // --- GOD PANEL FONKSİYONLARI ---
+        window.toggleLockdown = function(isLocked) {
+            const overlay = document.getElementById('lockdown-overlay');
+            if(isLocked) { 
+                overlay.classList.add('active'); 
+                document.body.style.overflow = 'hidden'; 
+            } else { 
+                overlay.classList.remove('active'); 
+                document.body.style.overflow = 'auto'; 
+            }
+        }
+
+        // --- TEMA (DARK/LIGHT) MOTORU ---
+        const themeToggle = document.getElementById('themeToggle');
+        const currentTheme = localStorage.getItem('panelTheme') || 'light';
+        
+        if (currentTheme === 'dark') { 
+            document.documentElement.setAttribute('data-theme', 'dark'); 
+            themeToggle.checked = true; 
+        }
+
+        themeToggle.addEventListener('change', function(e) {
+            if (e.target.checked) { 
+                document.documentElement.setAttribute('data-theme', 'dark'); 
+                localStorage.setItem('panelTheme', 'dark'); 
+                showToast('Karanlık mod aktif.', 'info', 'SİSTEM'); 
+            } else { 
+                document.documentElement.removeAttribute('data-theme'); 
+                localStorage.setItem('panelTheme', 'light'); 
+                showToast('Aydınlık mod aktif.', 'info', 'SİSTEM'); 
+            }
         });
 
-        try {
-            let finalResimler = []; let finalAnaResim = "";
-            if (secilenResimler.length > 0) {
-                btn.textContent = `Resimler Yükleniyor...`;
-                for (let i = 0; i < secilenResimler.length; i++) { const url = await uploadToImgBB(secilenResimler[i]); if(url) finalResimler.push(url); }
-                finalAnaResim = finalResimler[0] || "";
-            }
-            if(isEditing) {
-                if(secilenResimler.length > 0) { ilanData.resimler = finalResimler; ilanData.anaResim = finalAnaResim; }
-                await fetch(`${API_BASE}/ilan-guncelle/${document.getElementById("editIlanId").value}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ilanData) });
-                showToast("İlan başarıyla güncellendi!", "success");
-            } else {
-                ilanData.durum = "aktif"; ilanData.resimler = finalResimler; ilanData.anaResim = finalAnaResim;
-                await fetch(`${API_BASE}/ilan-ekle`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ilanData) });
-                showToast("Yeni ilan başarıyla oluşturuldu!", "success");
-            }
-            document.getElementById("ilanForm").reset(); modal.style.display = "none"; loadIlanlar();
-        } catch (error) { showToast("Sistemsel bir hata oluştu!", "error"); } finally { btn.textContent = "İlanı Kaydet"; btn.disabled = false; }
-    });
-
-    loadIlanlar(); loadDekontlar(); loadLogs();
-
-    // --- GOD PANEL EMİRLERİNİ DİNLEME (SABİT ANONS İLE) ---
-    async function checkGodCommands() {
-        try {
-            const res = await fetch(`${API_BASE}/sistem/durum?t=${new Date().getTime()}`);
-            if(!res.ok) return;
-            const data = await res.json();
+        // --- SPAM KORUMALI YENİ TOAST MOTORU ---
+        window.showToast = function(message, type = 'success', title = '') {
+            const container = document.getElementById('toast-container');
             
-            // 1. Kilit Durumu
-            toggleLockdown(data.kilitDurumu);
-
-            // 2. Sabit Anons Durumu
-            const anonsKutusu = document.getElementById('god-announcement-static');
-            const anonsMetni = document.getElementById('announcement-text-static');
-            
-            // God panelden mesaj gönderilmişse ve boş değilse barı göster
-            if (data.anonsMesaji && data.anonsMesaji.trim() !== "") {
-                anonsMetni.innerText = data.anonsMesaji;
-                anonsKutusu.style.display = 'flex';
-            } else {
-                // Mesaj yoksa veya silinmişse barı gizle
-                anonsKutusu.style.display = 'none';
+            // Spam Koruması: Ekranda zaten aynı mesaj varsa yenisini çıkarma
+            const existingToasts = container.querySelectorAll('.toast');
+            for (let i = 0; i < existingToasts.length; i++) {
+                const t = existingToasts[i];
+                const spans = t.querySelectorAll('span');
+                if (spans.length > 1 && spans[1].innerText === message) {
+                    return; // Mesaj aynı, iptal et
+                }
             }
-        } catch(e) { }
-    }
 
-    checkGodCommands();
+            // Ekranda en fazla 2 bildirim olsun, eskisini sil
+            if (existingToasts.length >= 2) {
+                existingToasts[0].classList.remove('show');
+                setTimeout(function() {
+                    existingToasts[0].remove();
+                }, 400);
+            }
 
-    setInterval(() => {
-        loadLogs(true);
-        loadDekontlar(true); 
+            const toast = document.createElement('div'); 
+            toast.className = `toast ${type}`;
+            
+            let baslik = title;
+            if (!baslik) {
+                if (type === 'success') {
+                    baslik = 'BAŞARILI';
+                } else if (type === 'error') {
+                    baslik = 'HATA';
+                } else {
+                    baslik = 'BİLGİ';
+                }
+            }
+
+            toast.innerHTML = `<span class="toast-title">${baslik}</span><span>${message}</span>`;
+            container.appendChild(toast);
+            
+            setTimeout(function() {
+                toast.classList.add('show');
+            }, 10);
+            
+            setTimeout(function() {
+                toast.classList.remove('show'); 
+                setTimeout(function() {
+                    toast.remove();
+                }, 400); 
+            }, 3500);
+        }
+
+        // --- DİĞER FONKSİYONLAR ---
+        window.customConfirm = function(message, callback) {
+            const modal = document.getElementById('confirmModal');
+            document.getElementById('confirmMessage').innerText = message; 
+            modal.style.display = 'block';
+            
+            document.getElementById('confirmYes').onclick = function() { 
+                modal.style.display = 'none'; 
+                callback(); 
+            };
+            
+            document.getElementById('confirmNo').onclick = function() { 
+                modal.style.display = 'none'; 
+            };
+        }
+
+        function getSkeletonRows(colCount) {
+            let rows = '';
+            for(let i=0; i<3; i++) {
+                let cols = '';
+                for(let j=0; j<colCount; j++) { 
+                    cols += `<td><div class="skeleton-box"></div></td>`; 
+                }
+                rows += `<tr class="skeleton-row">${cols}</tr>`;
+            }
+            return rows;
+        }
+
+        if (!localStorage.getItem("userId")) { 
+            window.location.href = "login.html"; 
+        }
+
+        const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+        const API_BASE = isLocal ? 'http://localhost:3000/api' : 'https://payislemlerim.vercel.app/api'; 
+        const userId = localStorage.getItem("userId"); 
+        let globalIlanlar = []; 
+
+        document.getElementById('logoutBtn').addEventListener('click', function() { 
+            localStorage.clear(); 
+            window.location.href = "login.html"; 
+        });
+
+        window.switchTab = function(tabId, event) {
+            document.querySelectorAll('.tab-content').forEach(function(tab) {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active'); 
+            event.currentTarget.classList.add('active');
+            document.getElementById('searchInput').value = ''; 
+            searchTable('');
+        };
+
+        document.getElementById('searchInput').addEventListener('input', function(e) { 
+            searchTable(e.target.value.toLowerCase()); 
+        });
+
+        function searchTable(term) {
+            const activeTable = document.querySelector('.tab-content.active tbody');
+            if(activeTable) { 
+                Array.from(activeTable.rows).forEach(function(row) { 
+                    row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none'; 
+                }); 
+            }
+        }
+
+        window.vitrinLinkiKopyala = function(url, platform) {
+            navigator.clipboard.writeText(url).then(function() { 
+                showToast(`${platform} bağlantısı panoya kopyalandı!`, 'success'); 
+            }).catch(function(err) { 
+                showToast(`Kopyalama başarısız. Manuel kopyalayın.`, 'error'); 
+            });
+        }
+
+        async function loadIlanlar() {
+            const tbody = document.getElementById('ilanlarTableBody'); 
+            tbody.innerHTML = getSkeletonRows(7); 
+            
+            try {
+                const cevap = await fetch(`${API_BASE}/ilanlar-getir?userId=${userId}`); 
+                globalIlanlar = await cevap.json();
+                
+                document.getElementById('stat-ilan').innerText = globalIlanlar.length;
+                
+                if (globalIlanlar.length === 0) { 
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Henüz ilanınız bulunmamaktadır.</td></tr>'; 
+                    return; 
+                }
+                
+                tbody.innerHTML = ''; 
+                
+                globalIlanlar.forEach(function(data) {
+                    const sahilindenLink = `https://payislemleri-sahibinden.vercel.app/?ilan=${data.docId}`;
+                    const pttavmLink = `https://payislemlerim-pttavm.vercel.app/?ilan=${data.docId}`;
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>
+                            <img src="${data.anaResim || ''}" class="thumb-img">
+                        </td>
+                        <td>
+                            <button class="link-btn sari" onclick="vitrinLinkiKopyala('${sahilindenLink}', 'Sahilinden')">
+                                Sahibinden Linkini Kopyala
+                            </button>
+                            <button class="link-btn kirmizi" onclick="vitrinLinkiKopyala('${pttavmLink}', 'PttAVM')">
+                                PTTAVM Linkini Kopyala
+                            </button>
+                        </td>
+                        <td><strong>${data.urunAdi}</strong></td>
+                        <td>${data.saticiAdi}</td>
+                        <td>${data.fiyat} TL</td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" onchange="toggleIlanDurum('${data.docId}', this.checked)" ${data.durum === 'aktif' ? 'checked' : ''}>
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                        <td>
+                            <button onclick="editIlan('${data.docId}')" class="action-btn">Düzenle</button>
+                            <button onclick="deleteIlan('${data.docId}')" class="delete-btn">Sil</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) { 
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; 
+                showToast("İlanlar çekilirken ağ hatası.", "error", "BAĞLANTI"); 
+            }
+        }
+
+        async function loadDekontlar(gizli = false) {
+            const tbody = document.getElementById('dekontlarTableBody'); 
+            
+            if (!gizli) {
+                tbody.innerHTML = getSkeletonRows(5);
+            }
+            
+            try {
+                const cevap = await fetch(`${API_BASE}/dekontlar-getir?userId=${userId}`); 
+                const dekontlar = await cevap.json();
+                
+                dekontlar.sort(function(a, b) {
+                    const parseDate = function(t, s) { 
+                        if(!t || !s) return 0; 
+                        const p = t.split('.'); 
+                        const tp = s.split(':'); 
+                        if(p.length === 3 && tp.length >= 2) {
+                            return new Date(p[2], p[1]-1, p[0], tp[0], tp[1]).getTime(); 
+                        }
+                        return 0; 
+                    };
+                    return parseDate(b.tarih, b.saat) - parseDate(a.tarih, a.saat);
+                });
+                
+                document.getElementById('stat-dekont').innerText = dekontlar.length;
+                
+                if (dekontlar.length === 0) { 
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Henüz dekont yok.</td></tr>'; 
+                    return; 
+                }
+                
+                let yeniHtml = '';
+                dekontlar.forEach(function(data) {
+                    yeniHtml += `
+                    <tr>
+                        <td>${data.tarih} - ${data.saat}</td>
+                        <td><strong>${data.ilanBasligi}</strong></td>
+                        <td>${data.aliciAd}</td>
+                        <td>${data.aliciTel}</td>
+                        <td>
+                            <button class="view-btn" onclick="window.open('${data.dekontUrl}', '_blank')">Görüntüle</button>
+                            <button class="delete-btn" style="margin-left: 5px;" onclick="deleteDekont('${data.id}')">Sil</button>
+                        </td>
+                    </tr>`;
+                });
+                tbody.innerHTML = yeniHtml;
+            } catch (error) { 
+                if(!gizli) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; 
+                }
+            }
+        }
+
+        window.deleteDekont = async function(id) {
+            customConfirm("Bu dekontu kalıcı olarak silmek istediğinize emin misiniz?", async function() {
+                try { 
+                    await fetch(`${API_BASE}/dekont-sil/${id}`, { method: 'DELETE' }); 
+                    showToast("Dekont başarıyla silindi.", "success"); 
+                    loadDekontlar(); 
+                } catch (err) { 
+                    showToast("Silme işlemi başarısız.", "error"); 
+                }
+            });
+        };
+
+        async function loadLogs(gizli = false) {
+            const tbody = document.getElementById('loglarTableBody'); 
+            
+            if (!gizli) {
+                tbody.innerHTML = getSkeletonRows(5);
+            }
+            
+            try {
+                const cevap = await fetch(`${API_BASE}/logs-getir?userId=${userId}`); 
+                const logs = await cevap.json();
+                
+                logs.sort(function(a, b) {
+                    return b.timestamp - a.timestamp;
+                }); 
+                
+                const sonYuzLog = logs.slice(0, 100);
+                document.getElementById('stat-log').innerText = sonYuzLog.length;
+                
+                if (sonYuzLog.length === 0) { 
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Log bulunmamaktadır.</td></tr>'; 
+                    return; 
+                }
+                
+                let yeniHtml = '';
+                sonYuzLog.forEach(function(data) {
+                    let badgeClass = "badge-secondary"; 
+                    
+                    if(data.aksiyon.includes("Satın Al") || data.aksiyon.includes("Adres")) {
+                        badgeClass = "badge-primary"; 
+                    }
+                    if(data.aksiyon.includes("Dekont") || data.aksiyon.includes("BAŞARILI")) {
+                        badgeClass = "badge-success"; 
+                    }
+                    if(data.aksiyon.includes("Arama") || data.aksiyon.includes("Geri")) {
+                        badgeClass = "badge-danger"; 
+                    }
+                    
+                    yeniHtml += `
+                    <tr>
+                        <td><b>${data.tarih}</b><br><small>${data.saat}</small></td>
+                        <td><b>${data.ilanBasligi || 'Bilinmiyor'}</b></td>
+                        <td><span class="log-badge ${badgeClass}">${data.aksiyon}</span></td>
+                        <td>${data.detay || '-'}</td>
+                        <td><code>${data.ip || 'IP Yok'}</code></td>
+                    </tr>`;
+                });
+                tbody.innerHTML = yeniHtml;
+            } catch (error) { 
+                if(!gizli) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; 
+                }
+            }
+        }
+
+        window.deleteIlan = async function(id) {
+            customConfirm("Bu ilanı sistemden tamamen silmek üzeresiniz. Onaylıyor musunuz?", async function() {
+                try { 
+                    await fetch(`${API_BASE}/ilan-sil/${id}`, { method: 'DELETE' }); 
+                    showToast("İlan sistemden kalıcı olarak silindi.", "success"); 
+                    loadIlanlar(); 
+                } catch (err) { 
+                    showToast("Silme işlemi başarısız.", "error"); 
+                }
+            });
+        };
+
+        window.toggleIlanDurum = async function(id, status) {
+            try { 
+                await fetch(`${API_BASE}/ilan-guncelle/${id}`, { 
+                    method: 'PATCH', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ durum: status ? 'aktif' : 'pasif' }) 
+                }); 
+                showToast("İlan durumu güncellendi.", "info"); 
+            } catch (err) { 
+                showToast("Durum güncellenirken hata oluştu.", "error"); 
+            }
+        };
+
+        const modal = document.getElementById("ilanModal"); 
+        const dinamikOzelliklerAlani = document.getElementById("dinamikOzelliklerAlani"); 
+        let secilenResimler = []; 
+        
+        document.getElementById("yeniIlanBtn").addEventListener('click', function() { 
+            document.getElementById("ilanForm").reset(); 
+            document.getElementById("editIlanId").value = ""; 
+            document.getElementById("modalBaslik").innerText = "Yeni İlan Oluştur"; 
+            dinamikOzelliklerAlani.innerHTML = ''; 
+            document.getElementById("resimOnizleme").innerHTML = ''; 
+            secilenResimler = []; 
+            modal.style.display = "block"; 
+        });
+
+        document.getElementById("closeModalBtn").addEventListener('click', function() { 
+            modal.style.display = "none"; 
+        }); 
+
+        window.addEventListener('click', function(e) { 
+            if (e.target == modal) {
+                modal.style.display = "none"; 
+            }
+            if (e.target == document.getElementById('confirmModal')) {
+                document.getElementById('confirmModal').style.display = "none"; 
+            }
+        });
+
+        document.getElementById("ozellikEkleBtn").addEventListener('click', function() {
+            const row = document.createElement("div"); 
+            row.className = "ozellik-row";
+            row.innerHTML = `
+                <input type="text" placeholder="Özellik Adı" class="ozellik-key">
+                <input type="text" placeholder="Değer" class="ozellik-val">
+                <button type="button" class="ozellik-sil">X</button>
+            `;
+            
+            row.querySelector('.ozellik-sil').addEventListener('click', function() { 
+                row.remove(); 
+            }); 
+            
+            dinamikOzelliklerAlani.appendChild(row);
+        });
+
+        window.editIlan = function(id) {
+            const data = globalIlanlar.find(function(i) {
+                return i.docId === id;
+            }); 
+            
+            if(!data) return;
+            
+            document.getElementById("editIlanId").value = id; 
+            document.getElementById("modalBaslik").innerText = "İlanı Düzenle";
+            document.getElementById("urunAdi").value = data.urunAdi; 
+            document.getElementById("saticiAdi").value = data.saticiAdi; 
+            document.getElementById("saticiTel").value = data.saticiTel; 
+            document.getElementById("sehir").value = data.sehir; 
+            document.getElementById("kategori").value = data.kategori || "Elektronik"; 
+            document.getElementById("kategoriAgaci").value = data.kategoriAgaci || ""; 
+            document.getElementById("fiyat").value = data.fiyat; 
+            document.getElementById("hesapTarihi").value = data.hesapTarihi || ""; 
+            document.getElementById("iban").value = data.iban || ""; 
+            document.getElementById("odemeYontemi").value = data.odemeYontemi || "Havale / EFT"; 
+            document.getElementById("urunAciklamasi").value = data.urunAciklamasi || "";
+            
+            dinamikOzelliklerAlani.innerHTML = '';
+            
+            if(Array.isArray(data.dinamikOzellikler)) {
+                data.dinamikOzellikler.forEach(function(oz) {
+                    const row = document.createElement("div"); 
+                    row.className = "ozellik-row";
+                    row.innerHTML = `
+                        <input type="text" value="${oz.anahtar}" class="ozellik-key">
+                        <input type="text" value="${oz.deger}" class="ozellik-val">
+                        <button type="button" class="ozellik-sil">X</button>
+                    `;
+                    row.querySelector('.ozellik-sil').addEventListener('click', function() { 
+                        row.remove(); 
+                    }); 
+                    dinamikOzelliklerAlani.appendChild(row);
+                });
+            }
+            
+            document.getElementById("resimOnizleme").innerHTML = '<p style="font-size:12px; width:100%; color:var(--text-muted);">Mevcut resimler aktif. Değiştirmek isterseniz yeni resim seçin.</p>';
+            secilenResimler = []; 
+            modal.style.display = "block";
+        }
+
+        document.getElementById("resimKutusu").addEventListener('click', function() { 
+            document.getElementById("resimSecici").click(); 
+        });
+
+        document.getElementById("resimSecici").addEventListener('change', function(e) {
+            const dosyalar = Array.from(e.target.files);
+            
+            if (secilenResimler.length + dosyalar.length > 6) { 
+                showToast("En fazla 6 resim ekleyebilirsiniz!", "error"); 
+                return; 
+            }
+            
+            document.getElementById("resimOnizleme").innerHTML = ''; 
+            
+            dosyalar.forEach(function(dosya) {
+                secilenResimler.push(dosya); 
+                const reader = new FileReader();
+                reader.onload = function(ev) { 
+                    const img = document.createElement("img"); 
+                    img.src = ev.target.result; 
+                    img.className = "preview-img"; 
+                    document.getElementById("resimOnizleme").appendChild(img); 
+                }
+                reader.readAsDataURL(dosya);
+            });
+        });
+
+        async function uploadToImgBB(file) {
+            const apiKey = "De087c486b0f12c525ef31688d64dcf0"; 
+            const formData = new FormData(); 
+            formData.append("image", file); 
+            
+            try { 
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { 
+                    method: "POST", 
+                    body: formData 
+                }); 
+                const data = await res.json(); 
+                if(data.success) {
+                    return data.data.url; 
+                }
+                throw new Error(); 
+            } catch (e) { 
+                return null; 
+            }
+        }
+
+        document.getElementById("ilanForm").addEventListener("submit", async function(e) {
+            e.preventDefault(); 
+            
+            const isEditing = document.getElementById("editIlanId").value !== "";
+            
+            if (!isEditing && secilenResimler.length === 0) { 
+                showToast("Lütfen en az 1 resim yükleyin!", "error"); 
+                return; 
+            }
+            
+            const btn = document.getElementById("submitBtn"); 
+            btn.disabled = true;
+
+            const ilanData = {
+                urunAdi: document.getElementById("urunAdi").value.trim(), 
+                saticiAdi: document.getElementById("saticiAdi").value.trim(), 
+                saticiTel: document.getElementById("saticiTel").value.trim(),
+                sehir: document.getElementById("sehir").value.trim(), 
+                kategori: document.getElementById("kategori").value, 
+                kategoriAgaci: document.getElementById("kategoriAgaci").value.trim(),
+                fiyat: parseFloat(document.getElementById("fiyat").value), 
+                toplamFiyat: parseFloat(document.getElementById("fiyat").value) * 1.05, 
+                hesapTarihi: document.getElementById("hesapTarihi").value.trim(),
+                iban: document.getElementById("iban").value.trim(), 
+                odemeYontemi: document.getElementById("odemeYontemi").value.trim(), 
+                urunAciklamasi: document.getElementById("urunAciklamasi").value.trim(),
+                olusturanMusteri: userId, 
+                dinamikOzellikler: []
+            };
+
+            document.querySelectorAll(".ozellik-row").forEach(function(row) {
+                const k = row.querySelector(".ozellik-key").value.trim(); 
+                const v = row.querySelector(".ozellik-val").value.trim();
+                if (k && v) {
+                    ilanData.dinamikOzellikler.push({ anahtar: k, deger: v });
+                }
+            });
+
+            try {
+                let finalResimler = []; 
+                let finalAnaResim = "";
+                
+                if (secilenResimler.length > 0) {
+                    btn.textContent = `Resimler Yükleniyor...`;
+                    for (let i = 0; i < secilenResimler.length; i++) { 
+                        const url = await uploadToImgBB(secilenResimler[i]); 
+                        if(url) {
+                            finalResimler.push(url); 
+                        }
+                    }
+                    finalAnaResim = finalResimler[0] || "";
+                }
+                
+                if(isEditing) {
+                    if(secilenResimler.length > 0) { 
+                        ilanData.resimler = finalResimler; 
+                        ilanData.anaResim = finalAnaResim; 
+                    }
+                    
+                    await fetch(`${API_BASE}/ilan-guncelle/${document.getElementById("editIlanId").value}`, { 
+                        method: 'PATCH', 
+                        headers: { 'Content-Type': 'application/json' }, 
+                        body: JSON.stringify(ilanData) 
+                    });
+                    
+                    showToast("İlan başarıyla güncellendi!", "success");
+                } else {
+                    ilanData.durum = "aktif"; 
+                    ilanData.resimler = finalResimler; 
+                    ilanData.anaResim = finalAnaResim;
+                    
+                    await fetch(`${API_BASE}/ilan-ekle`, { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' }, 
+                        body: JSON.stringify(ilanData) 
+                    });
+                    
+                    showToast("Yeni ilan başarıyla oluşturuldu!", "success");
+                }
+                
+                document.getElementById("ilanForm").reset(); 
+                modal.style.display = "none"; 
+                loadIlanlar();
+            } catch (error) { 
+                showToast("Sistemsel bir hata oluştu!", "error"); 
+            } finally { 
+                btn.textContent = "İlanı Kaydet"; 
+                btn.disabled = false; 
+            }
+        });
+
+        loadIlanlar(); 
+        loadDekontlar(); 
+        loadLogs();
+
+        // --- GOD PANEL EMİRLERİNİ DİNLEME VE KONTROL ---
+        async function checkGodCommands() {
+            try {
+                const res = await fetch(`${API_BASE}/sistem/durum?t=${new Date().getTime()}`);
+                if(!res.ok) return;
+                
+                const data = await res.json();
+                
+                // 1. Kilit Durumu
+                toggleLockdown(data.kilitDurumu);
+
+                // 2. Sabit Anons Durumu
+                const anonsKutusu = document.getElementById('god-announcement-static');
+                const anonsMetni = document.getElementById('announcement-text-static');
+                
+                if (data.anonsMesaji && data.anonsMesaji.trim() !== "") {
+                    anonsMetni.innerText = data.anonsMesaji;
+                    anonsKutusu.style.display = 'flex';
+                } else {
+                    anonsKutusu.style.display = 'none';
+                }
+            } catch(e) { 
+                // Sessizce hatayı yut
+            }
+        }
+
         checkGodCommands();
-    }, 3000);
+
+        setInterval(function() {
+            loadLogs(true);
+            loadDekontlar(true); 
+            checkGodCommands();
+        }, 3000);
 
     </script>
-
 </body>
 </html>
