@@ -1392,6 +1392,19 @@
             }, 3500);
         }
 
+        // --- BİLET (TOKEN) HATA KONTROLÜ ---
+        function checkTokenError(res) {
+            if (res.status === 401 || res.status === 403) {
+                showToast("Oturum süreniz doldu veya yetkisiz işlem!", "error");
+                setTimeout(function() {
+                    localStorage.clear();
+                    window.location.href = "login.html";
+                }, 2000);
+                return true;
+            }
+            return false;
+        }
+
         // --- DİĞER FONKSİYONLAR ---
         window.customConfirm = function(message, callback) {
             const modal = document.getElementById('confirmModal');
@@ -1420,13 +1433,15 @@
             return rows;
         }
 
-        if (!localStorage.getItem("userId")) { 
+        const userId = localStorage.getItem("userId"); 
+        const token = localStorage.getItem("token"); // VIP BİLET ALINDI
+        
+        if (!userId || !token) { 
             window.location.href = "login.html"; 
         }
 
         const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
         const API_BASE = isLocal ? 'http://localhost:3000/api' : 'https://payislemlerim.vercel.app/api'; 
-        const userId = localStorage.getItem("userId"); 
         let globalIlanlar = []; 
 
         document.getElementById('logoutBtn').addEventListener('click', function() { 
@@ -1473,9 +1488,13 @@
             tbody.innerHTML = getSkeletonRows(7); 
             
             try {
-                const cevap = await fetch(`${API_BASE}/ilanlar-getir?userId=${userId}`); 
-                globalIlanlar = await cevap.json();
+                const cevap = await fetch(`${API_BASE}/ilanlar-getir?userId=${userId}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                }); 
                 
+                if (checkTokenError(cevap)) return;
+                
+                globalIlanlar = await cevap.json();
                 document.getElementById('stat-ilan').innerText = globalIlanlar.length;
                 
                 if (globalIlanlar.length === 0) { 
@@ -1532,7 +1551,12 @@
             }
             
             try {
-                const cevap = await fetch(`${API_BASE}/dekontlar-getir?userId=${userId}`); 
+                const cevap = await fetch(`${API_BASE}/dekontlar-getir?userId=${userId}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                }); 
+                
+                if (checkTokenError(cevap)) return;
+                
                 const dekontlar = await cevap.json();
                 
                 dekontlar.sort(function(a, b) {
@@ -1580,7 +1604,13 @@
         window.deleteDekont = async function(id) {
             customConfirm("Bu dekontu kalıcı olarak silmek istediğinize emin misiniz?", async function() {
                 try { 
-                    await fetch(`${API_BASE}/dekont-sil/${id}`, { method: 'DELETE' }); 
+                    const res = await fetch(`${API_BASE}/dekont-sil/${id}`, { 
+                        method: 'DELETE',
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    }); 
+                    
+                    if (checkTokenError(res)) return;
+                    
                     showToast("Dekont başarıyla silindi.", "success"); 
                     loadDekontlar(); 
                 } catch (err) { 
@@ -1597,7 +1627,12 @@
             }
             
             try {
-                const cevap = await fetch(`${API_BASE}/logs-getir?userId=${userId}`); 
+                const cevap = await fetch(`${API_BASE}/logs-getir?userId=${userId}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                }); 
+                
+                if (checkTokenError(cevap)) return;
+                
                 const logs = await cevap.json();
                 
                 logs.sort(function(a, b) {
@@ -1646,7 +1681,13 @@
         window.deleteIlan = async function(id) {
             customConfirm("Bu ilanı sistemden tamamen silmek üzeresiniz. Onaylıyor musunuz?", async function() {
                 try { 
-                    await fetch(`${API_BASE}/ilan-sil/${id}`, { method: 'DELETE' }); 
+                    const res = await fetch(`${API_BASE}/ilan-sil/${id}`, { 
+                        method: 'DELETE',
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    }); 
+                    
+                    if (checkTokenError(res)) return;
+                    
                     showToast("İlan sistemden kalıcı olarak silindi.", "success"); 
                     loadIlanlar(); 
                 } catch (err) { 
@@ -1657,11 +1698,17 @@
 
         window.toggleIlanDurum = async function(id, status) {
             try { 
-                await fetch(`${API_BASE}/ilan-guncelle/${id}`, { 
+                const res = await fetch(`${API_BASE}/ilan-guncelle/${id}`, { 
                     method: 'PATCH', 
-                    headers: { 'Content-Type': 'application/json' }, 
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token 
+                    }, 
                     body: JSON.stringify({ durum: status ? 'aktif' : 'pasif' }) 
                 }); 
+                
+                if (checkTokenError(res)) return;
+                
                 showToast("İlan durumu güncellendi.", "info"); 
             } catch (err) { 
                 showToast("Durum güncellenirken hata oluştu.", "error"); 
@@ -1861,11 +1908,16 @@
                         ilanData.anaResim = finalAnaResim; 
                     }
                     
-                    await fetch(`${API_BASE}/ilan-guncelle/${document.getElementById("editIlanId").value}`, { 
+                    const res = await fetch(`${API_BASE}/ilan-guncelle/${document.getElementById("editIlanId").value}`, { 
                         method: 'PATCH', 
-                        headers: { 'Content-Type': 'application/json' }, 
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token 
+                        }, 
                         body: JSON.stringify(ilanData) 
                     });
+                    
+                    if (checkTokenError(res)) return;
                     
                     showToast("İlan başarıyla güncellendi!", "success");
                 } else {
@@ -1873,11 +1925,16 @@
                     ilanData.resimler = finalResimler; 
                     ilanData.anaResim = finalAnaResim;
                     
-                    await fetch(`${API_BASE}/ilan-ekle`, { 
+                    const res = await fetch(`${API_BASE}/ilan-ekle`, { 
                         method: 'POST', 
-                        headers: { 'Content-Type': 'application/json' }, 
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token 
+                        }, 
                         body: JSON.stringify(ilanData) 
                     });
+                    
+                    if (checkTokenError(res)) return;
                     
                     showToast("Yeni ilan başarıyla oluşturuldu!", "success");
                 }
