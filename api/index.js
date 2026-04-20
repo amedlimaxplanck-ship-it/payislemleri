@@ -154,9 +154,41 @@ app.get('/api/ilanlar-getir', authKontrol, async (req, res) => {
     res.json(snap.docs.map(doc => ({ docId: doc.id, ...doc.data() })));
 });
 
+// 🔥 KOTA (LİMİT) FEDAİSİ BURAYA EKLENDİ 🔥
 app.post('/api/ilan-ekle', authKontrol, kilitKontrol, async (req, res) => {
-    const docRef = await addDoc(collection(db, "ilanlar"), req.body);
-    res.json({ success: true, id: docRef.id });
+    try {
+        const userId = req.user.id;
+        
+        // 1. Müşterinin kotasını öğren
+        const userSnap = await getDoc(doc(db, "users", userId));
+        if (!userSnap.exists()) return res.status(404).json({ hata: "Kullanıcı bulunamadı." });
+        const userData = userSnap.data();
+        
+        // Eğer kullanıcı eski kayıtsa ve kotası yoksa, sınırsız kabul et (sistemi bozmamak için)
+        const kota = userData.ilanKotasi || "sinirsiz";
+        
+        if (kota !== "sinirsiz") {
+            // 2. Müşterinin mevcut (silinmemiş) tüm ilanlarını say
+            const q = query(collection(db, "ilanlar"), where("olusturanMusteri", "==", userId));
+            const ilanlarSnap = await getDocs(q);
+            const mevcutIlanSayisi = ilanlarSnap.size; 
+            
+            // 3. Sınırı aştı mı kontrol et
+            if (mevcutIlanSayisi >= parseInt(kota)) {
+                return res.status(403).json({ 
+                    hata: `Paket limitinize (${kota} İlan) ulaştınız! Yeni ilan girmek için eskileri tamamen silmeli veya paketinizi yükseltmelisiniz.` 
+                });
+            }
+        }
+
+        // Sınırı aşmadıysa ilanı veritabanına yaz
+        const docRef = await addDoc(collection(db, "ilanlar"), req.body);
+        res.json({ success: true, id: docRef.id });
+        
+    } catch (error) {
+        console.error("İlan ekleme hatası:", error);
+        res.status(500).json({ hata: "İlan eklenemedi." });
+    }
 });
 
 app.delete('/api/ilan-sil/:id', authKontrol, kilitKontrol, async (req, res) => {
@@ -230,7 +262,8 @@ app.post('/api/users/ekle', authKontrol, async (req, res) => {
             ...yeniMusteri,
             createdAt: new Date().getTime(),
             isActive: true,
-            currentSession: null // Yeni müşteri için oturum boş başlatılır
+            currentSession: null, // Yeni müşteri için oturum boş başlatılır
+            ilanKotasi: req.body.ilanKotasi || "sinirsiz" // 🔥 KOTA SİSTEME EKLENDİ
         });
         res.json({ success: true, id: docRef.id });
     } catch (error) {
