@@ -284,7 +284,6 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
-        /* 1. Müşteri Tablosu Toggles: Kapalıyken Kırmızı, Açıkken Yeşil */
         .user-toggle .slider { 
             background-color: var(--danger-color); 
         }
@@ -297,7 +296,6 @@
             transform: translateX(22px); 
         }
 
-        /* 2. Sistem Kilidi Toggle: Kapalıyken Gri, Açıkken (Kilitliyken) Kırmızı */
         .lockdown-toggle .slider { 
             background-color: var(--switch-bg); 
             border: 1px solid var(--border-subtle);
@@ -351,7 +349,6 @@
             text-transform: uppercase; 
         }
         
-        /* 16PX KURALI: iOS'un inputlara tıkladığında zoom yapmasını KESİNLİKLE engeller */
         .form-group input, .form-group select, #godVoiceInput {
             width: 100%; 
             padding: 16px; 
@@ -520,6 +517,99 @@
             transform: translateY(0); 
         }
 
+        /* 🔥 YENİ: OTURUM SONLANDIRILDI (KICK) EKRANI 🔥 */
+        #kick-overlay {
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            z-index: 999999999; 
+            background: rgba(255, 255, 255, 0.7); 
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px); 
+            align-items: center; 
+            justify-content: center; 
+            opacity: 0; 
+            transition: opacity 0.4s ease; 
+        }
+
+        [data-theme="dark"] #kick-overlay { 
+            background: rgba(9, 9, 11, 0.85); 
+        }
+
+        .kick-card {
+            background: var(--bg-card); 
+            padding: 40px; 
+            border-radius: 20px; 
+            text-align: center; 
+            max-width: 420px; 
+            box-shadow: 0 30px 60px -12px rgba(239, 68, 68, 0.25); 
+            border: 1px solid rgba(239, 68, 68, 0.3); 
+            transform: scale(0.95); 
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+
+        .kick-card svg {
+            width: 60px;
+            height: 60px;
+            stroke: #ef4444;
+            margin-bottom: 20px;
+            animation: pulseWarning 2s infinite;
+        }
+
+        @keyframes pulseWarning {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.5)); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .kick-card h2 {
+            font-size: 22px;
+            font-weight: 800;
+            color: #ef4444;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kick-card p {
+            font-size: 14px;
+            color: var(--text-main);
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .kick-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .kick-btn:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        #kick-overlay.active { 
+            display: flex; 
+            opacity: 1; 
+        }
+
+        #kick-overlay.active .kick-card { 
+            transform: scale(1); 
+        }
+
         /* MOBİL DÜZELTMELER */
         @media (max-width: 768px) {
             body { 
@@ -545,6 +635,19 @@
     </style>
 </head>
 <body>
+
+    <div id="kick-overlay">
+        <div class="kick-card">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <h2>Oturum Sonlandırıldı!</h2>
+            <p>Hesabınıza başka bir cihazdan giriş yapıldığı veya oturum süreniz dolduğu için güvenliğiniz amacıyla sistemden çıkarıldınız.</p>
+            <button class="kick-btn" onclick="window.location.href='login.html'">Giriş Ekranına Dön</button>
+        </div>
+    </div>
 
     <div class="header animate-in">
         <h1>God<span>Panel</span></h1>
@@ -620,6 +723,21 @@
                     <option value="12">1 Yıllık</option>
                 </select>
             </div>
+
+            <div class="form-group">
+                <label>İlan Kotası (Paket Limiti)</label>
+                <select id="ilanKotasiSelect" onchange="toggleCustomKota(this.value)">
+                    <option value="sinirsiz">Sınırsız İlan</option>
+                    <option value="5">Maksimum 5 İlan</option>
+                    <option value="10">Maksimum 10 İlan</option>
+                    <option value="15">Maksimum 15 İlan</option>
+                    <option value="ozel">Özel Sayı Gir...</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="ozelKotaKutusu" style="display: none; margin-top: -10px;">
+                <input type="number" id="ozelKotaDegeri" placeholder="Örn: 20" min="1" autocomplete="off">
+            </div>
             
             <button class="btn-primary" id="addCustomerBtn">Sisteme Kaydet</button>
         </div>
@@ -634,6 +752,7 @@
                             <th>Kod</th>
                             <th>Başarı</th>
                             <th>Bitiş</th>
+                            <th>Kota</th>
                             <th>Durum</th>
                             <th>Ayar</th>
                         </tr>
@@ -660,6 +779,11 @@
                 <label>Bitiş Tarihi</label>
                 <input type="date" id="editExpireDate">
             </div>
+            
+            <div class="form-group">
+                <label>İlan Kotası</label>
+                <input type="text" id="editIlanKotasi" placeholder="Rakam girin veya 'sinirsiz' yazın">
+            </div>
 
             <div class="form-group" style="margin-bottom: 24px;">
                 <label>Ban Mesajı (Pasife Alınırsa Çıkar)</label>
@@ -674,8 +798,6 @@
 
     <script type="module">
         // 🔥 ZEHİR TEMİZLEYİCİ (XSS DEZENFEKTANI) 🔥
-        // Bu kod ekrana basılacak her veriyi tarar, içindeki zararlı olabilecek
-        // <script> gibi HTML etiketlerini zararsız düz metne çevirir.
         window.dezenfekteEt = function(str) {
             if (str === null || str === undefined) return "";
             return String(str)
@@ -732,7 +854,6 @@
         window.showToast = function(msg) {
             const container = document.getElementById('toast-container');
             
-            // 1. Ekranda aynı mesaj varsa yenisini ekleme (Spam engelleme)
             const existingToasts = container.querySelectorAll('.toast');
             for (let i = 0; i < existingToasts.length; i++) {
                 if (existingToasts[i].innerText === msg) {
@@ -740,7 +861,6 @@
                 }
             }
 
-            // 2. Ekranda en fazla 2 mesaj biriksin, yenisi gelirse en eskisini sil
             if (existingToasts.length >= 2) {
                 existingToasts[0].style.opacity = '0';
                 setTimeout(function() {
@@ -750,7 +870,7 @@
 
             const toast = document.createElement('div');
             toast.className = 'toast animate-in';
-            toast.innerText = msg; // innerText HTML çalıştırmaz, o yüzden kendi başına güvenlidir.
+            toast.innerText = msg;
             container.appendChild(toast);
             
             setTimeout(function() {
@@ -765,14 +885,12 @@
             }, 3000);
         };
 
-        // Bilet (Token) süresi dolmuşsa adamı dışarı atan fonksiyon
+        // Bilet (Token) veya Koltuk Kapmaca hatası gelirse şutlama ekranını aç
         function checkTokenError(res) {
             if (res.status === 401 || res.status === 403) {
-                showToast("Oturum süreniz doldu veya yetkisiz işlem!");
-                setTimeout(() => {
-                    localStorage.clear();
-                    window.location.href = "login.html";
-                }, 2000);
+                document.getElementById('kick-overlay').classList.add('active');
+                document.body.style.overflow = 'hidden';
+                localStorage.clear();
                 return true;
             }
             return false;
@@ -856,7 +974,7 @@
         // --- MÜŞTERİ YÜKLEME ---
         async function loadCustomers() {
             const tbody = document.getElementById('customerTableBody');
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Veriler yükleniyor...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Veriler yükleniyor...</td></tr>';
             
             try {
                 const res = await fetch(`${API_BASE}/users`, {
@@ -884,13 +1002,17 @@
                             passive++;
                         }
                         
+                        // Kota gösterim formatı
+                        let kotaMetni = data.ilanKotasi === "sinirsiz" ? "Sınırsız" : dezenfekteEt(data.ilanKotasi);
+                        
                         const tr = document.createElement('tr');
-                        // 🔥 TABLOYA BASILAN VERİLER DEZENFEKTE EDİLİYOR 🔥
+                        // 🔥 TABLOYA KOTA SÜTUNU EKLENDİ 🔥
                         tr.innerHTML = `
                             <td style="color:var(--text-secondary); font-size:11px; white-space:nowrap;">${dezenfekteEt(data.createdDateStr || '-')}</td>
                             <td><span class="badge">${dezenfekteEt(data.passcode)}</span></td>
                             <td id="succ-${data.docId}">-</td>
                             <td style="font-weight:600; white-space:nowrap;">${dezenfekteEt(data.expireDate || '-')}</td>
+                            <td style="font-weight:700; color:var(--success-color);">${kotaMetni}</td>
                             <td>
                                 <label class="switch user-toggle">
                                     <input type="checkbox" onchange="toggleStatus('${data.docId}', this.checked)" ${data.isActive ? 'checked' : ''}>
@@ -909,7 +1031,7 @@
                 document.getElementById('statActive').innerText = active;
                 document.getElementById('statPassive').innerText = passive;
             } catch (e) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--danger-color);">Bağlantı hatası.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--danger-color);">Bağlantı hatası.</td></tr>';
             }
         }
 
@@ -937,19 +1059,17 @@
         // --- ZIPLAMA VE YENİLEME SORUNUNU ÇÖZEN GÜNCELLEME KODU ---
         window.toggleStatus = async function(id, status) {
             try {
-                // 1. Veritabanını güncelle
                 const res = await fetch(`${API_BASE}/users/guncelle/${id}`, {
                     method: 'PATCH', 
                     headers: { 
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` // Bilet Gösterimi
+                        'Authorization': `Bearer ${token}` 
                     }, 
                     body: JSON.stringify({ isActive: status })
                 });
 
                 if (checkTokenError(res)) return;
                 
-                // 2. İstatistik Sayılarını TABLOYU YENİLEMEDEN (ziplama yapmadan) el ile değiştir
                 const activeElem = document.getElementById('statActive');
                 const passiveElem = document.getElementById('statPassive');
                 
@@ -975,11 +1095,35 @@
             }
         };
 
-        // --- YENİ MÜŞTERİ EKLEME ---
+        // --- KOTA SEÇİM KUTUSUNU GÖSTER/GİZLE ---
+        window.toggleCustomKota = function(value) {
+            const ozelKutu = document.getElementById('ozelKotaKutusu');
+            if (value === "ozel") {
+                ozelKutu.style.display = "block";
+            } else {
+                ozelKutu.style.display = "none";
+                document.getElementById('ozelKotaDegeri').value = ""; // Temizle
+            }
+        }
+
+        // --- YENİ MÜŞTERİ EKLEME (KOTALI) ---
         document.getElementById('addCustomerBtn').onclick = async function() {
             const passcode = document.getElementById('newPasscode').value.trim();
             const durationMonths = parseInt(document.getElementById('subDuration').value);
             const btn = document.getElementById('addCustomerBtn');
+            
+            // Kota belirleme mantığı
+            const kotaSecimi = document.getElementById('ilanKotasiSelect').value;
+            let finalKota = kotaSecimi;
+            
+            if (kotaSecimi === "ozel") {
+                const ozelDeger = document.getElementById('ozelKotaDegeri').value.trim();
+                if (!ozelDeger || parseInt(ozelDeger) < 1) {
+                    showToast("Lütfen geçerli bir özel kota sayısı girin.");
+                    return;
+                }
+                finalKota = ozelDeger;
+            }
             
             if(!passcode) {
                 showToast("Erişim kodu zorunludur.");
@@ -994,7 +1138,8 @@
                 role: "customer", 
                 expireDate: expireDateObj.toLocaleDateString('tr-TR'),
                 createdDateStr: new Date().toLocaleDateString('tr-TR'), 
-                banMessage: "Abonelik süreniz dolmuş veya askıya alınmıştır."
+                banMessage: "Abonelik süreniz dolmuş veya askıya alınmıştır.",
+                ilanKotasi: finalKota // Seçilen veya yazılan kotayı postala
             };
 
             try {
@@ -1005,7 +1150,7 @@
                     method: 'POST', 
                     headers: { 
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` // Bilet Gösterimi
+                        'Authorization': `Bearer ${token}` 
                     }, 
                     body: JSON.stringify(musteriVerisi)
                 });
@@ -1014,6 +1159,9 @@
                 
                 if(res.ok) {
                     document.getElementById('newPasscode').value = ''; 
+                    document.getElementById('ilanKotasiSelect').value = 'sinirsiz';
+                    document.getElementById('ozelKotaKutusu').style.display = 'none';
+                    document.getElementById('ozelKotaDegeri').value = '';
                     showToast("Yeni müşteri kaydedildi."); 
                     loadCustomers();
                 } else { 
@@ -1060,6 +1208,7 @@
             document.getElementById('editPasscode').value = user.passcode;
             document.getElementById('editExpireDate').value = parseDateString(user.expireDate);
             document.getElementById('editBanMessage').value = user.banMessage || "Abonelik süreniz dolmuştur.";
+            document.getElementById('editIlanKotasi').value = user.ilanKotasi || "sinirsiz"; // Mevcut kotayı göster
             
             modal.style.display = "flex";
         };
@@ -1068,6 +1217,7 @@
             const id = document.getElementById('editUserId').value;
             const newDateVal = document.getElementById('editExpireDate').value;
             const newBanMsg = document.getElementById('editBanMessage').value.trim();
+            const newKota = document.getElementById('editIlanKotasi').value.trim(); // Kotayı al
             const btn = document.getElementById('saveEditBtn');
 
             if(!newDateVal) {
@@ -1086,11 +1236,12 @@
                     method: 'PATCH', 
                     headers: { 
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` // Bilet Gösterimi
+                        'Authorization': `Bearer ${token}` 
                     },
                     body: JSON.stringify({ 
                         expireDate: formattedDate, 
-                        banMessage: newBanMsg 
+                        banMessage: newBanMsg,
+                        ilanKotasi: newKota // Kotayı güncelle
                     })
                 });
 
