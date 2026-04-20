@@ -1449,7 +1449,6 @@
         // --- BİLET (TOKEN) & KOLTUK KAPMACA HATA KONTROLÜ ---
         function checkTokenError(res) {
             if (res.status === 401 || res.status === 403) {
-                // Hata aldığımızda ekrana bulanık KICK menüsünü indiriyoruz
                 document.getElementById('kick-overlay').classList.add('active');
                 document.body.style.overflow = 'hidden';
                 localStorage.clear();
@@ -1464,7 +1463,6 @@
             const outTime = 60000; 
 
             function logoutUser() {
-                // Adam inaktif kalınca da şutlama menüsünü gösteriyoruz
                 document.getElementById('kick-overlay').classList.add('active');
                 document.querySelector('.kick-card p').innerText = "1 dakika boyunca hiçbir işlem yapmadığınız için güvenliğiniz amacıyla sistemden çıkarıldınız.";
                 document.body.style.overflow = 'hidden';
@@ -2108,6 +2106,17 @@
                         body: JSON.stringify(ilanData) 
                     });
                     
+                    // 🔥 KOTA DOLDUYSA ŞUTLAMA, SADECE UYARI VER 🔥
+                    if (res.status === 403) {
+                        const errData = await res.json();
+                        if (errData.hata && errData.hata.includes("limit")) {
+                            showToast(errData.hata, "error", "KOTA DOLDU");
+                            btn.textContent = "İlanı Kaydet"; 
+                            btn.disabled = false;
+                            return;
+                        }
+                    }
+
                     if (checkTokenError(res)) return;
                     
                     showToast("Yeni ilan başarıyla oluşturuldu!", "success");
