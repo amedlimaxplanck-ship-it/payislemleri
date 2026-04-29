@@ -517,7 +517,6 @@
             transform: translateY(0); 
         }
 
-        /* 🔥 YENİ: OTURUM SONLANDIRILDI (KICK) EKRANI 🔥 */
         #kick-overlay {
             display: none; 
             position: fixed; 
@@ -752,9 +751,9 @@
                             <th>Kod</th>
                             <th>Başarı</th>
                             <th>Bitiş</th>
-                            <th>Kota</th>
-                            <th>Durum</th>
-                            <th>Ayar</th>
+                            <th>Kota Durumu</th>
+                            <th>Erişim</th>
+                            <th>İşlem</th>
                         </tr>
                     </thead>
                     <tbody id="customerTableBody"></tbody>
@@ -794,10 +793,20 @@
         </div>
     </div>
     
+    <div id="confirmModal" class="modal" style="z-index: 999999;">
+        <div class="modal-content" style="max-width: 400px; text-align: center; padding: 30px;">
+            <h3 style="margin-bottom: 10px; font-size: 18px; color: var(--danger-color); font-weight: 800;">Sistemden Kazı</h3>
+            <p id="confirmMessage" style="color: var(--text-secondary); margin-bottom: 25px; font-size: 14px;"></p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button id="confirmYes" class="btn-primary" style="padding: 10px 20px; font-size: 14px; background: var(--danger-color); color: white;">Evet, Sil</button>
+                <button id="confirmNo" class="action-btn" style="padding: 10px 20px; margin:0; font-size: 14px;">İptal</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toast-container"></div>
 
     <script type="module">
-        // 🔥 ZEHİR TEMİZLEYİCİ (XSS DEZENFEKTANI) 🔥
         window.dezenfekteEt = function(str) {
             if (str === null || str === undefined) return "";
             return String(str)
@@ -813,21 +822,17 @@
         const API_BASE = isLocal ? 'http://localhost:3000/api' : '/api'; 
         let globalCustomers = []; 
 
-        // 🔥 GÜVENLİK: VIP BİLET (TOKEN) KONTROLÜ 🔥
         const token = localStorage.getItem("token");
         if (!localStorage.getItem("userId") || localStorage.getItem("userRole") !== "god" || !token) { 
             window.location.href = "login.html"; 
         }
         
-        // Çıkış Yap Butonu
         document.getElementById('logoutBtn').onclick = function() { 
             localStorage.clear(); 
             window.location.href = "login.html"; 
         };
 
-        // --- TEMA MOTORU (DARK/LIGHT) ---
         const themeToggle = document.getElementById('themeToggle');
-        
         const currentTheme = localStorage.getItem('godTheme') || 'dark';
         
         if (currentTheme === 'dark') { 
@@ -850,22 +855,16 @@
             }
         });
 
-        // --- SPAM KORUMALI PROFESYONEL TOAST BİLDİRİMİ ---
         window.showToast = function(msg) {
             const container = document.getElementById('toast-container');
-            
             const existingToasts = container.querySelectorAll('.toast');
             for (let i = 0; i < existingToasts.length; i++) {
-                if (existingToasts[i].innerText === msg) {
-                    return; 
-                }
+                if (existingToasts[i].innerText === msg) return; 
             }
 
             if (existingToasts.length >= 2) {
                 existingToasts[0].style.opacity = '0';
-                setTimeout(function() {
-                    existingToasts[0].remove();
-                }, 300);
+                setTimeout(function() { existingToasts[0].remove(); }, 300);
             }
 
             const toast = document.createElement('div');
@@ -873,19 +872,13 @@
             toast.innerText = msg;
             container.appendChild(toast);
             
-            setTimeout(function() {
-                toast.classList.add('show');
-            }, 10);
-            
+            setTimeout(function() { toast.classList.add('show'); }, 10);
             setTimeout(function() { 
                 toast.style.opacity = '0'; 
-                setTimeout(function() {
-                    toast.remove();
-                }, 500); 
+                setTimeout(function() { toast.remove(); }, 500); 
             }, 3000);
         };
 
-        // Bilet (Token) veya Koltuk Kapmaca hatası gelirse şutlama ekranını aç
         function checkTokenError(res) {
             if (res.status === 401 || res.status === 403) {
                 document.getElementById('kick-overlay').classList.add('active');
@@ -896,11 +889,25 @@
             return false;
         }
 
-        // --- SİSTEM DURUMUNU HAFIZADAN ÇEKME (KİLİT VE ANONS) ---
+        window.customConfirm = function(message, callback) {
+            const modal = document.getElementById('confirmModal');
+            document.getElementById('confirmMessage').innerText = message; 
+            modal.style.display = 'flex';
+            
+            document.getElementById('confirmYes').onclick = function() { 
+                modal.style.display = 'none'; 
+                callback(); 
+            };
+            
+            document.getElementById('confirmNo').onclick = function() { 
+                modal.style.display = 'none'; 
+            };
+        }
+
         async function loadSystemStatus() {
             try {
                 const res = await fetch(`${API_BASE}/sistem/durum?t=${Date.now()}`, {
-                    headers: { 'Authorization': `Bearer ${token}` } // Bilet Gösterimi
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
                 if (checkTokenError(res)) return;
@@ -908,7 +915,6 @@
                 if(res.ok) {
                     const data = await res.json();
                     document.getElementById('globalLockdownBtn').checked = data.kilitDurumu === true;
-                    
                     if(data.anonsMesaji) {
                         document.getElementById('godVoiceInput').value = data.anonsMesaji;
                     }
@@ -918,67 +924,56 @@
             }
         }
 
-        // --- KOMUT ATEŞLEME (SİSTEM KİLİDİ) ---
         document.getElementById('globalLockdownBtn').onchange = async function(e) {
             const isLocked = e.target.checked;
-            
             try {
                 const res = await fetch(`${API_BASE}/sistem/kilit`, {
                     method: 'POST', 
                     headers: { 
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` // Bilet Gösterimi
+                        'Authorization': `Bearer ${token}` 
                     }, 
                     body: JSON.stringify({ kilitDurumu: isLocked })
                 });
 
                 if (checkTokenError(res)) return;
                 
-                if (isLocked) {
-                    showToast("Sistem kilitlendi.");
-                } else {
-                    showToast("Sistem kilidi açıldı.");
-                }
+                if (isLocked) { showToast("Sistem kilitlendi."); } 
+                else { showToast("Sistem kilidi açıldı."); }
             } catch (err) {
                 showToast("Bağlantı hatası!");
                 e.target.checked = !isLocked; 
             }
         };
 
-        // --- KOMUT ATEŞLEME (ANONS) ---
         document.getElementById('sendGodVoiceBtn').onclick = async function() {
             const msg = document.getElementById('godVoiceInput').value.trim();
-            
             try {
                 const res = await fetch(`${API_BASE}/sistem/anons`, {
                     method: 'POST', 
                     headers: { 
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` // Bilet Gösterimi
+                        'Authorization': `Bearer ${token}` 
                     }, 
                     body: JSON.stringify({ mesaj: msg, zaman: Date.now() })
                 });
 
                 if (checkTokenError(res)) return;
                 
-                if (msg === "") {
-                    showToast("Anons kaldırıldı.");
-                } else {
-                    showToast("Anons yayınlandı.");
-                }
+                if (msg === "") { showToast("Anons kaldırıldı."); } 
+                else { showToast("Anons yayınlandı."); }
             } catch (err) {
                 showToast("Anons yayınlanamadı!");
             }
         };
 
-        // --- MÜŞTERİ YÜKLEME ---
         async function loadCustomers() {
             const tbody = document.getElementById('customerTableBody');
             tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Veriler yükleniyor...</td></tr>';
             
             try {
                 const res = await fetch(`${API_BASE}/users`, {
-                    headers: { 'Authorization': `Bearer ${token}` } // Bilet Gösterimi
+                    headers: { 'Authorization': `Bearer ${token}` } 
                 });
                 
                 if (checkTokenError(res)) return;
@@ -995,31 +990,31 @@
                 for(let data of globalCustomers) {
                     if(data.role === "customer") {
                         total++; 
-                        
-                        if (data.isActive) {
-                            active++;
-                        } else {
-                            passive++;
-                        }
-                        
-                        // Kota gösterim formatı
-                        let kotaMetni = data.ilanKotasi === "sinirsiz" ? "Sınırsız" : dezenfekteEt(data.ilanKotasi);
+                        if (data.isActive) { active++; } else { passive++; }
                         
                         const tr = document.createElement('tr');
-                        // 🔥 TABLOYA KOTA SÜTUNU EKLENDİ 🔥
                         tr.innerHTML = `
                             <td style="color:var(--text-secondary); font-size:11px; white-space:nowrap;">${dezenfekteEt(data.createdDateStr || '-')}</td>
                             <td><span class="badge">${dezenfekteEt(data.passcode)}</span></td>
                             <td id="succ-${data.docId}">-</td>
                             <td style="font-weight:600; white-space:nowrap;">${dezenfekteEt(data.expireDate || '-')}</td>
-                            <td style="font-weight:700; color:var(--success-color);">${kotaMetni}</td>
+                            
+                            <td id="kota-${data.docId}" data-kota="${dezenfekteEt(data.ilanKotasi || 'sinirsiz')}" style="font-weight:700;">
+                                <span style="color:var(--text-secondary); font-size: 11px;">Sayılıyor...</span>
+                            </td>
+
                             <td>
                                 <label class="switch user-toggle">
                                     <input type="checkbox" onchange="toggleStatus('${data.docId}', this.checked)" ${data.isActive ? 'checked' : ''}>
                                     <span class="slider"></span>
                                 </label>
                             </td>
-                            <td><button onclick="openEditModal('${data.docId}')" class="action-btn">Düzenle</button></td>
+                            <td>
+                                <div style="display:flex; gap:5px;">
+                                    <button onclick="openEditModal('${data.docId}')" class="action-btn">Ayar</button>
+                                    <button onclick="deleteCustomer('${data.docId}')" class="action-btn" style="color:var(--danger-color); border-color:var(--danger-color);">Sil</button>
+                                </div>
+                            </td>
                         `;
                         tbody.appendChild(tr);
                         
@@ -1035,28 +1030,68 @@
             }
         }
 
-        // --- BAŞARILI İŞLEM (LOG) İSTATİSTİĞİ ÇEKME ---
+        // 🔥 YENİ: LOG + İLAN KOTASI HESAPLAYICISI 🔥
         async function fetchStats(id) {
             try {
                 const res = await fetch(`${API_BASE}/logs-getir?userId=${id}`, {
-                    headers: { 'Authorization': `Bearer ${token}` } // Bilet Gösterimi
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
 
-                if (checkTokenError(res)) return;
+                if (!checkTokenError(res) && res.ok) {
+                    const logs = await res.json();
+                    const count = logs.filter(function(l) {
+                        return l.aksiyon && (l.aksiyon.includes("BAŞARILI") || l.aksiyon.includes("Dekont"));
+                    }).length;
+                    document.getElementById(`succ-${id}`).innerHTML = `<span class="badge success-badge">${count} İŞLEM</span>`;
+                }
 
-                const logs = await res.json();
+                // Kullanıcının attığı ilanları say ve 5/10 formatında yaz
+                const ilanRes = await fetch(`${API_BASE}/ilanlar-getir?userId=${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
                 
-                const count = logs.filter(function(l) {
-                    return l.aksiyon && (l.aksiyon.includes("BAŞARILI") || l.aksiyon.includes("Dekont"));
-                }).length;
-                
-                document.getElementById(`succ-${id}`).innerHTML = `<span class="badge badge-success">${count} İŞLEM</span>`;
+                if (ilanRes.ok) {
+                    const ilanlar = await ilanRes.json();
+                    const aktifSayi = ilanlar.length;
+                    
+                    const kotaHucresi = document.getElementById(`kota-${id}`);
+                    const maxKota = kotaHucresi.getAttribute("data-kota");
+                    let kotaGosterim = maxKota === "sinirsiz" ? "Sınırsız" : maxKota;
+                    
+                    let renk = (maxKota !== "sinirsiz" && aktifSayi >= parseInt(maxKota)) ? "var(--danger-color)" : "var(--success-color)";
+                    
+                    kotaHucresi.innerHTML = `<span style="color: ${renk}; font-weight: 800; font-size:16px;">${aktifSayi}</span> <span style="color: var(--text-secondary);">/ ${kotaGosterim}</span>`;
+                }
+
             } catch (e) {
                 document.getElementById(`succ-${id}`).innerText = "Hata";
+                document.getElementById(`kota-${id}`).innerText = "Hata";
             }
         }
 
-        // --- ZIPLAMA VE YENİLEME SORUNUNU ÇÖZEN GÜNCELLEME KODU ---
+        // 🔥 YENİ: MÜŞTERİYİ SİSTEMDEN TAMAMEN SİLME 🔥
+        window.deleteCustomer = async function(id) {
+            customConfirm("Bu müşteriyi ve ona ait İlan, Dekont ve Log kayıtlarının TAMAMINI silmek istediğinize emin misiniz? Bu işlem geri alınamaz!", async function() {
+                try {
+                    const res = await fetch(`${API_BASE}/users-komple-sil/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+
+                    if (checkTokenError(res)) return;
+
+                    if(res.ok) {
+                        showToast("Müşteri külleriyle birlikte sistemden kazındı!", "success");
+                        loadCustomers();
+                    } else {
+                        showToast("Silme işlemi sunucu tarafından reddedildi.", "error");
+                    }
+                } catch (err) {
+                    showToast("Sunucuya bağlanırken hata oluştu.", "error");
+                }
+            });
+        };
+
         window.toggleStatus = async function(id, status) {
             try {
                 const res = await fetch(`${API_BASE}/users/guncelle/${id}`, {
@@ -1095,24 +1130,17 @@
             }
         };
 
-        // --- KOTA SEÇİM KUTUSUNU GÖSTER/GİZLE ---
         window.toggleCustomKota = function(value) {
             const ozelKutu = document.getElementById('ozelKotaKutusu');
-            if (value === "ozel") {
-                ozelKutu.style.display = "block";
-            } else {
-                ozelKutu.style.display = "none";
-                document.getElementById('ozelKotaDegeri').value = ""; // Temizle
-            }
+            if (value === "ozel") { ozelKutu.style.display = "block"; } 
+            else { ozelKutu.style.display = "none"; document.getElementById('ozelKotaDegeri').value = ""; }
         }
 
-        // --- YENİ MÜŞTERİ EKLEME (KOTALI) ---
         document.getElementById('addCustomerBtn').onclick = async function() {
             const passcode = document.getElementById('newPasscode').value.trim();
             const durationMonths = parseInt(document.getElementById('subDuration').value);
             const btn = document.getElementById('addCustomerBtn');
             
-            // Kota belirleme mantığı
             const kotaSecimi = document.getElementById('ilanKotasiSelect').value;
             let finalKota = kotaSecimi;
             
@@ -1139,7 +1167,7 @@
                 expireDate: expireDateObj.toLocaleDateString('tr-TR'),
                 createdDateStr: new Date().toLocaleDateString('tr-TR'), 
                 banMessage: "Abonelik süreniz dolmuş veya askıya alınmıştır.",
-                ilanKotasi: finalKota // Seçilen veya yazılan kotayı postala
+                ilanKotasi: finalKota 
             };
 
             try {
@@ -1175,7 +1203,6 @@
             }
         };
 
-        // --- MODAL İŞLEMLERİ (DÜZENLEME) ---
         const modal = document.getElementById("editModal");
         
         document.getElementById("closeEditModal").onclick = function() { 
@@ -1183,9 +1210,8 @@
         };
         
         window.onclick = function(e) { 
-            if (e.target == modal) {
-                modal.style.display = "none"; 
-            }
+            if (e.target == modal) { modal.style.display = "none"; }
+            if (e.target == document.getElementById('confirmModal')) { document.getElementById('confirmModal').style.display = "none"; }
         };
 
         function parseDateString(dateStr) {
@@ -1208,7 +1234,7 @@
             document.getElementById('editPasscode').value = user.passcode;
             document.getElementById('editExpireDate').value = parseDateString(user.expireDate);
             document.getElementById('editBanMessage').value = user.banMessage || "Abonelik süreniz dolmuştur.";
-            document.getElementById('editIlanKotasi').value = user.ilanKotasi || "sinirsiz"; // Mevcut kotayı göster
+            document.getElementById('editIlanKotasi').value = user.ilanKotasi || "sinirsiz"; 
             
             modal.style.display = "flex";
         };
@@ -1217,7 +1243,7 @@
             const id = document.getElementById('editUserId').value;
             const newDateVal = document.getElementById('editExpireDate').value;
             const newBanMsg = document.getElementById('editBanMessage').value.trim();
-            const newKota = document.getElementById('editIlanKotasi').value.trim(); // Kotayı al
+            const newKota = document.getElementById('editIlanKotasi').value.trim(); 
             const btn = document.getElementById('saveEditBtn');
 
             if(!newDateVal) {
@@ -1241,7 +1267,7 @@
                     body: JSON.stringify({ 
                         expireDate: formattedDate, 
                         banMessage: newBanMsg,
-                        ilanKotasi: newKota // Kotayı güncelle
+                        ilanKotasi: newKota 
                     })
                 });
 
@@ -1258,7 +1284,6 @@
             }
         };
 
-        // --- SAYFA BAŞLATMA ---
         loadSystemStatus();
         loadCustomers();
     </script>
