@@ -445,4 +445,4 @@ app.get('/', async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Santral ${PORT} portunda aktif!`));
 
-module.exports = app;
+module.exports = app; 
