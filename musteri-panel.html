@@ -1891,14 +1891,49 @@
         const dinamikOzelliklerAlani = document.getElementById("dinamikOzelliklerAlani"); 
         let secilenResimler = []; 
         
-        document.getElementById("yeniIlanBtn").addEventListener('click', function() { 
-            document.getElementById("ilanForm").reset(); 
-            document.getElementById("editIlanId").value = ""; 
-            document.getElementById("modalBaslik").innerText = "Yeni İlan Oluştur"; 
-            dinamikOzelliklerAlani.innerHTML = ''; 
-            document.getElementById("resimOnizleme").innerHTML = ''; 
-            secilenResimler = []; 
-            modal.style.display = "block"; 
+        // 🔥 YENİ: KOTA KONTROLLÜ İLAN EKLEME BUTONU 🔥
+        document.getElementById("yeniIlanBtn").addEventListener('click', async function() { 
+            const btn = document.getElementById("yeniIlanBtn");
+            const orjinalMetin = btn.innerText;
+            
+            // Butona basıldığında yükleniyor animasyonu ver
+            btn.innerText = "Kota Kontrol Ediliyor...";
+            btn.disabled = true;
+
+            try {
+                // Vercel'e bağlanıp adamın kotasını soruyoruz
+                const profilCevap = await fetch(`${API_BASE}/profilim`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (checkTokenError(profilCevap)) return;
+
+                const profilData = await profilCevap.json();
+                const kota = profilData.ilanKotasi || "sinirsiz";
+
+                // Eğer kota "sınırsız" değilse ve adamın içerideki ilanı kotasına ulaştıysa tokadı bas!
+                if (kota !== "sinirsiz" && globalIlanlar.length >= parseInt(kota)) {
+                    showToast(`Paket limitinize (${kota} İlan) ulaştınız! Yeni ilan için limitinizi yükseltin veya eskileri silin.`, "error", "KOTA DOLDU");
+                    btn.innerText = orjinalMetin;
+                    btn.disabled = false;
+                    return; // Modalı ASLA açma, işlemi bitir.
+                }
+
+                // Adam temiz çıktı, formu aç.
+                document.getElementById("ilanForm").reset(); 
+                document.getElementById("editIlanId").value = ""; 
+                document.getElementById("modalBaslik").innerText = "Yeni İlan Oluştur"; 
+                dinamikOzelliklerAlani.innerHTML = ''; 
+                document.getElementById("resimOnizleme").innerHTML = ''; 
+                secilenResimler = []; 
+                modal.style.display = "block"; 
+
+            } catch (error) {
+                showToast("Sistem kontrolü yapılamadı, bağlantınızı kontrol edin.", "error");
+            } finally {
+                btn.innerText = orjinalMetin;
+                btn.disabled = false;
+            }
         });
 
         document.getElementById("closeModalBtn").addEventListener('click', function() { 
@@ -2106,17 +2141,6 @@
                         body: JSON.stringify(ilanData) 
                     });
                     
-                    // 🔥 KOTA DOLDUYSA ŞUTLAMA, SADECE UYARI VER 🔥
-                    if (res.status === 403) {
-                        const errData = await res.json();
-                        if (errData.hata && errData.hata.includes("limit")) {
-                            showToast(errData.hata, "error", "KOTA DOLDU");
-                            btn.textContent = "İlanı Kaydet"; 
-                            btn.disabled = false;
-                            return;
-                        }
-                    }
-
                     if (checkTokenError(res)) return;
                     
                     showToast("Yeni ilan başarıyla oluşturuldu!", "success");
