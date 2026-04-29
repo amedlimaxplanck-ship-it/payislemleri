@@ -170,7 +170,6 @@
             box-shadow: 0 4px 10px rgba(220,53,69,0.3); 
         }
         
-        /* --- YENİ SABİT ANONUS BARI (DETAYLI MEGAFON) --- */
         #god-announcement-static { 
             display: none; 
             align-items: center; 
@@ -676,20 +675,23 @@
             box-shadow: 0 0 0 3px var(--primary-glow); 
         }
         
+        /* 🔥 X BUTONU VE DİNAMİK ÖZELLİK ESTETİK AYARI YENİLENDİ 🔥 */
         .ozellik-row { 
             display: flex; 
             gap: 10px; 
             margin-bottom: 12px; 
+            align-items: center; /* Kutuları dikeyde hizalar */
         }
 
         .ozellik-row input { 
             flex: 1; 
-            padding: 10px 15px; 
+            padding: 12px 15px; /* Ana inputlarla aynı yükseklik */
             border: 1px solid var(--border-color); 
             background: var(--input-bg); 
             color: var(--text-main); 
-            border-radius: 6px; 
+            border-radius: 8px; 
             transition: border-color 0.2s; 
+            min-width: 0; /* Mobilde taşmayı önleyen hayati kod */
         }
 
         .ozellik-row input:focus { 
@@ -700,11 +702,17 @@
             background: rgba(239, 68, 68, 0.1); 
             color: #ef4444; 
             border: 1px solid rgba(239, 68, 68, 0.3); 
-            padding: 0 15px; 
-            border-radius: 6px; 
+            width: 44px; /* Sabit Genişlik */
+            height: 44px; /* Sabit Yükseklik */
+            border-radius: 8px; 
             cursor: pointer; 
             font-weight: bold; 
             transition: all 0.2s; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0; /* Ekran daralsa bile bu butonu KESİNLİKLE küçültme/ezme */
+            padding: 0; /* Gereksiz iç boşlukları sildik */
         }
 
         .ozellik-sil:hover { 
@@ -1378,16 +1386,6 @@
                     </div>
                     
                     <div class="form-group">
-                        <label>Ürün Kategorisi</label>
-                        <select id="kategori">
-                            <option value="Elektronik">Elektronik</option>
-                            <option value="Giyim">Giyim</option>
-                            <option value="Vasita">Vasıta</option>
-                            <option value="Emlak">Emlak</option>
-                            <option value="Diger">Diğer</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
                         <label>Kategori Ağacı (Örn: Elektronik > Telefon > Apple)</label>
                         <input type="text" id="kategoriAgaci">
                     </div>
@@ -1891,17 +1889,14 @@
         const dinamikOzelliklerAlani = document.getElementById("dinamikOzelliklerAlani"); 
         let secilenResimler = []; 
         
-        // 🔥 YENİ: KOTA KONTROLLÜ İLAN EKLEME BUTONU 🔥
         document.getElementById("yeniIlanBtn").addEventListener('click', async function() { 
             const btn = document.getElementById("yeniIlanBtn");
             const orjinalMetin = btn.innerText;
             
-            // Butona basıldığında yükleniyor animasyonu ver
             btn.innerText = "Kota Kontrol Ediliyor...";
             btn.disabled = true;
 
             try {
-                // Vercel'e bağlanıp adamın kotasını soruyoruz
                 const profilCevap = await fetch(`${API_BASE}/profilim`, {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
@@ -1911,15 +1906,13 @@
                 const profilData = await profilCevap.json();
                 const kota = profilData.ilanKotasi || "sinirsiz";
 
-                // Eğer kota "sınırsız" değilse ve adamın içerideki ilanı kotasına ulaştıysa tokadı bas!
                 if (kota !== "sinirsiz" && globalIlanlar.length >= parseInt(kota)) {
                     showToast(`Paket limitinize (${kota} İlan) ulaştınız! Yeni ilan için limitinizi yükseltin veya eskileri silin.`, "error", "KOTA DOLDU");
                     btn.innerText = orjinalMetin;
                     btn.disabled = false;
-                    return; // Modalı ASLA açma, işlemi bitir.
+                    return; 
                 }
 
-                // Adam temiz çıktı, formu aç.
                 document.getElementById("ilanForm").reset(); 
                 document.getElementById("editIlanId").value = ""; 
                 document.getElementById("modalBaslik").innerText = "Yeni İlan Oluştur"; 
@@ -1978,7 +1971,7 @@
             document.getElementById("saticiAdi").value = data.saticiAdi; 
             document.getElementById("saticiTel").value = data.saticiTel; 
             document.getElementById("sehir").value = data.sehir; 
-            document.getElementById("kategori").value = data.kategori || "Elektronik"; 
+            // 🔥 JS KATEGORİ ÇEKİMİ SİLİNDİ 🔥
             document.getElementById("kategoriAgaci").value = data.kategoriAgaci || ""; 
             document.getElementById("fiyat").value = data.fiyat; 
             document.getElementById("hesapTarihi").value = data.hesapTarihi || ""; 
@@ -2074,7 +2067,7 @@
                 saticiAdi: document.getElementById("saticiAdi").value.trim(), 
                 saticiTel: document.getElementById("saticiTel").value.trim(),
                 sehir: document.getElementById("sehir").value.trim(), 
-                kategori: document.getElementById("kategori").value, 
+                // 🔥 JS KATEGORİ GÖNDERİMİ SİLİNDİ 🔥
                 kategoriAgaci: document.getElementById("kategoriAgaci").value.trim(),
                 fiyat: parseFloat(document.getElementById("fiyat").value), 
                 toplamFiyat: parseFloat(document.getElementById("fiyat").value) * 1.05, 
@@ -2141,6 +2134,16 @@
                         body: JSON.stringify(ilanData) 
                     });
                     
+                    if (res.status === 403) {
+                        const errData = await res.json();
+                        if (errData.hata && errData.hata.includes("limit")) {
+                            showToast(errData.hata, "error", "KOTA DOLDU");
+                            btn.textContent = "İlanı Kaydet"; 
+                            btn.disabled = false;
+                            return;
+                        }
+                    }
+
                     if (checkTokenError(res)) return;
                     
                     showToast("Yeni ilan başarıyla oluşturuldu!", "success");
