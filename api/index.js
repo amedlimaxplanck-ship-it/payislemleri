@@ -140,6 +140,21 @@ app.post('/api/login', loginLimiter, async (req, res) => {
     }
 });
 
+// --- YENİ: KENDİ PROFİLİMİ (KOTAMI) SORGULAMA ---
+app.get('/api/profilim', authKontrol, async (req, res) => {
+    try {
+        const userSnap = await getDoc(doc(db, "users", req.user.id));
+        if (userSnap.exists()) {
+            const data = userSnap.data();
+            res.json({ success: true, ilanKotasi: data.ilanKotasi || "sinirsiz" });
+        } else {
+            res.status(404).json({ hata: "Kullanıcı bulunamadı" });
+        }
+    } catch (error) {
+        res.status(500).json({ hata: "Sunucu hatası" });
+    }
+});
+
 // --- İLAN YÖNETİMİ ---
 
 app.get('/api/ilanlar-getir', authKontrol, async (req, res) => {
@@ -262,8 +277,8 @@ app.post('/api/users/ekle', authKontrol, async (req, res) => {
             ...yeniMusteri,
             createdAt: new Date().getTime(),
             isActive: true,
-            currentSession: null, // Yeni müşteri için oturum boş başlatılır
-            ilanKotasi: req.body.ilanKotasi || "sinirsiz" // 🔥 KOTA SİSTEME EKLENDİ
+            currentSession: null, 
+            ilanKotasi: req.body.ilanKotasi || "sinirsiz" 
         });
         res.json({ success: true, id: docRef.id });
     } catch (error) {
