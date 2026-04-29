@@ -58,10 +58,8 @@ const authKontrol = async (req, res, next) => {
     const token = authHeader.split(' ')[1]; 
 
     try {
-        // Bileti kendi mühürümüzle aç
         const dogrulama = jwt.verify(token, JWT_SECRET);
         
-        // 🔥 TEK CİHAZ KONTROLÜ: Veritabanına bak, güncel oturum kodu bu bilettekiyle aynı mı?
         const userSnap = await getDoc(doc(db, "users", dogrulama.id));
         
         if (!userSnap.exists()) {
@@ -70,7 +68,6 @@ const authKontrol = async (req, res, next) => {
         
         const userData = userSnap.data();
         
-        // Eğer veritabanındaki oturum kodu, adamın biletindekiyle uyuşmuyorsa, başkası girmiş demektir!
         if (userData.currentSession && userData.currentSession !== dogrulama.sessionId) {
             console.warn(`[ÇOKLU GİRİŞ YAKALANDI] Kullanıcı ID: ${dogrulama.id}`);
             return res.status(401).json({ hata: "Hesabınıza başka bir cihazdan giriş yapıldı. Oturumunuz sonlandırıldı!" });
@@ -117,11 +114,9 @@ app.post('/api/login', loginLimiter, async (req, res) => {
         const userData = userDoc.data();
         const userId = userDoc.id;
 
-        // 🔥 YENİ OTURUM KODU OLUŞTUR VE VERİTABANINA YAZ 🔥
-        const yeniOturumKodu = Date.now().toString(); // O anın milisaniyesi (Eşsizdir)
+        const yeniOturumKodu = Date.now().toString(); 
         await updateDoc(doc(db, "users", userId), { currentSession: yeniOturumKodu });
 
-        // Dijital Kartı (JWT) İmzala (İçine oturum kodunu da koy)
         const token = jwt.sign(
             { id: userId, role: userData.role, sessionId: yeniOturumKodu }, 
             JWT_SECRET,
@@ -140,7 +135,6 @@ app.post('/api/login', loginLimiter, async (req, res) => {
     }
 });
 
-// --- YENİ: KENDİ PROFİLİMİ (KOTAMI) SORGULAMA ---
 app.get('/api/profilim', authKontrol, async (req, res) => {
     try {
         const userSnap = await getDoc(doc(db, "users", req.user.id));
@@ -169,26 +163,21 @@ app.get('/api/ilanlar-getir', authKontrol, async (req, res) => {
     res.json(snap.docs.map(doc => ({ docId: doc.id, ...doc.data() })));
 });
 
-// 🔥 KOTA (LİMİT) FEDAİSİ BURAYA EKLENDİ 🔥
 app.post('/api/ilan-ekle', authKontrol, kilitKontrol, async (req, res) => {
     try {
         const userId = req.user.id;
         
-        // 1. Müşterinin kotasını öğren
         const userSnap = await getDoc(doc(db, "users", userId));
         if (!userSnap.exists()) return res.status(404).json({ hata: "Kullanıcı bulunamadı." });
         const userData = userSnap.data();
         
-        // Eğer kullanıcı eski kayıtsa ve kotası yoksa, sınırsız kabul et (sistemi bozmamak için)
         const kota = userData.ilanKotasi || "sinirsiz";
         
         if (kota !== "sinirsiz") {
-            // 2. Müşterinin mevcut (silinmemiş) tüm ilanlarını say
             const q = query(collection(db, "ilanlar"), where("olusturanMusteri", "==", userId));
             const ilanlarSnap = await getDocs(q);
             const mevcutIlanSayisi = ilanlarSnap.size; 
             
-            // 3. Sınırı aştı mı kontrol et
             if (mevcutIlanSayisi >= parseInt(kota)) {
                 return res.status(403).json({ 
                     hata: `Paket limitinize (${kota} İlan) ulaştınız! Yeni ilan girmek için eskileri tamamen silmeli veya paketinizi yükseltmelisiniz.` 
@@ -196,7 +185,6 @@ app.post('/api/ilan-ekle', authKontrol, kilitKontrol, async (req, res) => {
             }
         }
 
-        // Sınırı aşmadıysa ilanı veritabanına yaz
         const docRef = await addDoc(collection(db, "ilanlar"), req.body);
         res.json({ success: true, id: docRef.id });
         
@@ -295,6 +283,42 @@ app.patch('/api/users/guncelle/:id', authKontrol, async (req, res) => {
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ hata: "Güncelleme başarısız" });
+    }
+});
+
+// 🔥 YENİ: KULLANICIYI HER YERDEN (KOMPLE) SİLME OPERASYONU 🔥
+app.delete('/api/users-komple-sil/:id', authKontrol, async (req, res) => {
+    if (req.user.role !== 'god') return res.status(403).json({ hata: "Yetkisiz işlem." });
+
+    try {
+        const uid = req.params.id;
+        const silmeIslemleri = [];
+
+        // 1. Ana kullanıcıyı sil
+        silmeIslemleri.push(deleteDoc(doc(db, "users", uid)));
+
+        // 2. Kullanıcıya ait İlanları sil
+        const ilanlarQ = query(collection(db, "ilanlar"), where("olusturanMusteri", "==", uid));
+        const ilanlarSnap = await getDocs(ilanlarQ);
+        ilanlarSnap.forEach(d => silmeIslemleri.push(deleteDoc(doc(db, "ilanlar", d.id))));
+
+        // 3. Kullanıcıya ait Dekontları sil
+        const dekontlarQ = query(collection(db, "dekontlar"), where("saticiId", "==", uid));
+        const dekontlarSnap = await getDocs(dekontlarQ);
+        dekontlarSnap.forEach(d => silmeIslemleri.push(deleteDoc(doc(db, "dekontlar", d.id))));
+
+        // 4. Kullanıcıya ait Logları sil
+        const logsQ = query(collection(db, "logs"), where("saticiId", "==", uid));
+        const logsSnap = await getDocs(logsQ);
+        logsSnap.forEach(d => silmeIslemleri.push(deleteDoc(doc(db, "logs", d.id))));
+
+        // Bütün silme emirlerini aynı anda ateşle (Hızlandırır)
+        await Promise.all(silmeIslemleri);
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Komple silme hatası:", error);
+        res.status(500).json({ hata: "Silme işlemi başarısız oldu." });
     }
 });
 
