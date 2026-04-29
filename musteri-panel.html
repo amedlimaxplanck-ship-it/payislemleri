@@ -170,6 +170,7 @@
             box-shadow: 0 4px 10px rgba(220,53,69,0.3); 
         }
         
+        /* --- YENİ SABİT ANONUS BARI (DETAYLI MEGAFON) --- */
         #god-announcement-static { 
             display: none; 
             align-items: center; 
@@ -675,23 +676,22 @@
             box-shadow: 0 0 0 3px var(--primary-glow); 
         }
         
-        /* 🔥 X BUTONU VE DİNAMİK ÖZELLİK ESTETİK AYARI YENİLENDİ 🔥 */
         .ozellik-row { 
             display: flex; 
             gap: 10px; 
             margin-bottom: 12px; 
-            align-items: center; /* Kutuları dikeyde hizalar */
+            align-items: center; 
         }
 
         .ozellik-row input { 
             flex: 1; 
-            padding: 12px 15px; /* Ana inputlarla aynı yükseklik */
+            padding: 12px 15px; 
             border: 1px solid var(--border-color); 
             background: var(--input-bg); 
             color: var(--text-main); 
             border-radius: 8px; 
             transition: border-color 0.2s; 
-            min-width: 0; /* Mobilde taşmayı önleyen hayati kod */
+            min-width: 0; 
         }
 
         .ozellik-row input:focus { 
@@ -702,8 +702,8 @@
             background: rgba(239, 68, 68, 0.1); 
             color: #ef4444; 
             border: 1px solid rgba(239, 68, 68, 0.3); 
-            width: 44px; /* Sabit Genişlik */
-            height: 44px; /* Sabit Yükseklik */
+            width: 44px; 
+            height: 44px; 
             border-radius: 8px; 
             cursor: pointer; 
             font-weight: bold; 
@@ -711,8 +711,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0; /* Ekran daralsa bile bu butonu KESİNLİKLE küçültme/ezme */
-            padding: 0; /* Gereksiz iç boşlukları sildik */
+            flex-shrink: 0; 
+            padding: 0; 
         }
 
         .ozellik-sil:hover { 
@@ -1369,7 +1369,7 @@
                 
                 <div class="form-grid">
                     <div class="form-group">
-                        <label>Ürün / İlan Adı</label>
+                        <label>İlan Başlığı</label>
                         <input type="text" id="urunAdi" required>
                     </div>
                     <div class="form-group">
@@ -1381,8 +1381,8 @@
                         <input type="tel" id="saticiTel" required>
                     </div>
                     <div class="form-group">
-                        <label>Ürün Şehri</label>
-                        <input type="text" id="sehir" required>
+                        <label>Ürün Şehri (Örn: Mersin, Tarsus)</label>
+                        <input type="text" id="sehir" placeholder="Örn: Mersin, Tarsus" required>
                     </div>
                     
                     <div class="form-group">
@@ -1971,7 +1971,6 @@
             document.getElementById("saticiAdi").value = data.saticiAdi; 
             document.getElementById("saticiTel").value = data.saticiTel; 
             document.getElementById("sehir").value = data.sehir; 
-            // 🔥 JS KATEGORİ ÇEKİMİ SİLİNDİ 🔥
             document.getElementById("kategoriAgaci").value = data.kategoriAgaci || ""; 
             document.getElementById("fiyat").value = data.fiyat; 
             document.getElementById("hesapTarihi").value = data.hesapTarihi || ""; 
@@ -2067,7 +2066,6 @@
                 saticiAdi: document.getElementById("saticiAdi").value.trim(), 
                 saticiTel: document.getElementById("saticiTel").value.trim(),
                 sehir: document.getElementById("sehir").value.trim(), 
-                // 🔥 JS KATEGORİ GÖNDERİMİ SİLİNDİ 🔥
                 kategoriAgaci: document.getElementById("kategoriAgaci").value.trim(),
                 fiyat: parseFloat(document.getElementById("fiyat").value), 
                 toplamFiyat: parseFloat(document.getElementById("fiyat").value) * 1.05, 
