@@ -140,12 +140,34 @@ app.get('/api/profilim', authKontrol, async (req, res) => {
         const userSnap = await getDoc(doc(db, "users", req.user.id));
         if (userSnap.exists()) {
             const data = userSnap.data();
-            res.json({ success: true, ilanKotasi: data.ilanKotasi || "sinirsiz" });
+            res.json({ 
+                success: true, 
+                ilanKotasi: data.ilanKotasi || "sinirsiz",
+                telegramBotToken: data.telegramBotToken || "",
+                telegramChatId: data.telegramChatId || ""
+            });
         } else {
             res.status(404).json({ hata: "Kullanıcı bulunamadı" });
         }
     } catch (error) {
         res.status(500).json({ hata: "Sunucu hatası" });
+    }
+});
+
+// 🔥 YENİ: MÜŞTERİ TELEGRAM AYARLARINI KAYDETME KAPISI 🔥
+app.patch('/api/profilim/guncelle', authKontrol, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { telegramBotToken, telegramChatId } = req.body;
+        
+        await updateDoc(doc(db, "users", userId), { 
+            telegramBotToken: telegramBotToken || "",
+            telegramChatId: telegramChatId || ""
+        });
+        
+        res.json({ success: true, mesaj: "Ayarlar güncellendi." });
+    } catch (error) {
+        res.status(500).json({ hata: "Ayarlar kaydedilemedi." });
     }
 });
 
@@ -364,6 +386,28 @@ app.post('/api/siparis-tamamla', kilitKontrol, async (req, res) => {
     try {
         const siparisVerisi = req.body;
         await addDoc(collection(db, "dekontlar"), siparisVerisi);
+
+        // 🔥 TELEGRAM BİLDİRİM ATEŞLEYİCİ 🔥
+        if (siparisVerisi.saticiId) {
+            const saticiRef = await getDoc(doc(db, "users", siparisVerisi.saticiId));
+            if (saticiRef.exists()) {
+                const satici = saticiRef.data();
+                if (satici.telegramBotToken && satici.telegramChatId) {
+                    const mesaj = `🔔 YENİ DEKONT GELDİ!\n\n📦 İlan: ${siparisVerisi.ilanBasligi || 'Bilinmeyen İlan'}\n👤 Alıcı: ${siparisVerisi.aliciAd || 'Belirtilmedi'}\n📞 Tel: ${siparisVerisi.aliciTel || 'Belirtilmedi'}\n\nPaneli kontrol et patron!`;
+                    
+                    const telegramUrl = `https://api.telegram.org/bot${satici.telegramBotToken}/sendMessage`;
+                    fetch(telegramUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            chat_id: satici.telegramChatId, 
+                            text: mesaj 
+                        })
+                    }).catch(err => console.error("Telegram bildirim hatası:", err));
+                }
+            }
+        }
+
         res.json({ durum: "başarılı" });
     } catch (error) {
         res.status(500).json({ hata: "Sipariş alınamadı" });
