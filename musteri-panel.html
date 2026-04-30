@@ -1349,17 +1349,34 @@
 
     <div id="ayarlar" class="tab-content">
         <h2 style="margin-bottom: 15px; font-size: 18px; color: var(--text-main); border-bottom: 2px solid #007bff; padding-bottom: 10px; display: inline-block;">Telegram Bildirim Ayarları</h2>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
-            Müşterileriniz satın alım yaptığında anında bildirim almak için <strong>@BotFather</strong> üzerinden oluşturduğunuz botun Token bilgisini ve kendi <strong>Chat ID</strong> bilginizi giriniz.
-        </p>
         
+        <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); padding: 20px; border-radius: 12px; margin-bottom: 25px;">
+            <h3 style="color: #3b82f6; font-size: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; font-weight: 800;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                Nasıl Alınır? (Hızlı Rehber)
+            </h3>
+            
+            <div style="margin-bottom: 15px;">
+                <strong style="color: var(--text-main); font-size: 14px;">1. Bot Token Alma:</strong>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 5px; line-height: 1.6;">
+                    Telegram'da arama kısmına <b>@BotFather</b> yazın ve başlatın. Sırasıyla <code style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px; color: #ef4444;">/newbot</code> yazın, botunuza bir isim ve kullanıcı adı verin. BotFather size <code style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px;">1234567890:ABCdef...</code> şeklinde bir Token verecektir. Onu kopyalayıp aşağıdaki ilk kutuya yapıştırın.
+                </p>
+            </div>
+
+            <div>
+                <strong style="color: var(--text-main); font-size: 14px;">2. Chat ID Alma:</strong>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 5px; line-height: 1.6;">
+                    Telegram'da arama kısmına <b>@RawDataBot</b> yazın ve başlatın. Bot size anında uzun bir mesaj atacaktır. O mesajın içindeki <code style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px; color: #10b981;">"id": 123456789</code> kısmındaki numarayı (sadece rakamları) kopyalayıp aşağıdaki ikinci kutuya yapıştırın.
+                </p>
+            </div>
+        </div>
         <div class="form-grid" style="max-width: 600px;">
             <div class="form-group">
                 <label>Telegram Bot Token</label>
                 <input type="text" id="tgBotToken" placeholder="Örn: 123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11">
             </div>
             <div class="form-group">
-                <label>Telegram Chat ID (@userinfobot'tan öğrenebilirsiniz)</label>
+                <label>Telegram Chat ID</label>
                 <input type="text" id="tgChatId" placeholder="Örn: 123456789">
             </div>
         </div>
@@ -2242,12 +2259,29 @@
         // Sayfa açıldığında ayarları da çek
         loadProfilAyarlari();
 
-        // --- TELEGRAM AYARLARINI KAYDET ---
+        // --- TELEGRAM AYARLARINI KAYDET VE DOĞRULA ---
         document.getElementById('tgKaydetBtn').addEventListener('click', async function() {
             const botToken = document.getElementById('tgBotToken').value.trim();
             const chatId = document.getElementById('tgChatId').value.trim();
-            const btn = this;
             
+            // 🔥 FRONTEND REGEX TOKADI 🔥
+            if (botToken !== "") {
+                const tokenRegex = /^\d{8,12}:[\w-]{35}$/;
+                if (!tokenRegex.test(botToken)) {
+                    showToast("Geçersiz Token! Format hatalı (Örn: 123456789:ABC...)", "error");
+                    return; // İsteği durdur
+                }
+            }
+            
+            if (chatId !== "") {
+                const chatRegex = /^-?\d{7,15}$/;
+                if (!chatRegex.test(chatId)) {
+                    showToast("Geçersiz Chat ID! Sadece rakam giriniz.", "error");
+                    return; // İsteği durdur
+                }
+            }
+
+            const btn = this;
             btn.disabled = true;
             btn.innerText = "Kaydediliyor...";
 
@@ -2264,6 +2298,13 @@
                     })
                 });
                 
+                // Backend'den gelen 400 (Bad Request) hatasını yakala
+                if (res.status === 400) {
+                    const errorData = await res.json();
+                    showToast(errorData.hata, "error");
+                    return;
+                }
+
                 if (checkTokenError(res)) return;
                 
                 showToast("Telegram bildirim ayarları başarıyla kaydedildi!", "success");
