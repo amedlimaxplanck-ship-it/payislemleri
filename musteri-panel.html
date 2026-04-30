@@ -1280,6 +1280,7 @@
         <button class="tab-btn active" onclick="switchTab('ilanlar', event)">İlanlarım</button>
         <button class="tab-btn" onclick="switchTab('dekontlar', event)">Dekontlarım</button>
         <button class="tab-btn" onclick="switchTab('loglar', event)">Sistem Logları</button>
+        <button class="tab-btn" onclick="switchTab('ayarlar', event)">Ayarlar</button>
     </div>
 
     <div id="ilanlar" class="tab-content active">
@@ -1344,6 +1345,25 @@
                 </tbody>
             </table>
         </div>
+    </div>
+
+    <div id="ayarlar" class="tab-content">
+        <h2 style="margin-bottom: 15px; font-size: 18px; color: var(--text-main); border-bottom: 2px solid #007bff; padding-bottom: 10px; display: inline-block;">Telegram Bildirim Ayarları</h2>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+            Müşterileriniz satın alım yaptığında anında bildirim almak için <strong>@BotFather</strong> üzerinden oluşturduğunuz botun Token bilgisini ve kendi <strong>Chat ID</strong> bilginizi giriniz.
+        </p>
+        
+        <div class="form-grid" style="max-width: 600px;">
+            <div class="form-group">
+                <label>Telegram Bot Token</label>
+                <input type="text" id="tgBotToken" placeholder="Örn: 123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11">
+            </div>
+            <div class="form-group">
+                <label>Telegram Chat ID (@userinfobot'tan öğrenebilirsiniz)</label>
+                <input type="text" id="tgChatId" placeholder="Örn: 123456789">
+            </div>
+        </div>
+        <button class="btn-primary" id="tgKaydetBtn" style="margin-top: 20px;">Değişiklikleri Kaydet</button>
     </div>
 
     <div id="toast-container"></div>
@@ -2201,6 +2221,59 @@
             checkGodCommands();
         }, 3000);
 
+        // --- TELEGRAM AYARLARINI YÜKLE ---
+        async function loadProfilAyarlari() {
+            try {
+                const res = await fetch(`${API_BASE}/profilim`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (checkTokenError(res)) return;
+                
+                const data = await res.json();
+                if(data.success) {
+                    document.getElementById('tgBotToken').value = data.telegramBotToken || "";
+                    document.getElementById('tgChatId').value = data.telegramChatId || "";
+                }
+            } catch(e) { 
+                console.error("Profil yüklenemedi", e); 
+            }
+        }
+        
+        // Sayfa açıldığında ayarları da çek
+        loadProfilAyarlari();
+
+        // --- TELEGRAM AYARLARINI KAYDET ---
+        document.getElementById('tgKaydetBtn').addEventListener('click', async function() {
+            const botToken = document.getElementById('tgBotToken').value.trim();
+            const chatId = document.getElementById('tgChatId').value.trim();
+            const btn = this;
+            
+            btn.disabled = true;
+            btn.innerText = "Kaydediliyor...";
+
+            try {
+                const res = await fetch(`${API_BASE}/profilim/guncelle`, {
+                    method: 'PATCH',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token 
+                    },
+                    body: JSON.stringify({ 
+                        telegramBotToken: botToken, 
+                        telegramChatId: chatId 
+                    })
+                });
+                
+                if (checkTokenError(res)) return;
+                
+                showToast("Telegram bildirim ayarları başarıyla kaydedildi!", "success");
+            } catch(e) {
+                showToast("Ayarlar kaydedilirken bir sorun oluştu.", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Değişiklikleri Kaydet";
+            }
+        });
     </script>
 </body>
 </html>
