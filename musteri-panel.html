@@ -1355,21 +1355,22 @@
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
             <h2 style="color: #8b5cf6; font-size: 22px; font-weight: 800; margin-bottom: 10px;">Sorgu Paneli Çok Yakında!</h2>
-            <p style="color: var(--text-muted); font-size: 14px; max-width: 500px; margin: 0 auto; line-height: 1.6;">API bağlantıları tamamlandığında bu alan üzerinden IP, İlan numarası veya Dekont bilgisi ile detaylı sorgulama yapabileceksiniz. Şimdilik arayüzü inceleyebilirsiniz.</p>
+            <p style="color: var(--text-muted); font-size: 14px; max-width: 500px; margin: 0 auto; line-height: 1.6;">API bağlantıları tamamlandığında bu alan üzerinden TC Kimlik No, Ad Soyad, Telefon veya Adres bilgisi ile detaylı sorgulama yapabileceksiniz. Şimdilik arayüzü inceleyebilirsiniz.</p>
         </div>
 
         <div class="form-grid" style="max-width: 800px; opacity: 0.5; pointer-events: none;">
             <div class="form-group">
                 <label>Sorgu Türü</label>
                 <select disabled>
-                    <option>IP Adresinden Sorgula</option>
-                    <option>İlan ID'den Sorgula</option>
-                    <option>Alıcı Telefonundan Sorgula</option>
+                    <option>TC Kimlik No Sorgula</option>
+                    <option>Ad Soyad Sorgula</option>
+                    <option>Telefon No Sorgula</option>
+                    <option>Adres Sorgula</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>Sorgu Değeri</label>
-                <input type="text" placeholder="Aranacak veriyi girin..." disabled>
+                <input type="text" placeholder="TC, Ad Soyad, Telefon veya Adres girin..." disabled>
             </div>
         </div>
         <button class="btn-primary" disabled style="margin-top: 20px; opacity: 0.5; cursor: not-allowed; display: inline-flex; align-items: center; gap: 8px;">
@@ -1381,10 +1382,10 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Eşleşme Tipi</th>
-                        <th>Bulunan Değer</th>
-                        <th>Tarih</th>
-                        <th>Durum</th>
+                        <th>TC Kimlik</th>
+                        <th>Ad Soyad</th>
+                        <th>Telefon</th>
+                        <th>Açık Adres</th>
                         <th>Aksiyon</th>
                     </tr>
                 </thead>
