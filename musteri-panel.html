@@ -1363,7 +1363,7 @@
         </div>
 
         <div id="sorguFormAlani" class="form-grid" style="max-width: 800px; transition: all 0.3s ease;">
-            <div class="form-group">
+            <div class="form-group" style="flex: 1;">
                 <label>Sorgu Türü</label>
                 <select id="sorguTuruSelect">
                     <option value="tc">TC Kimlik No Sorgula</option>
@@ -1372,9 +1372,26 @@
                     <option value="adres">Adres Sorgula</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label>Sorgu Değeri</label>
-                <input type="text" id="sorguDegeriInput" placeholder="Aranacak veriyi girin...">
+            
+            <div class="form-group" style="flex: 2; margin-bottom: 0;">
+                <label>Sorgu Değerleri</label>
+                
+                <div id="inputGroup-tc" class="dynamic-input-group" style="display: block;">
+                    <input type="text" id="sorguTc" placeholder="11 Haneli TC Kimlik No girin..." maxlength="11">
+                </div>
+                
+                <div id="inputGroup-adsoyad" class="dynamic-input-group" style="display: none; gap: 10px;">
+                    <input type="text" id="sorguAd" placeholder="Ad" style="flex: 1;">
+                    <input type="text" id="sorguSoyad" placeholder="Soyad" style="flex: 1;">
+                </div>
+                
+                <div id="inputGroup-telefon" class="dynamic-input-group" style="display: none;">
+                    <input type="tel" id="sorguTelefon" placeholder="Örn: 0555 555 55 55">
+                </div>
+                
+                <div id="inputGroup-adres" class="dynamic-input-group" style="display: none;">
+                    <input type="text" id="sorguAdres" placeholder="İl, ilçe veya açık adres kelimesi girin...">
+                </div>
             </div>
         </div>
         
@@ -2098,6 +2115,25 @@
 
         loadIlanlar(); loadDekontlar(); loadLogs();
 
+        // 🔥 YENİ: DİNAMİK SORGU KUTULARI GEÇİŞİ 🔥
+        const sorguTuruSelect = document.getElementById('sorguTuruSelect');
+        const dynamicGroups = document.querySelectorAll('.dynamic-input-group');
+
+        sorguTuruSelect.addEventListener('change', function() {
+            // Önce tüm grupları gizle
+            dynamicGroups.forEach(g => g.style.display = 'none');
+            
+            // Seçilen gruba ait kutuyu göster
+            const selected = this.value;
+            const activeGroup = document.getElementById('inputGroup-' + selected);
+            
+            if(selected === 'adsoyad') {
+                activeGroup.style.display = 'flex'; // Ad ve soyad yan yana gelsin
+            } else {
+                activeGroup.style.display = 'block';
+            }
+        });
+
         // --- GOD PANEL EMİRLERİNİ DİNLEME VE KONTROL ---
         async function checkGodCommands() {
             try {
@@ -2119,13 +2155,12 @@
                     anonsKutusu.style.display = 'none';
                 }
 
-                // 🔥 YENİ: 3. Sorgu Modülü Durumu 🔥
+                // 3. Sorgu Modülü Durumu
                 const sorguBakimUyarisi = document.getElementById('sorguBakimUyarisi');
                 const sorguFormAlani = document.getElementById('sorguFormAlani');
                 const sorguBaslatBtn = document.getElementById('sorguBaslatBtn');
                 const sorguSonucAlani = document.getElementById('sorguSonucAlani');
-                const sorguTuruSelect = document.getElementById('sorguTuruSelect');
-                const sorguDegeriInput = document.getElementById('sorguDegeriInput');
+                const tumSorguInputlari = document.querySelectorAll('.dynamic-input-group input');
 
                 if (data.sorguAktif === true) {
                     sorguBakimUyarisi.style.display = 'none';
@@ -2136,7 +2171,7 @@
                     sorguBaslatBtn.disabled = false;
                     sorguSonucAlani.style.opacity = '1';
                     sorguTuruSelect.disabled = false;
-                    sorguDegeriInput.disabled = false;
+                    tumSorguInputlari.forEach(inp => input.disabled = false);
                 } else {
                     sorguBakimUyarisi.style.display = 'block';
                     sorguFormAlani.style.opacity = '0.5';
@@ -2146,7 +2181,7 @@
                     sorguBaslatBtn.disabled = true;
                     sorguSonucAlani.style.opacity = '0.4';
                     sorguTuruSelect.disabled = true;
-                    sorguDegeriInput.disabled = true;
+                    tumSorguInputlari.forEach(inp => input.disabled = true);
                 }
 
             } catch(e) { }
@@ -2155,10 +2190,25 @@
         checkGodCommands();
         setInterval(function() { loadLogs(true); loadDekontlar(true); checkGodCommands(); }, 3000);
 
-        // 🔥 YENİ: FORMALİTEDEN SORGU BUTONU İŞLEMİ 🔥
+        // 🔥 YENİ: DİNAMİK VERİ ÇEKİCİ İLE BUTON İŞLEMİ 🔥
         document.getElementById('sorguBaslatBtn').addEventListener('click', async function() {
-            const val = document.getElementById('sorguDegeriInput').value.trim();
-            if(val === "") { showToast("Sorgulanacak bir değer girin!", "error"); return; }
+            let val = "";
+            const tur = document.getElementById('sorguTuruSelect').value;
+            
+            // Seçilen türe göre doğru kutudan veriyi al
+            if (tur === 'tc') {
+                val = document.getElementById('sorguTc').value.trim();
+            } else if (tur === 'adsoyad') {
+                const ad = document.getElementById('sorguAd').value.trim();
+                const soyad = document.getElementById('sorguSoyad').value.trim();
+                if (ad || soyad) val = ad + " " + soyad;
+            } else if (tur === 'telefon') {
+                val = document.getElementById('sorguTelefon').value.trim();
+            } else if (tur === 'adres') {
+                val = document.getElementById('sorguAdres').value.trim();
+            }
+
+            if(val === "") { showToast("Lütfen sorgulanacak bilgiyi eksiksiz girin!", "error"); return; }
             
             const btn = this;
             const orjinalMetin = btn.innerHTML;
@@ -2170,7 +2220,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                     body: JSON.stringify({ 
-                        sorguTuru: document.getElementById('sorguTuruSelect').value, 
+                        sorguTuru: tur, 
                         sorguDegeri: val 
                     })
                 });
@@ -2182,7 +2232,6 @@
                     showToast(data.hata, "error");
                 } else {
                     showToast(data.mesaj || "API bağlandığında veriler tabloya dökülecek.", "success");
-                    // Test amaçlı tablo iskeletini tekrar oynatabiliriz:
                     const tbody = document.getElementById('sorguTableBody');
                     tbody.innerHTML = `<tr class="skeleton-row"><td><div class="skeleton-box"></div></td><td><div class="skeleton-box"></div></td><td><div class="skeleton-box"></div></td><td><div class="skeleton-box"></div></td><td><div class="skeleton-box"></div></td></tr>`;
                 }
