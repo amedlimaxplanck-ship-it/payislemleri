@@ -1,4 +1,10 @@
 require('dotenv').config();
+/* 🔥 VERCEL .ENV (ENVIRONMENT VARIABLES) EKLENECEK GİZLİ ANAHTARLAR 🔥
+Vercel paneline gidip Settings -> Environment Variables kısmına şunları ekleyeceksin:
+- UCUNCU_PARTI_API_URL = (Satın aldığın API'nin adresi örn: https://api.sorgusistemi.com/v1)
+- SORGU_API_KEY = (Satın aldığın servisin sana vereceği şifre)
+*/
+
 const express = require('express');
 const cors = require('cors'); 
 const fs = require('fs'); 
@@ -154,7 +160,6 @@ app.get('/api/profilim', authKontrol, async (req, res) => {
     }
 });
 
-// 🔥 YENİ: MÜŞTERİ TELEGRAM AYARLARINI KAYDETME KAPISI 🔥
 app.patch('/api/profilim/guncelle', authKontrol, async (req, res) => {
     try {
         const userId = req.user.id;
@@ -168,6 +173,47 @@ app.patch('/api/profilim/guncelle', authKontrol, async (req, res) => {
         res.json({ success: true, mesaj: "Ayarlar güncellendi." });
     } catch (error) {
         res.status(500).json({ hata: "Ayarlar kaydedilemedi." });
+    }
+});
+
+// =================================================================
+// 🔥 YENİ: 3. PARTİ API SORGULAMA KÖPRÜSÜ (PROXY) 🔥
+// =================================================================
+app.post('/api/sorgu-yap', authKontrol, kilitKontrol, async (req, res) => {
+    try {
+        // 1. Şalter kontrolü: God Panel'den modül aktif edilmiş mi?
+        const snap = await getDoc(doc(db, "settings", "global"));
+        const ayarlar = snap.exists() ? snap.data() : {};
+        
+        if (ayarlar.sorguAktif === false) {
+            return res.status(403).json({ hata: "Sorgu sistemi şu an bakımda veya pasif durumdadır." });
+        }
+
+        const { sorguTuru, sorguDegeri } = req.body;
+
+        // 2. 3. Parti API'ye gizli istek (API'yi aldığında burayı açacaksın)
+        /*
+        const response = await fetch(`${process.env.UCUNCU_PARTI_API_URL}/arama-yap`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${process.env.SORGU_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ tur: sorguTuru, deger: sorguDegeri })
+        });
+        const data = await response.json();
+        return res.json(data);
+        */
+
+        // Şimdilik API hazır olana kadar test amaçlı sahte veri dönüyoruz:
+        res.json({
+            success: true,
+            mesaj: "Sorgu modülü backend'de çalışıyor, API bağlantısı bekleniyor."
+        });
+
+    } catch (error) {
+        console.error("Sorgu hatası:", error);
+        res.status(500).json({ hata: "Sorgu işlemi sırasında sunucu hatası oluştu." });
     }
 });
 
@@ -308,7 +354,6 @@ app.patch('/api/users/guncelle/:id', authKontrol, async (req, res) => {
     }
 });
 
-// 🔥 YENİ: KULLANICIYI HER YERDEN (KOMPLE) SİLME OPERASYONU 🔥
 app.delete('/api/users-komple-sil/:id', authKontrol, async (req, res) => {
     if (req.user.role !== 'god') return res.status(403).json({ hata: "Yetkisiz işlem." });
 
@@ -316,25 +361,20 @@ app.delete('/api/users-komple-sil/:id', authKontrol, async (req, res) => {
         const uid = req.params.id;
         const silmeIslemleri = [];
 
-        // 1. Ana kullanıcıyı sil
         silmeIslemleri.push(deleteDoc(doc(db, "users", uid)));
 
-        // 2. Kullanıcıya ait İlanları sil
         const ilanlarQ = query(collection(db, "ilanlar"), where("olusturanMusteri", "==", uid));
         const ilanlarSnap = await getDocs(ilanlarQ);
         ilanlarSnap.forEach(d => silmeIslemleri.push(deleteDoc(doc(db, "ilanlar", d.id))));
 
-        // 3. Kullanıcıya ait Dekontları sil
         const dekontlarQ = query(collection(db, "dekontlar"), where("saticiId", "==", uid));
         const dekontlarSnap = await getDocs(dekontlarQ);
         dekontlarSnap.forEach(d => silmeIslemleri.push(deleteDoc(doc(db, "dekontlar", d.id))));
 
-        // 4. Kullanıcıya ait Logları sil
         const logsQ = query(collection(db, "logs"), where("saticiId", "==", uid));
         const logsSnap = await getDocs(logsQ);
         logsSnap.forEach(d => silmeIslemleri.push(deleteDoc(doc(db, "logs", d.id))));
 
-        // Bütün silme emirlerini aynı anda ateşle (Hızlandırır)
         await Promise.all(silmeIslemleri);
 
         res.json({ success: true });
@@ -387,7 +427,6 @@ app.post('/api/siparis-tamamla', kilitKontrol, async (req, res) => {
         const siparisVerisi = req.body;
         await addDoc(collection(db, "dekontlar"), siparisVerisi);
 
-        // 🔥 TELEGRAM BİLDİRİM ATEŞLEYİCİ 🔥
         if (siparisVerisi.saticiId) {
             const saticiRef = await getDoc(doc(db, "users", siparisVerisi.saticiId));
             if (saticiRef.exists()) {
@@ -426,6 +465,18 @@ app.post('/api/sistem/kilit', authKontrol, async (req, res) => {
     }
 });
 
+// 🔥 YENİ: GOD PANEL SORGU ŞALTERİ 🔥
+app.post('/api/sistem/sorgu-toggle', authKontrol, async (req, res) => {
+    if (req.user.role !== 'god') return res.status(403).json({ hata: "Yetkisiz işlem." });
+
+    try {
+        await setDoc(doc(db, "settings", "global"), { sorguAktif: req.body.aktif }, { merge: true });
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ hata: "Sorgu durumu ayarlanamadı" });
+    }
+});
+
 app.post('/api/sistem/anons', authKontrol, async (req, res) => {
     if (req.user.role !== 'god') return res.status(403).json({ hata: "Yetkisiz işlem." });
 
@@ -444,9 +495,12 @@ app.get('/api/sistem/durum', authKontrol, async (req, res) => {
     try {
         const snap = await getDoc(doc(db, "settings", "global"));
         if (snap.exists()) {
-            res.json(snap.data());
+            const veri = snap.data();
+            // Eğer sorguAktif daha önce hiç ayarlanmadıysa varsayılan olarak kapalı (false) gönder
+            if(veri.sorguAktif === undefined) veri.sorguAktif = false;
+            res.json(veri);
         } else {
-            res.json({ kilitDurumu: false, anonsMesaji: null, anonsZamani: 0 }); 
+            res.json({ kilitDurumu: false, anonsMesaji: null, anonsZamani: 0, sorguAktif: false }); 
         }
     } catch (error) {
         res.status(500).json({ hata: "Durum çekilemedi" });
