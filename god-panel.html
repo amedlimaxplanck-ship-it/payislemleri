@@ -227,13 +227,22 @@
             letter-spacing: 1px; 
             margin-bottom: 20px; 
         }
+
+        .command-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
         
         .command-box { 
             background: var(--bg-card); 
             border: 1px solid var(--border-subtle); 
             padding: 20px; 
             border-radius: 14px; 
-            margin-bottom: 15px; 
+        }
+
+        .command-box.full-width {
+            grid-column: span 2;
         }
 
         .command-box h3 { 
@@ -310,6 +319,20 @@
             transform: translateX(22px); 
         }
 
+        .sorgu-toggle .slider { 
+            background-color: var(--switch-bg); 
+            border: 1px solid var(--border-subtle);
+        }
+
+        .sorgu-toggle input:checked + .slider { 
+            background-color: #3b82f6; 
+            border-color: #3b82f6; 
+        }
+
+        .sorgu-toggle input:checked + .slider:before { 
+            transform: translateX(22px); 
+        }
+
         /* --- FORM VE INPUTLAR --- */
         .grid-container { 
             display: grid; 
@@ -321,6 +344,12 @@
             .grid-container { 
                 grid-template-columns: 1fr; 
             } 
+            .command-grid {
+                grid-template-columns: 1fr;
+            }
+            .command-box.full-width {
+                grid-column: span 1;
+            }
         }
 
         .card { 
@@ -683,23 +712,36 @@
     <div class="command-center animate-in delay-2">
         <div class="command-title">Sistem Komuta Merkezi</div>
         
-        <div class="command-box">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <h3>Sistem Kilidi (Lockdown)</h3>
-                <label class="switch lockdown-toggle">
-                    <input type="checkbox" id="globalLockdownBtn">
-                    <span class="slider"></span>
-                </label>
+        <div class="command-grid">
+            <div class="command-box">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h3>Sistem Kilidi (Lockdown)</h3>
+                    <label class="switch lockdown-toggle">
+                        <input type="checkbox" id="globalLockdownBtn">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <p>Tüm müşterilerin işlemlerini anında dondurur.</p>
             </div>
-            <p>Tüm müşterilerin işlemlerini anında dondurur.</p>
-        </div>
-        
-        <div class="command-box">
-            <h3>Genel Duyuru (Anons)</h3>
-            <p>Paneli açık olan tüm müşterilere bildirim düşürür.</p>
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                <input type="text" id="godVoiceInput" placeholder="Mesajı yazın..." autocomplete="off">
-                <button class="btn-primary" id="sendGodVoiceBtn" style="width: 120px;">Yayınla</button>
+
+            <div class="command-box">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h3>Sorgu Modülü (API)</h3>
+                    <label class="switch sorgu-toggle">
+                        <input type="checkbox" id="sorguToggleBtn">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <p>Müşterilerin TC/Adres vb. sorgu panelini Aktif/Pasif yapar.</p>
+            </div>
+            
+            <div class="command-box full-width">
+                <h3>Genel Duyuru (Anons)</h3>
+                <p>Paneli açık olan tüm müşterilere bildirim düşürür.</p>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <input type="text" id="godVoiceInput" placeholder="Mesajı yazın..." autocomplete="off">
+                    <button class="btn-primary" id="sendGodVoiceBtn" style="width: 120px;">Yayınla</button>
+                </div>
             </div>
         </div>
     </div>
@@ -915,6 +957,9 @@
                 if(res.ok) {
                     const data = await res.json();
                     document.getElementById('globalLockdownBtn').checked = data.kilitDurumu === true;
+                    // 🔥 Yeni: Sorgu Toggle durumunu çek
+                    document.getElementById('sorguToggleBtn').checked = data.sorguAktif === true;
+                    
                     if(data.anonsMesaji) {
                         document.getElementById('godVoiceInput').value = data.anonsMesaji;
                     }
@@ -943,6 +988,29 @@
             } catch (err) {
                 showToast("Bağlantı hatası!");
                 e.target.checked = !isLocked; 
+            }
+        };
+
+        // 🔥 YENİ: GOD PANEL SORGU BUTONU TETİKLEYİCİSİ 🔥
+        document.getElementById('sorguToggleBtn').onchange = async function(e) {
+            const isAktif = e.target.checked;
+            try {
+                const res = await fetch(`${API_BASE}/sistem/sorgu-toggle`, {
+                    method: 'POST', 
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    }, 
+                    body: JSON.stringify({ aktif: isAktif })
+                });
+
+                if (checkTokenError(res)) return;
+                
+                if (isAktif) { showToast("Sorgu Modülü AKTİF edildi."); } 
+                else { showToast("Sorgu Modülü BAKIMA alındı."); }
+            } catch (err) {
+                showToast("Bağlantı hatası!");
+                e.target.checked = !isAktif; 
             }
         };
 
@@ -1030,7 +1098,6 @@
             }
         }
 
-        // 🔥 YENİ: LOG + İLAN KOTASI HESAPLAYICISI 🔥
         async function fetchStats(id) {
             try {
                 const res = await fetch(`${API_BASE}/logs-getir?userId=${id}`, {
@@ -1045,7 +1112,6 @@
                     document.getElementById(`succ-${id}`).innerHTML = `<span class="badge success-badge">${count} İŞLEM</span>`;
                 }
 
-                // Kullanıcının attığı ilanları say ve 5/10 formatında yaz
                 const ilanRes = await fetch(`${API_BASE}/ilanlar-getir?userId=${id}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -1069,7 +1135,6 @@
             }
         }
 
-        // 🔥 YENİ: MÜŞTERİYİ SİSTEMDEN TAMAMEN SİLME 🔥
         window.deleteCustomer = async function(id) {
             customConfirm("Bu müşteriyi ve ona ait İlan, Dekont ve Log kayıtlarının TAMAMINI silmek istediğinize emin misiniz? Bu işlem geri alınamaz!", async function() {
                 try {
