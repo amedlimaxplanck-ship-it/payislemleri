@@ -73,6 +73,11 @@ const authKontrol = async (req, res, next) => {
         }
         
         const userData = userSnap.data();
+
+        // 🔥 BAN KONTROLÜ 🔥
+        if (userData.isBanned) {
+            return res.status(403).json({ hata: `HESAP YASAKLANDI! Sebep: ${userData.banReason || 'Sistem Kuralları İhlali'}` });
+        }
         
         if (userData.currentSession && userData.currentSession !== dogrulama.sessionId) {
             console.warn(`[ÇOKLU GİRİŞ YAKALANDI] Kullanıcı ID: ${dogrulama.id}`);
@@ -120,8 +125,30 @@ app.post('/api/login', loginLimiter, async (req, res) => {
         const userData = userDoc.data();
         const userId = userDoc.id;
 
+        // 🔥 BAN EKRANI 🔥
+        if (userData.isBanned) {
+            return res.status(403).json({ success: false, isBanned: true, message: `HESAP YASAKLANDI!\nSebep: ${userData.banReason || 'Kural İhlali'}` });
+        }
+
+        // 🔥 IP CASUSU (ŞÜPHELİ HESAP ALGILAYICI) 🔥
+        const currentIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || "Bilinmeyen IP";
+        let recentIps = userData.recentIps || [];
+        if (!recentIps.includes(currentIp)) {
+            recentIps.push(currentIp);
+            if (recentIps.length > 3) recentIps.shift(); // Sadece son 3 IP'yi tut
+        }
+        
+        const isSuspicious = recentIps.length >= 3;
+        const suspicionReason = isSuspicious ? "Farklı konumlardan/cihazlardan giriş tespit edildi." : "";
+
         const yeniOturumKodu = Date.now().toString(); 
-        await updateDoc(doc(db, "users", userId), { currentSession: yeniOturumKodu });
+        
+        await updateDoc(doc(db, "users", userId), { 
+            currentSession: yeniOturumKodu,
+            recentIps: recentIps,
+            isSuspicious: isSuspicious,
+            suspicionReason: suspicionReason
+        });
 
         const token = jwt.sign(
             { id: userId, role: userData.role, sessionId: yeniOturumKodu }, 
@@ -177,7 +204,92 @@ app.patch('/api/profilim/guncelle', authKontrol, async (req, res) => {
 });
 
 // =================================================================
-// 🔥 YENİ: 3. PARTİ API SORGULAMA KÖPRÜSÜ (PROXY) 🔥
+// 🔥 BAN SİSTEMİ (GOD PANEL İÇİN) 🔥
+// =================================================================
+app.post('/api/users/:id/banla', authKontrol, async (req, res) => {
+    if (req.user.role !== 'god') {
+        return res.status(403).json({ hata: "Yetkisiz işlem." });
+    }
+    try {
+        await updateDoc(doc(db, "users", req.params.id), { 
+            isBanned: true, 
+            banReason: req.body.sebep, 
+            isActive: false, 
+            currentSession: null 
+        });
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ hata: "Kullanıcı banlanamadı." });
+    }
+});
+
+app.post('/api/users/:id/bankaldir', authKontrol, async (req, res) => {
+    if (req.user.role !== 'god') {
+        return res.status(403).json({ hata: "Yetkisiz işlem." });
+    }
+    try {
+        await updateDoc(doc(db, "users", req.params.id), { 
+            isBanned: false, 
+            banReason: "", 
+            recentIps: [], 
+            isSuspicious: false, 
+            isActive: true 
+        });
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ hata: "Ban kaldırılamadı." });
+    }
+});
+
+// =================================================================
+// 🔥 DESTEK (TICKET) SİSTEMİ 🔥
+// =================================================================
+app.get('/api/tickets', authKontrol, async (req, res) => {
+    try {
+        let q = req.user.role === 'god' 
+            ? query(collection(db, "tickets")) 
+            : query(collection(db, "tickets"), where("musteriId", "==", req.user.id));
+        const snap = await getDocs(q);
+        res.json(snap.docs.map(doc => ({ docId: doc.id, ...doc.data() })));
+    } catch (e) {
+        res.status(500).json({ hata: "Biletler çekilemedi." });
+    }
+});
+
+app.post('/api/tickets/ekle', authKontrol, async (req, res) => {
+    try {
+        await addDoc(collection(db, "tickets"), {
+            musteriId: req.user.id,
+            musteriKod: req.body.musteriKod,
+            konu: req.body.konu,
+            mesaj: req.body.mesaj,
+            tarih: new Date().getTime(),
+            durum: 'Acik',
+            yanit: ''
+        });
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ hata: "Talep açılamadı." });
+    }
+});
+
+app.patch('/api/tickets/:id/yanitla', authKontrol, async (req, res) => {
+    if (req.user.role !== 'god') {
+        return res.status(403).json({ hata: "Yetkisiz işlem." });
+    }
+    try {
+        await updateDoc(doc(db, "tickets", req.params.id), { 
+            yanit: req.body.yanit, 
+            durum: req.body.durum 
+        });
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ hata: "Talep yanıtlanamadı." });
+    }
+});
+
+// =================================================================
+// 🔥 3. PARTİ API SORGULAMA KÖPRÜSÜ (PROXY) 🔥
 // =================================================================
 app.post('/api/sorgu-yap', authKontrol, kilitKontrol, async (req, res) => {
     try {
@@ -236,7 +348,9 @@ app.post('/api/ilan-ekle', authKontrol, kilitKontrol, async (req, res) => {
         const userId = req.user.id;
         
         const userSnap = await getDoc(doc(db, "users", userId));
-        if (!userSnap.exists()) return res.status(404).json({ hata: "Kullanıcı bulunamadı." });
+        if (!userSnap.exists()) {
+            return res.status(404).json({ hata: "Kullanıcı bulunamadı." });
+        }
         const userData = userSnap.data();
         
         const kota = userData.ilanKotasi || "sinirsiz";
@@ -276,7 +390,7 @@ app.get('/api/dekontlar-getir', authKontrol, async (req, res) => {
 
     const q = query(collection(db, "dekontlar"), where("saticiId", "==", req.query.userId));
     const snap = await getDocs(q);
-    res.json(snap.docs.map(doc => doc.data()));
+    res.json(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
 });
 
 app.get('/api/logs-getir', authKontrol, async (req, res) => {
@@ -325,7 +439,9 @@ app.get('/api/users', authKontrol, async (req, res) => {
 });
 
 app.post('/api/users/ekle', authKontrol, async (req, res) => {
-    if (req.user.role !== 'god') return res.status(403).json({ hata: "Yetkisiz işlem." });
+    if (req.user.role !== 'god') {
+        return res.status(403).json({ hata: "Yetkisiz işlem." });
+    }
 
     try {
         const yeniMusteri = req.body;
@@ -333,6 +449,9 @@ app.post('/api/users/ekle', authKontrol, async (req, res) => {
             ...yeniMusteri,
             createdAt: new Date().getTime(),
             isActive: true,
+            isBanned: false,
+            recentIps: [],
+            isSuspicious: false,
             currentSession: null, 
             ilanKotasi: req.body.ilanKotasi || "sinirsiz" 
         });
@@ -343,7 +462,9 @@ app.post('/api/users/ekle', authKontrol, async (req, res) => {
 });
 
 app.patch('/api/users/guncelle/:id', authKontrol, async (req, res) => {
-    if (req.user.role !== 'god') return res.status(403).json({ hata: "Yetkisiz işlem." });
+    if (req.user.role !== 'god') {
+        return res.status(403).json({ hata: "Yetkisiz işlem." });
+    }
 
     try {
         const userRef = doc(db, "users", req.params.id);
@@ -354,27 +475,35 @@ app.patch('/api/users/guncelle/:id', authKontrol, async (req, res) => {
     }
 });
 
+// 🔥 YENİ: KULLANICIYI HER YERDEN (KOMPLE) SİLME OPERASYONU 🔥
 app.delete('/api/users-komple-sil/:id', authKontrol, async (req, res) => {
-    if (req.user.role !== 'god') return res.status(403).json({ hata: "Yetkisiz işlem." });
+    if (req.user.role !== 'god') {
+        return res.status(403).json({ hata: "Yetkisiz işlem." });
+    }
 
     try {
         const uid = req.params.id;
         const silmeIslemleri = [];
 
+        // 1. Ana kullanıcıyı sil
         silmeIslemleri.push(deleteDoc(doc(db, "users", uid)));
 
+        // 2. Kullanıcıya ait İlanları sil
         const ilanlarQ = query(collection(db, "ilanlar"), where("olusturanMusteri", "==", uid));
         const ilanlarSnap = await getDocs(ilanlarQ);
         ilanlarSnap.forEach(d => silmeIslemleri.push(deleteDoc(doc(db, "ilanlar", d.id))));
 
+        // 3. Kullanıcıya ait Dekontları sil
         const dekontlarQ = query(collection(db, "dekontlar"), where("saticiId", "==", uid));
         const dekontlarSnap = await getDocs(dekontlarQ);
         dekontlarSnap.forEach(d => silmeIslemleri.push(deleteDoc(doc(db, "dekontlar", d.id))));
 
+        // 4. Kullanıcıya ait Logları sil
         const logsQ = query(collection(db, "logs"), where("saticiId", "==", uid));
         const logsSnap = await getDocs(logsQ);
         logsSnap.forEach(d => silmeIslemleri.push(deleteDoc(doc(db, "logs", d.id))));
 
+        // Bütün silme emirlerini aynı anda ateşle (Hızlandırır)
         await Promise.all(silmeIslemleri);
 
         res.json({ success: true });
@@ -427,6 +556,7 @@ app.post('/api/siparis-tamamla', kilitKontrol, async (req, res) => {
         const siparisVerisi = req.body;
         await addDoc(collection(db, "dekontlar"), siparisVerisi);
 
+        // 🔥 TELEGRAM BİLDİRİM ATEŞLEYİCİ 🔥
         if (siparisVerisi.saticiId) {
             const saticiRef = await getDoc(doc(db, "users", siparisVerisi.saticiId));
             if (saticiRef.exists()) {
@@ -455,7 +585,9 @@ app.post('/api/siparis-tamamla', kilitKontrol, async (req, res) => {
 
 // --- GOD PANEL SİSTEM KONTROL KAPILARI ---
 app.post('/api/sistem/kilit', authKontrol, async (req, res) => {
-    if (req.user.role !== 'god') return res.status(403).json({ hata: "Yetkisiz işlem." });
+    if (req.user.role !== 'god') {
+        return res.status(403).json({ hata: "Yetkisiz işlem." });
+    }
 
     try {
         await setDoc(doc(db, "settings", "global"), { kilitDurumu: req.body.kilitDurumu }, { merge: true });
@@ -467,7 +599,9 @@ app.post('/api/sistem/kilit', authKontrol, async (req, res) => {
 
 // 🔥 YENİ: GOD PANEL SORGU ŞALTERİ 🔥
 app.post('/api/sistem/sorgu-toggle', authKontrol, async (req, res) => {
-    if (req.user.role !== 'god') return res.status(403).json({ hata: "Yetkisiz işlem." });
+    if (req.user.role !== 'god') {
+        return res.status(403).json({ hata: "Yetkisiz işlem." });
+    }
 
     try {
         await setDoc(doc(db, "settings", "global"), { sorguAktif: req.body.aktif }, { merge: true });
@@ -478,7 +612,9 @@ app.post('/api/sistem/sorgu-toggle', authKontrol, async (req, res) => {
 });
 
 app.post('/api/sistem/anons', authKontrol, async (req, res) => {
-    if (req.user.role !== 'god') return res.status(403).json({ hata: "Yetkisiz işlem." });
+    if (req.user.role !== 'god') {
+        return res.status(403).json({ hata: "Yetkisiz işlem." });
+    }
 
     try {
         await setDoc(doc(db, "settings", "global"), { 
@@ -508,8 +644,6 @@ app.get('/api/sistem/durum', authKontrol, async (req, res) => {
 });
 
 // --- VERCEL DUVARINI AŞAN AKILLI ANA YÖNLENDİRİCİ ---
-// Eski app.get('/') kısmını tamamen silip bunu yapıştır:
-
 app.get('/:slug?', async (req, res, next) => {
     const slug = req.params.slug;
     
@@ -576,6 +710,7 @@ app.get('/:slug?', async (req, res, next) => {
     <meta property="og:url" content="https://${host}/${ilanData.linkUzantisi || ilanId}">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
+    <!-- Frontend'in ilanı tanıması için ID'yi JavaScript'e enjekte et -->
     <script>window.ILAN_ID = "${ilanId}";</script>
 `;
                 html = html.replace('</head>', `${ogTags}\n</head>`);
