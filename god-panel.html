@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
     <title>God Panel | Yönetim Komuta Merkezi</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -105,6 +106,7 @@
             font-size: 20px; 
             font-weight: 800; 
             letter-spacing: -0.5px; 
+            margin: 0;
         }
 
         .header h1 span { 
@@ -133,7 +135,10 @@
         .theme-slider { 
             position: absolute; 
             cursor: pointer; 
-            top: 0; left: 0; right: 0; bottom: 0; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0; 
             background-color: var(--switch-bg); 
             transition: .3s; 
             border-radius: 24px; 
@@ -183,174 +188,18 @@
             border-color: var(--danger-color);
         }
 
-        .stats-grid { 
+        /* --- GRAFİK VE DURUM ALANI --- */
+        .grid-layout { 
             display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 16px; 
+            grid-template-columns: 3fr 1fr; 
+            gap: 20px; 
             margin-bottom: 24px; 
         }
 
-        .stat-card {
-            background: var(--bg-surface); 
-            padding: 20px 10px; 
-            border-radius: 16px;
-            border: 1px solid var(--border-subtle); 
-            text-align: center;
-        }
-
-        .stat-info h3 { 
-            font-size: 28px; 
-            font-weight: 900; 
-            margin-bottom: 2px; 
-        }
-
-        .stat-info p { 
-            font-size: 10px; 
-            color: var(--text-secondary); 
-            font-weight: 800; 
-            text-transform: uppercase; 
-        }
-
-        /* --- KOMUTA MERKEZİ --- */
-        .command-center {
-            background: var(--bg-surface); 
-            border: 1px solid var(--border-subtle);
-            border-radius: 16px; 
-            padding: 24px; 
-            margin-bottom: 24px;
-        }
-
-        .command-title { 
-            font-size: 11px; 
-            font-weight: 800; 
-            color: var(--text-secondary); 
-            text-transform: uppercase; 
-            letter-spacing: 1px; 
-            margin-bottom: 20px; 
-        }
-
-        .command-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        
-        .command-box { 
-            background: var(--bg-card); 
-            border: 1px solid var(--border-subtle); 
-            padding: 20px; 
-            border-radius: 14px; 
-        }
-
-        .command-box.full-width {
-            grid-column: span 2;
-        }
-
-        .command-box h3 { 
-            font-size: 14px; 
-            font-weight: 800; 
-            margin-bottom: 5px; 
-        }
-
-        .command-box p { 
-            font-size: 11px; 
-            color: var(--text-secondary); 
-            margin-bottom: 15px; 
-        }
-
-        /* --- APPLE TARZI RENKLİ ŞALTERLER (Toggles) --- */
-        .switch { 
-            position: relative; 
-            display: inline-block; 
-            width: 50px; 
-            height: 28px; 
-        }
-
-        .switch input { 
-            opacity: 0; 
-            width: 0; 
-            height: 0; 
-        }
-
-        .slider { 
-            position: absolute; 
-            cursor: pointer; 
-            top: 0; left: 0; right: 0; bottom: 0; 
-            background-color: #27272a; 
-            transition: .3s; 
-            border-radius: 34px; 
-        }
-
-        .slider:before { 
-            position: absolute; 
-            content: ""; 
-            height: 22px; 
-            width: 22px; 
-            left: 3px; 
-            bottom: 3px; 
-            background: white; 
-            transition: .3s; 
-            border-radius: 50%; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .user-toggle .slider { 
-            background-color: var(--danger-color); 
-        }
-
-        .user-toggle input:checked + .slider { 
-            background-color: var(--success-color); 
-        }
-
-        .user-toggle input:checked + .slider:before { 
-            transform: translateX(22px); 
-        }
-
-        .lockdown-toggle .slider { 
-            background-color: var(--switch-bg); 
-            border: 1px solid var(--border-subtle);
-        }
-
-        .lockdown-toggle input:checked + .slider { 
-            background-color: var(--danger-color); 
-            border-color: var(--danger-color); 
-        }
-
-        .lockdown-toggle input:checked + .slider:before { 
-            transform: translateX(22px); 
-        }
-
-        .sorgu-toggle .slider { 
-            background-color: var(--switch-bg); 
-            border: 1px solid var(--border-subtle);
-        }
-
-        .sorgu-toggle input:checked + .slider { 
-            background-color: #3b82f6; 
-            border-color: #3b82f6; 
-        }
-
-        .sorgu-toggle input:checked + .slider:before { 
-            transform: translateX(22px); 
-        }
-
-        /* --- FORM VE INPUTLAR --- */
-        .grid-container { 
-            display: grid; 
-            grid-template-columns: 320px 1fr; 
-            gap: 24px; 
-        }
-
         @media (max-width: 992px) { 
-            .grid-container { 
+            .grid-layout { 
                 grid-template-columns: 1fr; 
             } 
-            .command-grid {
-                grid-template-columns: 1fr;
-            }
-            .command-box.full-width {
-                grid-column: span 1;
-            }
         }
 
         .card { 
@@ -363,12 +212,42 @@
         .card h2 { 
             font-size: 16px; 
             font-weight: 800; 
-            margin-bottom: 24px; 
-            margin-top: 0;
+            margin-top: 0; 
+            margin-bottom: 20px; 
         }
 
-        .form-group { 
+        .stats-row { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 15px; 
             margin-bottom: 20px; 
+        }
+
+        .stat-box { 
+            background: var(--bg-card); 
+            padding: 15px; 
+            border-radius: 12px; 
+            border: 1px solid var(--border-subtle); 
+            text-align: center; 
+        }
+
+        .stat-box h3 { 
+            font-size: 24px; 
+            font-weight: 900; 
+            margin: 0; 
+        }
+
+        .stat-box p { 
+            font-size: 10px; 
+            color: var(--text-secondary); 
+            font-weight: 800; 
+            text-transform: uppercase; 
+            margin: 5px 0 0 0; 
+        }
+
+        /* --- FORM VE INPUTLAR --- */
+        .form-group { 
+            margin-bottom: 15px; 
         }
 
         .form-group label { 
@@ -380,29 +259,34 @@
             text-transform: uppercase; 
         }
         
-        .form-group input, .form-group select, #godVoiceInput {
+        .form-group input, .form-group select, .form-group textarea { 
             width: 100%; 
-            padding: 16px; 
+            padding: 14px; 
             border: 1px solid var(--border-subtle);
-            border-radius: 12px; 
+            border-radius: 10px; 
             background: var(--bg-card); 
             color: var(--text-primary);
+            font-size: 14px; 
             outline: none; 
-            font-size: 16px !important; 
             transition: 0.2s;
+            font-family: inherit;
+        }
+        
+        .form-group textarea {
+            resize: vertical; /* Sadece aşağı doğru büyütülebilir */
         }
 
-        .form-group input:focus, .form-group select:focus, #godVoiceInput:focus { 
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { 
             border-color: var(--text-primary); 
         }
 
         .btn-primary {
             width: 100%; 
-            padding: 18px; 
+            padding: 14px; 
             background: var(--text-primary); 
             color: var(--bg-base);
             border: none; 
-            border-radius: 14px; 
+            border-radius: 10px; 
             font-size: 13px; 
             font-weight: 800;
             text-transform: uppercase; 
@@ -414,14 +298,22 @@
             transform: scale(0.96); 
             opacity: 0.8; 
         }
-        
-        .btn-danger { background: var(--danger-color) !important; color: white !important; }
-        .btn-success { background: var(--success-color) !important; color: white !important; }
 
+        .btn-danger { 
+            background: var(--danger-color) !important; 
+            color: white !important; 
+        }
+
+        .btn-success { 
+            background: var(--success-color) !important; 
+            color: white !important; 
+        }
+
+        /* --- TABLOLAR (MOBİL İÇİN OPTİMİZE) --- */
         .table-responsive { 
             overflow-x: auto; 
-            border-radius: 14px; 
             background: var(--bg-card); 
+            border-radius: 10px; 
             border: 1px solid var(--border-subtle); 
             margin-bottom: 24px;
         }
@@ -429,39 +321,32 @@
         table { 
             width: 100%; 
             border-collapse: collapse; 
-            min-width: 600px; 
+            min-width: 400px; /* Mobilde taşmayı azaltmak için küçültüldü */
         }
 
         th, td { 
-            padding: 18px; 
+            padding: 15px; 
             text-align: left; 
             border-bottom: 1px solid var(--border-subtle); 
-            font-size: 14px; 
+            font-size: 13px; 
         }
 
         th { 
             font-size: 10px; 
-            font-weight: 900; 
             color: var(--text-secondary); 
             text-transform: uppercase; 
             background: rgba(125,125,125,0.05); 
         }
 
-        .passcode-badge { 
+        .badge { 
             background: var(--bg-surface); 
-            padding: 8px 12px; 
-            border-radius: 8px; 
+            padding: 6px 10px; 
+            border-radius: 6px; 
             font-family: monospace; 
             font-weight: bold; 
             border: 1px solid var(--border-subtle); 
         }
 
-        .success-badge { 
-            color: var(--success-color); 
-            font-weight: 800; 
-            font-size: 12px; 
-        }
-        
         .alert-badge { 
             background: rgba(239, 68, 68, 0.1); 
             color: var(--danger-color); 
@@ -470,6 +355,13 @@
             border-radius: 6px; 
             font-size: 11px; 
             font-weight: bold; 
+            white-space: nowrap;
+        }
+        
+        .success-badge { 
+            color: var(--success-color); 
+            font-weight: 800; 
+            font-size: 12px; 
         }
 
         .action-btn { 
@@ -490,7 +382,51 @@
             transform: scale(0.95);
         }
 
-        /* MODAL */
+        /* --- APPLE TARZI RENKLİ ŞALTERLER (Toggles) --- */
+        .switch { 
+            position: relative; 
+            display: inline-block; 
+            width: 40px; 
+            height: 22px; 
+        }
+
+        .switch input { 
+            opacity: 0; 
+            width: 0; 
+            height: 0; 
+        }
+
+        .slider { 
+            position: absolute; 
+            cursor: pointer; 
+            top: 0; left: 0; right: 0; bottom: 0; 
+            background-color: var(--switch-bg); 
+            transition: .3s; 
+            border-radius: 34px; 
+            border: 1px solid var(--border-subtle);
+        }
+
+        .slider:before { 
+            position: absolute; 
+            content: ""; 
+            height: 16px; 
+            width: 16px; 
+            left: 2px; 
+            bottom: 2px; 
+            background-color: white; 
+            border-radius: 50%; 
+            transition: .3s; 
+        }
+
+        .switch input:checked + .slider { 
+            background-color: var(--success-color); 
+        }
+
+        .switch input:checked + .slider:before { 
+            transform: translateX(18px); 
+        }
+
+        /* --- MODALLAR --- */
         .modal { 
             display: none; 
             position: fixed; 
@@ -510,24 +446,31 @@
         .modal-content { 
             background: var(--bg-surface); 
             border: 1px solid var(--border-subtle); 
-            border-radius: 20px; 
-            padding: 30px; 
+            border-radius: 16px; 
+            padding: 25px; 
             width: 100%; 
             max-width: 400px; 
             position: relative; 
             box-shadow: 0 25px 50px rgba(0,0,0,0.1); 
+            animation: modalPop 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+
+        @keyframes modalPop { 
+            0% { opacity: 0; transform: scale(0.95) translateY(20px); } 
+            100% { opacity: 1; transform: scale(1) translateY(0); } 
         }
 
         .close-modal { 
             position: absolute; 
-            right: 20px; 
-            top: 20px; 
-            color: var(--text-secondary); 
+            right: 15px; 
+            top: 15px; 
             font-size: 24px; 
             cursor: pointer; 
-            line-height: 1; 
+            color: var(--text-secondary); 
+            line-height: 1;
         }
 
+        /* --- TOAST BİLDİRİMLERİ --- */
         #toast-container { 
             position: fixed; 
             bottom: 30px; 
@@ -538,20 +481,17 @@
             flex-direction: column; 
             gap: 10px; 
             align-items: center; 
-            pointer-events: none;
-            width: 90%; 
-            max-width: 400px; 
+            pointer-events: none; 
         }
-        
+
         .toast { 
             background: var(--toast-bg); 
             color: var(--toast-text); 
-            padding: 14px 24px; 
+            padding: 12px 20px; 
             border-radius: 30px; 
-            font-size: 13px; 
+            font-size: 12px; 
             font-weight: 700; 
-            text-align: center; 
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
             opacity: 0; 
             transform: translateY(20px); 
             transition: all 0.3s ease; 
@@ -568,11 +508,11 @@
                 padding: 15px; 
             }
 
-            .stats-grid { 
+            .stats-row { 
                 gap: 10px; 
             }
 
-            .stat-card { 
+            .stat-box { 
                 padding: 15px 10px; 
             }
 
@@ -599,147 +539,137 @@
         </div>
     </div>
 
-    <div class="stats-grid animate-in delay-1">
-        <div class="stat-card">
-            <div class="stat-info">
-                <h3 id="statTotal">0</h3>
-                <p>Müşteri</p>
-            </div>
+    <div class="grid-layout animate-in delay-1" style="grid-template-columns: 2fr 1fr;">
+        <div class="card">
+            <h2>Müşteri & İlan Analizi</h2>
+            <canvas id="trafficChart" height="100"></canvas>
         </div>
-        <div class="stat-card">
-            <div class="stat-info">
-                <h3 id="statActive">0</h3>
-                <p>Aktif</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-info">
-                <h3 id="statTicket" style="color: var(--warning-color);">0</h3>
-                <p>Destek Talebi</p>
+        <div class="card">
+            <h2>Sistem Durumu</h2>
+            <div class="stats-row" style="grid-template-columns: 1fr; gap:10px;">
+                <div class="stat-box">
+                    <h3 id="statTotal">0</h3>
+                    <p>Toplam Müşteri</p>
+                </div>
+                <div class="stat-box">
+                    <h3 id="statActive">0</h3>
+                    <p>Aktif Müşteri</p>
+                </div>
+                <div class="stat-box">
+                    <h3 id="statTicket" style="color: var(--warning-color);">0</h3>
+                    <p>Açık Destek Talebi</p>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="command-center animate-in delay-2">
-        <div class="command-title">Sistem Komuta Merkezi</div>
-        
-        <div class="command-grid">
-            <div class="command-box">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <h3>Sistem Kilidi (Lockdown)</h3>
-                    <label class="switch lockdown-toggle">
+    <!-- ALT ALAN: KOMUTA, MÜŞTERİLER VE DESTEK -->
+    <div class="grid-layout animate-in delay-2">
+        <!-- SOL SÜTUN (TABLOLAR) -->
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+            <!-- Müşteriler Tablosu -->
+            <div class="card" style="padding: 0; overflow: hidden;">
+                <h2 style="padding: 24px 24px 0 24px;">Müşteri Veritabanı</h2>
+                <div class="table-responsive" style="border: none; border-top: 1px solid var(--border-subtle); border-radius: 0;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Kayıt & Kod</th>
+                                <th>Kota Durumu</th>
+                                <th>Risk Durumu</th>
+                                <th>İşlem (Ban / Sil)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customerTableBody">
+                            <tr>
+                                <td colspan="4" style="text-align:center;">Veriler yükleniyor...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Destek Talepleri (Tickets) -->
+            <div class="card" style="padding: 0; overflow: hidden;">
+                <h2 style="padding: 24px 24px 0 24px;">Destek Talepleri (Tickets)</h2>
+                <div class="table-responsive" style="border: none; border-top: 1px solid var(--border-subtle); border-radius: 0;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Müşteri Kodu</th>
+                                <th>Konu</th>
+                                <th>Durum</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ticketsTableBody">
+                            <tr>
+                                <td colspan="4" style="text-align:center;">Talepler yükleniyor...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SAĞ SÜTUN (KONTROLLER VE FORMLAR) -->
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+            <!-- Yeni Müşteri Ekle -->
+            <div class="card">
+                <h2>Yeni Müşteri Ekle</h2>
+                
+                <div class="form-group">
+                    <label>Erişim Kodu (Şifre)</label>
+                    <input type="text" id="newPasscode" placeholder="Örn: VIP-1234">
+                </div>
+                
+                <div class="form-group">
+                    <label>Abonelik Süresi</label>
+                    <select id="subDuration">
+                        <option value="1">1 Aylık</option>
+                        <option value="3">3 Aylık</option>
+                    </select>
+                </div>
+                
+                <button class="btn-primary" id="addCustomerBtn">Sisteme Kaydet</button>
+            </div>
+
+            <!-- Sistem Şalterleri -->
+            <div class="card">
+                <h2>Komuta Merkezi</h2>
+                
+                <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 13px; font-weight: 600;">Sistem Kilidi</span>
+                    <label class="switch">
                         <input type="checkbox" id="globalLockdownBtn">
                         <span class="slider"></span>
                     </label>
                 </div>
-                <p>Tüm müşterilerin işlemlerini anında dondurur.</p>
-            </div>
-
-            <div class="command-box">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <h3>Sorgu Modülü (API)</h3>
-                    <label class="switch sorgu-toggle">
+                
+                <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 13px; font-weight: 600;">Sorgu Modülü</span>
+                    <label class="switch">
                         <input type="checkbox" id="sorguToggleBtn">
-                        <span class="slider"></span>
+                        <span class="slider" style="background-color: var(--switch-bg);"></span>
                     </label>
                 </div>
-                <p>Müşterilerin TC/Adres vb. sorgu panelini Aktif/Pasif yapar.</p>
-            </div>
-            
-            <div class="command-box full-width">
-                <h3>Genel Duyuru (Anons)</h3>
-                <p>Paneli açık olan tüm müşterilere bildirim düşürür.</p>
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <input type="text" id="godVoiceInput" placeholder="Mesajı yazın..." autocomplete="off">
-                    <button class="btn-primary" id="sendGodVoiceBtn" style="width: 120px;">Yayınla</button>
+                
+                <hr style="border-top:1px solid var(--border-subtle); margin:15px 0;">
+                
+                <div class="form-group">
+                    <label>Sistem Anonsu</label>
+                    <input type="text" id="godVoiceInput" placeholder="Mesajı yazın...">
                 </div>
+                <button class="btn-primary" id="sendGodVoiceBtn">Anons Geç</button>
             </div>
         </div>
     </div>
 
-    <div class="grid-container animate-in delay-2">
-        <div class="card" style="height: fit-content;">
-            <h2>Müşteri Oluştur</h2>
-            
-            <div class="form-group">
-                <label>Erişim Kodu (Şifre)</label>
-                <input type="text" id="newPasscode" placeholder="Örn: VIP-1234" autocomplete="off">
-            </div>
-            
-            <div class="form-group">
-                <label>Abonelik Süresi</label>
-                <select id="subDuration">
-                    <option value="1">1 Aylık</option>
-                    <option value="3">3 Aylık</option>
-                    <option value="6">6 Aylık</option>
-                    <option value="12">1 Yıllık</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>İlan Kotası (Paket Limiti)</label>
-                <select id="ilanKotasiSelect" onchange="toggleCustomKota(this.value)">
-                    <option value="sinirsiz">Sınırsız İlan</option>
-                    <option value="5">Maksimum 5 İlan</option>
-                    <option value="10">Maksimum 10 İlan</option>
-                    <option value="15">Maksimum 15 İlan</option>
-                    <option value="ozel">Özel Sayı Gir...</option>
-                </select>
-            </div>
-
-            <div class="form-group" id="ozelKotaKutusu" style="display: none; margin-top: -10px;">
-                <input type="number" id="ozelKotaDegeri" placeholder="Örn: 20" min="1" autocomplete="off">
-            </div>
-            
-            <button class="btn-primary" id="addCustomerBtn">Sisteme Kaydet</button>
-        </div>
-
-        <div class="card" style="padding: 0; overflow: hidden;">
-            <h2 style="padding: 24px 24px 0 24px;">Müşteri Veritabanı</h2>
-            <div class="table-responsive" style="border: none; border-top: 1px solid var(--border-subtle); border-radius: 0;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Kayıt</th>
-                            <th>Kod</th>
-                            <th>Kota & İşlem</th>
-                            <th>Bitiş</th>
-                            <th>Risk Durumu</th>
-                            <th>Erişim</th>
-                            <th>Aksiyon</th>
-                        </tr>
-                    </thead>
-                    <tbody id="customerTableBody"></tbody>
-                </table>
-            </div>
-
-            <!-- 🔥 YENİ: DESTEK TALEPLERİ (TICKETS) BÖLÜMÜ 🔥 -->
-            <h2 style="padding: 24px 24px 0 24px;">Destek Talepleri (Tickets)</h2>
-            <div class="table-responsive" style="border: none; border-top: 1px solid var(--border-subtle); border-radius: 0; border-bottom: 0;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Müşteri Kodu</th>
-                            <th>Konu</th>
-                            <th>Durum</th>
-                            <th>İşlem</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ticketsTableBody">
-                        <tr>
-                            <td colspan="4" style="text-align:center;">Talepler yükleniyor...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Müşteri Düzenleme Modal -->
+    <!-- MÜŞTERİ AYARLARI MODAL -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" id="closeEditModal">&times;</span>
-            <h2 style="margin-bottom: 24px; font-size: 18px; font-weight: 800;">Müşteri Ayarları</h2>
+            <h2 style="margin-bottom: 24px; font-size: 18px; font-weight: 800; margin-top:0;">Müşteri Ayarları</h2>
             
             <input type="hidden" id="editUserId">
             
@@ -766,24 +696,12 @@
             <button class="btn-primary" id="saveEditBtn">Güncelle</button>
         </div>
     </div>
-    
-    <!-- Genel Onay Modal -->
-    <div id="confirmModal" class="modal" style="z-index: 999999;">
-        <div class="modal-content" style="max-width: 400px; text-align: center; padding: 30px;">
-            <h3 style="margin-bottom: 10px; font-size: 18px; color: var(--danger-color); font-weight: 800;">Sistemden Kazı</h3>
-            <p id="confirmMessage" style="color: var(--text-secondary); margin-bottom: 25px; font-size: 14px;"></p>
-            <div style="display: flex; gap: 10px; justify-content: center;">
-                <button id="confirmYes" class="btn-primary" style="padding: 10px 20px; font-size: 14px; background: var(--danger-color); color: white;">Evet, Sil</button>
-                <button id="confirmNo" class="action-btn" style="padding: 10px 20px; margin:0; font-size: 14px;">İptal</button>
-            </div>
-        </div>
-    </div>
 
-    <!-- 🔥 YENİ: BANLAMA MODALI 🔥 -->
+    <!-- BANLAMA MODALI -->
     <div id="banModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" id="closeBanModal">&times;</span>
-            <h2 style="color: var(--danger-color); margin-top:0;">Hesabı Yasakla (Ban)</h2>
+            <h2 style="color: var(--danger-color); margin-top: 0;">Hesabı Yasakla (Ban)</h2>
             <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 20px;">Kullanıcı giriş yapmaya çalıştığında bu sebebi görecektir.</p>
             
             <input type="hidden" id="banUserId">
@@ -797,39 +715,42 @@
         </div>
     </div>
 
-    <!-- 🔥 YENİ: TICKET YANITLAMA MODALI 🔥 -->
+    <!-- 🔥 YENİ: TICKET YANITLAMA MODALI (GENİŞLETİLDİ) 🔥 -->
     <div id="ticketModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 500px;">
             <span class="close-modal" id="closeTicketModal">&times;</span>
-            <h2 style="margin-top: 0;">Destek Talebi</h2>
+            <h2 style="margin-top: 0; margin-bottom: 15px;">Talep İnceleme</h2>
             
             <input type="hidden" id="ticketId">
             
-            <div style="background: var(--bg-card); padding: 15px; border-radius: 8px; font-size:13px; margin-bottom: 15px; border:1px solid var(--border-subtle);">
+            <!-- Müşterinin Destanı İçin Scrollable (Kaydırılabilir) Alan -->
+            <div style="background: var(--bg-card); padding: 15px; border-radius: 10px; font-size:13px; margin-bottom: 15px; border:1px solid var(--border-subtle); max-height: 200px; overflow-y: auto; word-break: break-word;">
                 <strong style="color: var(--text-secondary); font-size: 10px;">MÜŞTERİ MESAJI:</strong><br>
-                <span id="ticketMessageText" style="display: block; margin-top: 5px;">...</span>
+                <span id="ticketMessageText" style="display: block; margin-top: 8px; line-height: 1.6;">...</span>
             </div>
             
             <div class="form-group">
-                <label>Yanıtınız</label>
-                <input type="text" id="ticketReplyInput" placeholder="Yanıtı yazın...">
+                <label>Yönetici Yanıtı (Sizin Cevabınız)</label>
+                <!-- Geniş, Alt Satıra Geçilebilen Textarea -->
+                <textarea id="ticketReplyInput" rows="4" placeholder="Bu talebe vereceğiniz yanıtı buraya yazın..."></textarea>
             </div>
             
             <div class="form-group">
-                <label>Durum</label>
+                <label>Talep Durumu</label>
                 <select id="ticketStatusSelect">
                     <option value="Yanitlandi">Yanıtlandı Olarak İşaretle</option>
                     <option value="Kapali">Talebi Kapat</option>
                 </select>
             </div>
             
-            <button class="btn-primary btn-success" id="submitTicketBtn" style="margin-top: 10px;">Yanıtı Gönder</button>
+            <button class="btn-primary btn-success" id="submitTicketBtn" style="margin-top: 5px;">Yanıtı Kaydet ve Gönder</button>
         </div>
     </div>
 
     <div id="toast-container"></div>
 
     <script type="module">
+        // XSS Önleyici Dezenfekte Fonksiyonu
         window.dezenfekteEt = function(str) {
             if (str === null || str === undefined) return "";
             return String(str)
@@ -841,108 +762,75 @@
                 .replace(/\//g, '&#x2f;');
         };
 
-        const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
-        const API_BASE = isLocal ? 'http://localhost:3000/api' : '/api'; 
-        let globalCustomers = []; 
-
         const token = localStorage.getItem("token");
-        if (!localStorage.getItem("userId") || localStorage.getItem("userRole") !== "god" || !token) { 
-            window.location.href = "login.html"; 
+        if (!localStorage.getItem("userId") || localStorage.getItem("userRole") !== "god" || !token) {
+            window.location.href = "login.html";
         }
+
+        const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+        const API_BASE = isLocal ? 'http://localhost:3000/api' : '/api';
         
         document.getElementById('logoutBtn').onclick = function() { 
             localStorage.clear(); 
             window.location.href = "login.html"; 
         };
 
+        // --- TEMA MOTORU ---
         const themeToggle = document.getElementById('themeToggle');
-        const currentTheme = localStorage.getItem('godTheme') || 'dark';
+        const currentTheme = localStorage.getItem('godTheme');
         
-        if (currentTheme === 'dark') { 
+        if (currentTheme === 'dark' || !currentTheme) { 
             document.documentElement.setAttribute('data-theme', 'dark'); 
             themeToggle.checked = true; 
-        } else {
+        } else { 
             document.documentElement.setAttribute('data-theme', 'light'); 
             themeToggle.checked = false; 
         }
 
         themeToggle.addEventListener('change', function(e) {
             if (e.target.checked) {
-                document.documentElement.setAttribute('data-theme', 'dark'); 
-                localStorage.setItem('godTheme', 'dark'); 
-                showToast('Koyu moda geçildi.');
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('godTheme', 'dark');
             } else {
-                document.documentElement.setAttribute('data-theme', 'light'); 
-                localStorage.setItem('godTheme', 'light'); 
-                showToast('Açık moda geçildi.');
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('godTheme', 'light');
             }
         });
 
+        // --- TOAST BİLDİRİM MOTORU ---
         window.showToast = function(msg) {
             const container = document.getElementById('toast-container');
-            const existingToasts = container.querySelectorAll('.toast');
-            for (let i = 0; i < existingToasts.length; i++) {
-                if (existingToasts[i].innerText === msg) return; 
-            }
-
-            if (existingToasts.length >= 2) {
-                existingToasts[0].style.opacity = '0';
-                setTimeout(function() { existingToasts[0].remove(); }, 300);
-            }
-
-            const toast = document.createElement('div');
-            toast.className = 'toast animate-in';
-            toast.innerText = msg;
+            const toast = document.createElement('div'); 
+            toast.className = 'toast animate-in'; 
+            toast.innerText = msg; 
+            
             container.appendChild(toast);
             
-            setTimeout(function() { toast.classList.add('show'); }, 10);
+            setTimeout(function() { 
+                toast.classList.add('show'); 
+            }, 10);
+            
             setTimeout(function() { 
                 toast.style.opacity = '0'; 
-                setTimeout(function() { toast.remove(); }, 500); 
+                setTimeout(function() { 
+                    toast.remove(); 
+                }, 300); 
             }, 3000);
         };
 
-        function checkTokenError(res) {
-            if (res.status === 401 || res.status === 403) {
-                document.getElementById('kick-overlay').classList.add('active');
-                document.body.style.overflow = 'hidden';
-                localStorage.clear();
-                return true;
-            }
-            return false;
-        }
-
-        window.customConfirm = function(message, callback) {
-            const modal = document.getElementById('confirmModal');
-            document.getElementById('confirmMessage').innerText = message; 
-            modal.style.display = 'flex';
-            
-            document.getElementById('confirmYes').onclick = function() { 
-                modal.style.display = 'none'; 
-                callback(); 
-            };
-            
-            document.getElementById('confirmNo').onclick = function() { 
-                modal.style.display = 'none'; 
-            };
-        }
-
         const authHeaders = { 
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json', 
             'Authorization': `Bearer ${token}` 
         };
 
+        // --- SİSTEM ŞALTERLERİ ---
         async function loadSystemStatus() {
             try {
                 const res = await fetch(`${API_BASE}/sistem/durum?t=${Date.now()}`, { headers: authHeaders });
-                
-                if (checkTokenError(res)) return;
-
-                if(res.ok) {
+                if (res.ok) {
                     const data = await res.json();
                     document.getElementById('globalLockdownBtn').checked = data.kilitDurumu === true;
                     document.getElementById('sorguToggleBtn').checked = data.sorguAktif === true;
-                    
                     if(data.anonsMesaji) {
                         document.getElementById('godVoiceInput').value = data.anonsMesaji;
                     }
@@ -953,167 +841,132 @@
         }
 
         document.getElementById('globalLockdownBtn').onchange = async function(e) {
-            const isLocked = e.target.checked;
             try {
-                const res = await fetch(`${API_BASE}/sistem/kilit`, {
+                await fetch(`${API_BASE}/sistem/kilit`, { 
                     method: 'POST', 
                     headers: authHeaders, 
-                    body: JSON.stringify({ kilitDurumu: isLocked })
+                    body: JSON.stringify({ kilitDurumu: e.target.checked }) 
                 });
-
-                if (checkTokenError(res)) return;
-                
-                if (isLocked) { showToast("Sistem kilitlendi."); } 
-                else { showToast("Sistem kilidi açıldı."); }
-            } catch (err) {
-                showToast("Bağlantı hatası!");
-                e.target.checked = !isLocked; 
+                if (e.target.checked) {
+                    showToast("Sistem Kilitlendi!");
+                } else {
+                    showToast("Kilit Açıldı.");
+                }
+            } catch(err) {
+                showToast("Bağlantı hatası");
             }
         };
 
         document.getElementById('sorguToggleBtn').onchange = async function(e) {
-            const isAktif = e.target.checked;
             try {
-                const res = await fetch(`${API_BASE}/sistem/sorgu-toggle`, {
+                await fetch(`${API_BASE}/sistem/sorgu-toggle`, { 
                     method: 'POST', 
                     headers: authHeaders, 
-                    body: JSON.stringify({ aktif: isAktif })
+                    body: JSON.stringify({ aktif: e.target.checked }) 
                 });
-
-                if (checkTokenError(res)) return;
-                
-                if (isAktif) { showToast("Sorgu Modülü AKTİF edildi."); } 
-                else { showToast("Sorgu Modülü BAKIMA alındı."); }
-            } catch (err) {
-                showToast("Bağlantı hatası!");
-                e.target.checked = !isAktif; 
+                if (e.target.checked) {
+                    showToast("Sorgu Paneli Aktif Edildi.");
+                } else {
+                    showToast("Sorgu Paneli Bakıma Alındı.");
+                }
+            } catch(err) {
+                showToast("Bağlantı hatası");
             }
         };
 
         document.getElementById('sendGodVoiceBtn').onclick = async function() {
             const msg = document.getElementById('godVoiceInput').value.trim();
             try {
-                const res = await fetch(`${API_BASE}/sistem/anons`, {
+                await fetch(`${API_BASE}/sistem/anons`, { 
                     method: 'POST', 
                     headers: authHeaders, 
-                    body: JSON.stringify({ mesaj: msg, zaman: Date.now() })
+                    body: JSON.stringify({ mesaj: msg, zaman: Date.now() }) 
                 });
-
-                if (checkTokenError(res)) return;
-                
-                if (msg === "") { showToast("Anons kaldırıldı."); } 
-                else { showToast("Anons yayınlandı."); }
-            } catch (err) {
-                showToast("Anons yayınlanamadı!");
+                showToast("Sistem Anonsu Güncellendi.");
+            } catch(err) {
+                showToast("Anons geçilemedi!");
             }
         };
 
+        // --- MÜŞTERİLER VE BAN İŞLEMLERİ ---
+        let globalCustomers = [];
+        
         async function loadCustomers() {
-            const tbody = document.getElementById('customerTableBody');
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Veriler yükleniyor...</td></tr>';
-            
             try {
                 const res = await fetch(`${API_BASE}/users`, { headers: authHeaders });
-                if (checkTokenError(res)) return;
-
                 globalCustomers = await res.json();
-                tbody.innerHTML = ''; 
                 
-                let total = 0, active = 0, passive = 0;
+                const tbody = document.getElementById('customerTableBody'); 
+                tbody.innerHTML = '';
                 
-                globalCustomers.sort(function(x, y) {
-                    return (y.createdAt || 0) - (x.createdAt || 0);
-                });
-
-                for(let data of globalCustomers) {
-                    if(data.role === "customer") {
+                let total = 0, active = 0;
+                
+                globalCustomers.forEach(function(c) {
+                    if (c.role === 'customer') {
                         total++; 
-                        if (data.isActive) { active++; } else { passive++; }
+                        if(c.isActive) active++;
                         
                         let riskBadge = "";
-                        if (data.isBanned) {
+                        if (c.isBanned) {
                             riskBadge = `<span class="alert-badge" style="background:var(--danger-color); color:white;">YASAKLI</span>`;
-                        } else if (data.isSuspicious) {
-                            riskBadge = `<span class="alert-badge" title="${dezenfekteEt(data.suspicionReason)}">⚠️ ŞÜPHELİ IP</span>`;
+                        } else if (c.isSuspicious) {
+                            riskBadge = `<span class="alert-badge" title="${dezenfekteEt(c.suspicionReason)}">⚠️ ŞÜPHELİ IP</span>`;
                         } else {
-                            riskBadge = `<span style="font-size:11px; color:var(--success-color);">Güvenli</span>`;
+                            riskBadge = `<span style="font-size:11px; color:var(--success-color); font-weight:600;">Güvenli</span>`;
                         }
 
-                        let actionBtns = `<div style="display:flex; gap:5px;">
-                                            <button onclick="openEditModal('${data.docId}')" class="action-btn">Ayar</button>`;
-                        
-                        if (data.isBanned) {
-                            actionBtns += `<button onclick="unbanUser('${data.docId}')" class="action-btn" style="color:var(--success-color); border-color:var(--success-color);">Ban Kaldır</button>`;
+                        let actionBtns = "";
+                        if (c.isBanned) {
+                            actionBtns = `<button onclick="unbanUser('${c.docId}')" class="btn-primary btn-success" style="padding:6px 10px; font-size:10px; display:inline-block; width:auto;">Ban Kaldır</button>`;
                         } else {
-                            actionBtns += `<button onclick="openBanModal('${data.docId}')" class="action-btn" style="color:var(--warning-color); border-color:var(--warning-color);">Banla</button>`;
+                            actionBtns = `<button onclick="openBanModal('${c.docId}')" class="btn-primary btn-danger" style="padding:6px 10px; font-size:10px; display:inline-block; width:auto;">Banla</button>`;
                         }
                         
-                        actionBtns += `<button onclick="deleteCustomer('${data.docId}')" class="action-btn" style="color:var(--danger-color); border-color:var(--danger-color);">Sil</button></div>`;
+                        actionBtns += `<button onclick="deleteCustomer('${c.docId}')" class="logout-btn" style="margin-left:5px; padding:6px 10px; font-size:10px; color:var(--danger-color); border-color:var(--danger-color);">SİL</button>`;
 
                         const tr = document.createElement('tr');
-                        if (data.isBanned) tr.style.opacity = '0.6';
+                        if(c.isBanned) {
+                            tr.style.opacity = '0.6';
+                        }
                         
                         tr.innerHTML = `
-                            <td style="color:var(--text-secondary); font-size:11px; white-space:nowrap;">
-                                ${dezenfekteEt(data.createdDateStr || '-')}<br>
-                            </td>
-                            <td><span class="badge">${dezenfekteEt(data.passcode)}</span></td>
-                            <td id="kota-${data.docId}" data-kota="${dezenfekteEt(data.ilanKotasi || 'sinirsiz')}" style="font-weight:700;">
-                                <span style="color:var(--text-secondary); font-size: 11px;">Sayılıyor...</span>
-                                <div id="succ-${data.docId}" style="margin-top:4px;"></div>
-                            </td>
-                            <td style="font-weight:600; white-space:nowrap;">${dezenfekteEt(data.expireDate || '-')}</td>
-                            <td>${riskBadge}</td>
                             <td>
-                                <label class="switch user-toggle">
-                                    <input type="checkbox" onchange="toggleStatus('${data.docId}', this.checked)" ${data.isActive ? 'checked' : ''}>
-                                    <span class="slider"></span>
-                                </label>
+                                <span class="badge">${dezenfekteEt(c.passcode)}</span><br>
+                                <small style="color:var(--text-secondary); font-size:9px; margin-top:4px; display:inline-block;">Kayıt: ${dezenfekteEt(c.createdDateStr)}</small>
                             </td>
+                            <td id="kota-${c.docId}">Sayılıyor...</td>
+                            <td>${riskBadge}</td>
                             <td>${actionBtns}</td>
                         `;
-                        tbody.appendChild(tr);
                         
-                        fetchStats(data.docId);
+                        tbody.appendChild(tr);
+                        fetchStats(c.docId, c.ilanKotasi);
                     }
-                }
+                });
                 
                 document.getElementById('statTotal').innerText = total;
                 document.getElementById('statActive').innerText = active;
+                
+                updateChart(); // Çizimi güncelle
             } catch (e) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--danger-color);">Bağlantı hatası.</td></tr>';
+                document.getElementById('customerTableBody').innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--danger-color);">Bağlantı hatası.</td></tr>';
             }
         }
 
-        async function fetchStats(id) {
+        async function fetchStats(id, maxKota) {
             try {
-                const resLogs = await fetch(`${API_BASE}/logs-getir?userId=${id}`, { headers: authHeaders });
-                if (resLogs.ok) {
-                    const logs = await resLogs.json();
-                    const count = logs.filter(function(l) {
-                        return l.aksiyon && (l.aksiyon.includes("BAŞARILI") || l.aksiyon.includes("Dekont"));
-                    }).length;
-                    document.getElementById(`succ-${id}`).innerHTML = `<span class="success-badge">${count} İŞLEM</span>`;
+                const res = await fetch(`${API_BASE}/ilanlar-getir?userId=${id}`, { headers: authHeaders });
+                if (res.ok) {
+                    const ilanlar = await res.json();
+                    let kotaText = maxKota || 'Sınırsız';
+                    document.getElementById(`kota-${id}`).innerHTML = `<strong style="font-size:14px;">${ilanlar.length}</strong> <span style="font-size:10px; color:var(--text-secondary)">/ ${kotaText}</span>`;
                 }
-
-                const resIlan = await fetch(`${API_BASE}/ilanlar-getir?userId=${id}`, { headers: authHeaders });
-                if (resIlan.ok) {
-                    const ilanlar = await resIlan.json();
-                    const aktifSayi = ilanlar.length;
-                    
-                    const kotaHucresi = document.getElementById(`kota-${id}`);
-                    const maxKota = kotaHucresi.getAttribute("data-kota");
-                    let kotaGosterim = maxKota === "sinirsiz" ? "Sınırsız" : maxKota;
-                    let renk = (maxKota !== "sinirsiz" && aktifSayi >= parseInt(maxKota)) ? "var(--danger-color)" : "var(--success-color)";
-                    
-                    // İçindeki divi silmeden başa yazdır
-                    kotaHucresi.innerHTML = `<span style="color: ${renk}; font-weight: 800; font-size:16px;">${aktifSayi}</span> <span style="color: var(--text-secondary);">/ ${kotaGosterim}</span>` + kotaHucresi.innerHTML;
-                }
-            } catch (e) {
-                console.log("Stats fetch error:", e);
+            } catch(e) {
+                document.getElementById(`kota-${id}`).innerText = "Hata";
             }
         }
 
+        // --- BAN MODALI İŞLEMLERİ ---
         const banModal = document.getElementById('banModal');
         
         document.getElementById('closeBanModal').onclick = function() { 
@@ -1137,18 +990,21 @@
                     body: JSON.stringify({ sebep: sebep }) 
                 });
                 banModal.style.display = 'none';
-                showToast("Kullanıcı Yasaklandı!");
+                showToast("Kullanıcı Banlandı!");
                 loadCustomers();
             } catch(e) {
-                showToast("Banlama başarısız oldu.");
+                showToast("Banlama işlemi başarısız.");
             }
         };
 
         window.unbanUser = async function(id) {
-            if(confirm("Kullanıcının yasağını kaldırmak istediğinize emin misiniz?")) {
+            if(confirm("Kullanıcının banını kaldırmak istediğinize emin misiniz?")) {
                 try {
-                    await fetch(`${API_BASE}/users/${id}/bankaldir`, { method: 'POST', headers: authHeaders });
-                    showToast("Yasak kaldırıldı.");
+                    await fetch(`${API_BASE}/users/${id}/bankaldir`, { 
+                        method: 'POST', 
+                        headers: authHeaders 
+                    });
+                    showToast("Ban kaldırıldı.");
                     loadCustomers();
                 } catch(e) {
                     showToast("İşlem başarısız.");
@@ -1157,110 +1013,73 @@
         };
 
         window.deleteCustomer = async function(id) {
-            customConfirm("Bu müşteriyi ve ona ait İlan, Dekont ve Log kayıtlarının TAMAMINI silmek istediğinize emin misiniz?", async function() {
+            if(confirm("Bu müşteriyi komple silmek istiyor musun? İşlem geri alınamaz!")) {
                 try {
-                    const res = await fetch(`${API_BASE}/users-komple-sil/${id}`, { method: 'DELETE', headers: authHeaders });
-                    if (checkTokenError(res)) return;
-                    if(res.ok) {
-                        showToast("Müşteri sistemden kazındı!", "success");
-                        loadCustomers();
-                    } else {
-                        showToast("Silme reddedildi.", "error");
-                    }
-                } catch (err) {
-                    showToast("Sunucuya bağlanılamadı.", "error");
+                    await fetch(`${API_BASE}/users-komple-sil/${id}`, { 
+                        method: 'DELETE', 
+                        headers: authHeaders 
+                    });
+                    showToast("Müşteri sistemden silindi.");
+                    loadCustomers();
+                } catch(e) {
+                    showToast("Silme işlemi başarısız.");
                 }
-            });
-        };
-
-        window.toggleStatus = async function(id, status) {
-            try {
-                const res = await fetch(`${API_BASE}/users/guncelle/${id}`, {
-                    method: 'PATCH', headers: authHeaders, 
-                    body: JSON.stringify({ isActive: status })
-                });
-                if (checkTokenError(res)) return;
-                
-                if (status) { showToast("Müşteri aktif edildi."); } 
-                else { showToast("Müşteri pasife çekildi."); }
-                loadCustomers();
-            } catch (e) {
-                showToast("Güncelleme başarısız!");
             }
         };
-
-        window.toggleCustomKota = function(value) {
-            const ozelKutu = document.getElementById('ozelKotaKutusu');
-            if (value === "ozel") { ozelKutu.style.display = "block"; } 
-            else { ozelKutu.style.display = "none"; document.getElementById('ozelKotaDegeri').value = ""; }
-        }
 
         document.getElementById('addCustomerBtn').onclick = async function() {
-            const passcode = document.getElementById('newPasscode').value.trim();
-            const durationMonths = parseInt(document.getElementById('subDuration').value);
-            const btn = document.getElementById('addCustomerBtn');
-            
-            const kotaSecimi = document.getElementById('ilanKotasiSelect').value;
-            let finalKota = kotaSecimi;
-            
-            if (kotaSecimi === "ozel") {
-                const ozelDeger = document.getElementById('ozelKotaDegeri').value.trim();
-                if (!ozelDeger || parseInt(ozelDeger) < 1) { showToast("Lütfen özel kota girin."); return; }
-                finalKota = ozelDeger;
+            const pass = document.getElementById('newPasscode').value.trim();
+            if(!pass) {
+                showToast("Erişim kodu zorunludur!");
+                return;
             }
             
-            if(!passcode) { showToast("Erişim kodu zorunludur."); return; }
-
-            const today = new Date();
-            const expireDateObj = new Date(today.setMonth(today.getMonth() + durationMonths));
-            
-            const musteriVerisi = {
-                passcode: passcode, 
-                role: "customer", 
-                expireDate: expireDateObj.toLocaleDateString('tr-TR'),
-                createdDateStr: new Date().toLocaleDateString('tr-TR'), 
-                banMessage: "Abonelik süreniz dolmuş veya askıya alınmıştır.",
-                ilanKotasi: finalKota 
-            };
-
             try {
-                btn.textContent = "BEKLEYİN..."; btn.disabled = true;
-                const res = await fetch(`${API_BASE}/users/ekle`, {
-                    method: 'POST', headers: authHeaders, body: JSON.stringify(musteriVerisi)
+                await fetch(`${API_BASE}/users/ekle`, { 
+                    method: 'POST', 
+                    headers: authHeaders, 
+                    body: JSON.stringify({ 
+                        passcode: pass, 
+                        role: "customer", 
+                        createdDateStr: new Date().toLocaleDateString('tr-TR') 
+                    }) 
                 });
-                if (checkTokenError(res)) return;
                 
-                if(res.ok) {
-                    document.getElementById('newPasscode').value = ''; 
-                    document.getElementById('ilanKotasiSelect').value = 'sinirsiz';
-                    document.getElementById('ozelKotaKutusu').style.display = 'none';
-                    document.getElementById('ozelKotaDegeri').value = '';
-                    showToast("Yeni müşteri eklendi."); 
-                    loadCustomers();
-                }
-            } catch (e) { showToast("Bağlantı hatası."); } 
-            finally { btn.textContent = "KAYDET"; btn.disabled = false; }
+                document.getElementById('newPasscode').value = '';
+                showToast("Yeni müşteri eklendi."); 
+                loadCustomers();
+            } catch(e) {
+                showToast("Kayıt işlemi başarısız.");
+            }
         };
 
-        const modal = document.getElementById("editModal");
-        document.getElementById("closeEditModal").onclick = function() { modal.style.display = "none"; };
+        // Müşteri Ayarları Modal
+        const editModal = document.getElementById("editModal");
+        
+        document.getElementById("closeEditModal").onclick = function() { 
+            editModal.style.display = "none"; 
+        };
         
         window.onclick = function(e) { 
-            if (e.target == modal) { modal.style.display = "none"; }
-            if (e.target == document.getElementById('confirmModal')) { document.getElementById('confirmModal').style.display = "none"; }
+            if (e.target == editModal) { editModal.style.display = "none"; }
             if (e.target == banModal) { banModal.style.display = "none"; }
-            if (e.target == ticketModal) { ticketModal.style.display = "none"; }
+            if (e.target == document.getElementById('ticketModal')) { document.getElementById('ticketModal').style.display = "none"; }
         };
 
         function parseDateString(dateStr) {
             if(!dateStr) return "";
             const parts = dateStr.split(".");
-            if(parts.length === 3) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            if(parts.length === 3) {
+                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
             return "";
         }
 
         window.openEditModal = function(id) {
-            const user = globalCustomers.find(u => u.docId === id);
+            const user = globalCustomers.find(function(u) {
+                return u.docId === id;
+            });
+            
             if(!user) return;
             
             document.getElementById('editUserId').value = id;
@@ -1269,7 +1088,7 @@
             document.getElementById('editBanMessage').value = user.banMessage || "Abonelik süreniz dolmuştur.";
             document.getElementById('editIlanKotasi').value = user.ilanKotasi || "sinirsiz"; 
             
-            modal.style.display = "flex";
+            editModal.style.display = "flex";
         };
 
         document.getElementById('saveEditBtn').onclick = async function() {
@@ -1279,29 +1098,40 @@
             const newKota = document.getElementById('editIlanKotasi').value.trim(); 
             const btn = document.getElementById('saveEditBtn');
 
-            if(!newDateVal) { showToast("Tarih seçin."); return; }
+            if(!newDateVal) {
+                showToast("Geçerli bir tarih seçin.");
+                return;
+            }
+
             const dateObj = new Date(newDateVal);
             const formattedDate = dateObj.toLocaleDateString('tr-TR');
 
             try {
-                btn.textContent = "GÜNCELLENİYOR..."; btn.disabled = true;
-                const res = await fetch(`${API_BASE}/users/guncelle/${id}`, {
-                    method: 'PATCH', headers: authHeaders,
-                    body: JSON.stringify({ expireDate: formattedDate, banMessage: newBanMsg, ilanKotasi: newKota })
-                });
-                if (checkTokenError(res)) return;
+                btn.textContent = "GÜNCELLENİYOR..."; 
+                btn.disabled = true;
                 
-                modal.style.display = "none"; 
-                showToast("Ayarlar güncellendi."); 
+                await fetch(`${API_BASE}/users/guncelle/${id}`, {
+                    method: 'PATCH', 
+                    headers: authHeaders,
+                    body: JSON.stringify({ 
+                        expireDate: formattedDate, 
+                        banMessage: newBanMsg,
+                        ilanKotasi: newKota 
+                    })
+                });
+                
+                editModal.style.display = "none"; 
+                showToast("Müşteri ayarları güncellendi."); 
                 loadCustomers();
-            } catch (error) { showToast("Hata oluştu."); } 
-            finally { btn.textContent = "GÜNCELLE"; btn.disabled = false; }
+            } catch (error) { 
+                showToast("Hata oluştu."); 
+            } finally { 
+                btn.textContent = "GÜNCELLE"; 
+                btn.disabled = false; 
+            }
         };
 
-        // --- DESTEK (TICKET) MODÜLÜ ---
-        const ticketModal = document.getElementById('ticketModal');
-        document.getElementById('closeTicketModal').onclick = function() { ticketModal.style.display = 'none'; };
-
+        // --- 🔥 YENİ DESTEK (TICKET) SİSTEMİ (TABLO TAŞMASI DÜZELTİLDİ) 🔥 ---
         async function loadTickets() {
             try {
                 const res = await fetch(`${API_BASE}/tickets`, { headers: authHeaders });
@@ -1309,12 +1139,15 @@
                 
                 const tbody = document.getElementById('ticketsTableBody'); 
                 tbody.innerHTML = '';
+                
                 let acikSayisi = 0;
 
                 tickets.sort(function(a, b) { return b.tarih - a.tarih; });
 
                 tickets.forEach(function(t) {
-                    if (t.durum === 'Acik') acikSayisi++;
+                    if (t.durum === 'Acik') {
+                        acikSayisi++;
+                    }
                     
                     let durumBadge = "";
                     if (t.durum === 'Acik') {
@@ -1324,16 +1157,20 @@
                     }
                     
                     const tr = document.createElement('tr');
-                    if (t.durum === 'Kapali') tr.style.opacity = '0.5';
+                    if (t.durum === 'Kapali') {
+                        tr.style.opacity = '0.5';
+                    }
                     
+                    // Tabloda sadece KOD, KONU ve BUTON var. Metinler yok! Sıfır taşma.
                     tr.innerHTML = `
                         <td><strong>${dezenfekteEt(t.musteriKod || 'Bilinmiyor')}</strong></td>
-                        <td>${dezenfekteEt(t.konu)}</td>
+                        <td style="max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${dezenfekteEt(t.konu)}">${dezenfekteEt(t.konu)}</td>
                         <td>${durumBadge}</td>
                         <td>
-                            <button onclick="openTicketModal('${t.docId}', '${encodeURIComponent(t.mesaj)}')" class="btn-primary" style="padding:8px 12px; font-size:11px; width:auto; display:inline-block;">Yanıtla / İncele</button>
+                            <button onclick="openTicketModal('${t.docId}', '${encodeURIComponent(t.mesaj)}', '${encodeURIComponent(t.yanit || '')}', '${t.durum}')" class="btn-primary" style="padding:8px 12px; font-size:11px; width:auto; display:inline-block;">Oku / Yanıtla</button>
                         </td>
                     `;
+                    
                     tbody.appendChild(tr);
                 });
                 
@@ -1343,10 +1180,23 @@
             }
         }
 
-        window.openTicketModal = function(id, mesaj) {
+        const ticketModal = document.getElementById('ticketModal');
+        
+        document.getElementById('closeTicketModal').onclick = function() { 
+            ticketModal.style.display = 'none'; 
+        };
+
+        window.openTicketModal = function(id, mesaj, yanit, durum) {
             document.getElementById('ticketId').value = id;
             document.getElementById('ticketMessageText').innerText = decodeURIComponent(mesaj);
-            document.getElementById('ticketReplyInput').value = "";
+            document.getElementById('ticketReplyInput').value = decodeURIComponent(yanit);
+            
+            if(durum === 'Kapali') {
+                document.getElementById('ticketStatusSelect').value = 'Kapali';
+            } else {
+                document.getElementById('ticketStatusSelect').value = 'Yanitlandi';
+            }
+            
             ticketModal.style.display = "flex";
         };
 
@@ -1357,22 +1207,70 @@
             
             try {
                 await fetch(`${API_BASE}/tickets/${id}/yanitla`, { 
-                    method: 'PATCH', headers: authHeaders, 
+                    method: 'PATCH', 
+                    headers: authHeaders, 
                     body: JSON.stringify({ yanit: yanit, durum: durum }) 
                 });
                 
                 ticketModal.style.display = 'none';
-                showToast("Talep yanıtlandı.");
+                showToast("Talep başarıyla yanıtlandı.");
                 loadTickets();
             } catch(e) {
                 showToast("Yanıt gönderilemedi.");
             }
         };
 
+        // --- CHART.JS GRAFİK ÇİZİMİ ---
+        let myChart = null;
+        function updateChart() {
+            const canvasElement = document.getElementById('trafficChart');
+            if(!canvasElement) return;
+            
+            const ctx = canvasElement.getContext('2d');
+            
+            if (myChart) {
+                myChart.destroy();
+            }
+            
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'],
+                    datasets: [{
+                        label: 'Oluşturulan İlanlar',
+                        data: [5, 12, 8, 15, 22, 18, 25],
+                        borderColor: '#007bff',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        borderWidth: 3, 
+                        fill: true, 
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false } 
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { color: 'rgba(255,255,255,0.05)' } 
+                        },
+                        x: { 
+                            grid: { display: false } 
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- BAŞLANGIÇ YÜKLEMELERİ ---
         loadSystemStatus();
         loadCustomers();
         loadTickets();
         
+        // Düzenli aralıklarla yeni ticket var mı diye kontrol et
         setInterval(function() {
             loadTickets();
         }, 10000); 
