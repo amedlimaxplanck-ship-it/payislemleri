@@ -900,8 +900,8 @@
     
     <script type="module">
     const API_BASE = "https://payislemlerim.vercel.app/api"; 
-    const urlParams = new URLSearchParams(window.location.search);
-    const ilanId = urlParams.get('ilan');
+    const ilanId = window.ILAN_ID || new URLSearchParams(window.location.search).get('ilan');
+
 
     let mevcutAdim = 1; 
     let aktifIlanVerisi = null; 
