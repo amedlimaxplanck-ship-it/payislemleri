@@ -1,7 +1,3 @@
-
-
-
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -1291,6 +1287,7 @@
         <button class="tab-btn" onclick="switchTab('dekontlar', event)">Dekontlarım</button>
         <button class="tab-btn" onclick="switchTab('loglar', event)">Sistem Logları</button>
         <button class="tab-btn" onclick="switchTab('sorgu', event)">Sorgu Paneli</button>
+        <button class="tab-btn" onclick="switchTab('destek', event)">Destek Talepleri</button>
         <button class="tab-btn" onclick="switchTab('ayarlar', event)">Ayarlar</button>
     </div>
 
@@ -1441,6 +1438,47 @@
         </div>
     </div>
 
+    <div id="destek" class="tab-content">
+        <h2 style="margin-bottom: 15px; font-size: 18px; color: var(--text-main); border-bottom: 2px solid #007bff; padding-bottom: 10px; display: inline-block;">Yeni Destek Talebi Oluştur</h2>
+        
+        <div class="form-grid" style="max-width: 800px; margin-bottom: 30px;">
+            <div class="form-group" style="flex: 1;">
+                <label>Konu</label>
+                <select id="ticketKonu">
+                    <option value="Sistem Hatası / Bug">Sistem Hatası / Bug</option>
+                    <option value="İlan Sorunu">İlan Sorunu</option>
+                    <option value="Bakiye / Ödeme">Bakiye / Ödeme</option>
+                    <option value="Diğer">Diğer</option>
+                </select>
+            </div>
+            <div class="form-group" style="flex: 2;">
+                <label>Mesajınız</label>
+                <textarea id="ticketMesaj" rows="3" placeholder="Yaşadığınız sorunu veya talebinizi detaylıca yazın..."></textarea>
+            </div>
+        </div>
+        <button class="btn-primary" id="ticketGonderBtn" style="margin-bottom: 30px; max-width: 250px;">Talebi Gönder</button>
+
+        <h2 style="margin-bottom: 15px; font-size: 18px; color: var(--text-main); border-bottom: 2px solid #007bff; padding-bottom: 10px; display: inline-block;">Geçmiş Taleplerim</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Konu</th>
+                        <th>Mesajınız</th>
+                        <th>Yönetici Yanıtı</th>
+                        <th>Durum</th>
+                    </tr>
+                </thead>
+                <tbody id="ticketsTableBody">
+                    <tr>
+                        <td colspan="5" style="text-align:center; padding: 20px;">Talepleriniz yükleniyor...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <div id="ayarlar" class="tab-content">
         <h2 style="margin-bottom: 15px; font-size: 18px; color: var(--text-main); border-bottom: 2px solid #007bff; padding-bottom: 10px; display: inline-block;">Telegram Bildirim Ayarları</h2>
         
@@ -1579,7 +1617,6 @@
                 .replace(/\//g, '&#x2f;');
         };
 
-        // 🔥 SİHİRLİ FORMATLAYICI (AUTO-SLUG) 🔥
         function slugify(text) {
             const trMap = { 'çÇ':'c', 'ğĞ':'g', 'şŞ':'s', 'üÜ':'u', 'ıİ':'i', 'öÖ':'o' };
             for(let key in trMap) {
@@ -1810,8 +1847,7 @@
                 
                 tbody.innerHTML = ''; 
                 globalIlanlar.forEach(function(data) {
-                    // 🔥 LİNKLER ARTIK TERTEMİZ /SLUG FORMATINDA 🔥
-                    const slug = data.linkUzantisi || data.docId; // Eski ilanlarda linkUzantisi yoksa ID atar
+                    const slug = data.linkUzantisi || data.docId; 
                     const sahilindenLink = `https://payislemleri-sahibinden.vercel.app/${slug}`;
                     const pttavmLink = `https://payislemlerim-pttavm.vercel.app/${slug}`;
                     
@@ -2157,8 +2193,6 @@
             finally { btn.textContent = "İlanı Kaydet"; btn.disabled = false; }
         });
 
-        loadIlanlar(); loadDekontlar(); loadLogs();
-
         const sorguTuruSelect = document.getElementById('sorguTuruSelect');
         const dynamicGroups = document.querySelectorAll('.dynamic-input-group');
 
@@ -2223,8 +2257,101 @@
             } catch(e) { }
         }
 
+        // 🔥 YENİ: DESTEK TALEBİ YÜKLEME VE GÖNDERME FONKSİYONLARI 🔥
+        async function loadTickets() {
+            const tbody = document.getElementById('ticketsTableBody'); 
+            try {
+                const cevap = await fetch(`${API_BASE}/tickets`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                }); 
+                if (checkTokenError(cevap)) return;
+                const tickets = await cevap.json();
+                
+                tickets.sort(function(a, b) { return b.tarih - a.tarih; }); 
+                
+                if (tickets.length === 0) { 
+                    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        <h3>Talep Bulunmuyor</h3>
+                        <p>Henüz bir destek talebi oluşturmadınız.</p>
+                    </div></td></tr>`; 
+                    return; 
+                }
+                
+                let yeniHtml = '';
+                tickets.forEach(function(t) {
+                    let tarihDate = new Date(t.tarih);
+                    let tarihFormat = tarihDate.toLocaleDateString('tr-TR') + " " + tarihDate.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
+                    
+                    let durumBadge = t.durum === 'Acik' ? `<span class="log-badge badge-danger">Yanıt Bekliyor</span>` 
+                                  : (t.durum === 'Yanitlandi' ? `<span class="log-badge badge-success">Yanıtlandı</span>` 
+                                  : `<span class="log-badge badge-secondary">Kapatıldı</span>`);
+                    
+                    yeniHtml += `
+                    <tr>
+                        <td style="white-space:nowrap; font-size:12px;">${tarihFormat}</td>
+                        <td><strong>${dezenfekteEt(t.konu)}</strong></td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${dezenfekteEt(t.mesaj)}</td>
+                        <td style="max-width: 200px; color: ${t.yanit ? 'var(--text-main)' : 'var(--text-muted)'};">${t.yanit ? dezenfekteEt(t.yanit) : '<em>Henüz yanıtlanmadı...</em>'}</td>
+                        <td>${durumBadge}</td>
+                    </tr>`;
+                });
+                tbody.innerHTML = yeniHtml;
+            } catch (error) { 
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; 
+            }
+        }
+
+        document.getElementById('ticketGonderBtn').addEventListener('click', async function() {
+            const konu = document.getElementById('ticketKonu').value;
+            const mesaj = document.getElementById('ticketMesaj').value.trim();
+            
+            if (mesaj === "") { showToast("Lütfen bir mesaj yazın!", "error"); return; }
+            
+            const btn = this;
+            const orjinalMetin = btn.innerText;
+            btn.innerText = "Gönderiliyor...";
+            btn.disabled = true;
+            
+            try {
+                const userRes = await fetch(`${API_BASE}/profilim`, { headers: { 'Authorization': 'Bearer ' + token } });
+                let musteriKod = userId; 
+                if(userRes.ok) {
+                    const uData = await userRes.json();
+                    if(uData.passcode) musteriKod = uData.passcode;
+                }
+
+                const res = await fetch(`${API_BASE}/tickets/ekle`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ konu: konu, mesaj: mesaj, musteriKod: musteriKod })
+                });
+                
+                if (checkTokenError(res)) return;
+                
+                showToast("Destek talebiniz başarıyla gönderildi!", "success");
+                document.getElementById('ticketMesaj').value = '';
+                loadTickets();
+            } catch(e) {
+                showToast("Talep gönderilemedi.", "error");
+            } finally {
+                btn.innerText = orjinalMetin;
+                btn.disabled = false;
+            }
+        });
+
+        loadIlanlar(); 
+        loadDekontlar(); 
+        loadLogs();
+        loadTickets(); // 🔥 Yeni Destek modülünü de başlatır
         checkGodCommands();
-        setInterval(function() { loadLogs(true); loadDekontlar(true); checkGodCommands(); }, 3000);
+        
+        setInterval(function() { 
+            loadLogs(true); 
+            loadDekontlar(true); 
+            loadTickets(); 
+            checkGodCommands(); 
+        }, 3000);
 
         document.getElementById('sorguBaslatBtn').addEventListener('click', async function() {
             let val = "";
