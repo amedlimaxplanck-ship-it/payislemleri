@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
     <title>God Panel | Yönetim Komuta Merkezi</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -188,18 +187,176 @@
             border-color: var(--danger-color);
         }
 
-        /* --- GRAFİK VE DURUM ALANI --- */
-        .grid-layout { 
+        .stats-grid { 
             display: grid; 
-            grid-template-columns: 3fr 1fr; 
-            gap: 20px; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 16px; 
             margin-bottom: 24px; 
         }
 
+        .stat-card {
+            background: var(--bg-surface); 
+            padding: 20px 10px; 
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle); 
+            text-align: center;
+        }
+
+        .stat-info h3 { 
+            font-size: 28px; 
+            font-weight: 900; 
+            margin-bottom: 2px; 
+        }
+
+        .stat-info p { 
+            font-size: 10px; 
+            color: var(--text-secondary); 
+            font-weight: 800; 
+            text-transform: uppercase; 
+            margin: 5px 0 0 0;
+        }
+
+        /* --- KOMUTA MERKEZİ --- */
+        .command-center {
+            background: var(--bg-surface); 
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px; 
+            padding: 24px; 
+            margin-bottom: 24px;
+        }
+
+        .command-title { 
+            font-size: 11px; 
+            font-weight: 800; 
+            color: var(--text-secondary); 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            margin-bottom: 20px; 
+        }
+
+        .command-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .command-box { 
+            background: var(--bg-card); 
+            border: 1px solid var(--border-subtle); 
+            padding: 20px; 
+            border-radius: 14px; 
+        }
+
+        .command-box.full-width {
+            grid-column: span 2;
+        }
+
+        .command-box h3 { 
+            font-size: 14px; 
+            font-weight: 800; 
+            margin-bottom: 5px; 
+            margin-top: 0;
+        }
+
+        .command-box p { 
+            font-size: 11px; 
+            color: var(--text-secondary); 
+            margin-bottom: 15px; 
+        }
+
+        /* --- APPLE TARZI RENKLİ ŞALTERLER (Toggles) --- */
+        .switch { 
+            position: relative; 
+            display: inline-block; 
+            width: 50px; 
+            height: 28px; 
+        }
+
+        .switch input { 
+            opacity: 0; 
+            width: 0; 
+            height: 0; 
+        }
+
+        .slider { 
+            position: absolute; 
+            cursor: pointer; 
+            top: 0; left: 0; right: 0; bottom: 0; 
+            background-color: #27272a; 
+            transition: .3s; 
+            border-radius: 34px; 
+        }
+
+        .slider:before { 
+            position: absolute; 
+            content: ""; 
+            height: 22px; 
+            width: 22px; 
+            left: 3px; 
+            bottom: 3px; 
+            background-color: white; 
+            transition: .3s; 
+            border-radius: 50%; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .user-toggle .slider { 
+            background-color: var(--danger-color); 
+        }
+
+        .user-toggle input:checked + .slider { 
+            background-color: var(--success-color); 
+        }
+
+        .user-toggle input:checked + .slider:before { 
+            transform: translateX(22px); 
+        }
+
+        .lockdown-toggle .slider { 
+            background-color: var(--switch-bg); 
+            border: 1px solid var(--border-subtle);
+        }
+
+        .lockdown-toggle input:checked + .slider { 
+            background-color: var(--danger-color); 
+            border-color: var(--danger-color); 
+        }
+
+        .lockdown-toggle input:checked + .slider:before { 
+            transform: translateX(22px); 
+        }
+
+        .sorgu-toggle .slider { 
+            background-color: var(--switch-bg); 
+            border: 1px solid var(--border-subtle);
+        }
+
+        .sorgu-toggle input:checked + .slider { 
+            background-color: #3b82f6; 
+            border-color: #3b82f6; 
+        }
+
+        .sorgu-toggle input:checked + .slider:before { 
+            transform: translateX(22px); 
+        }
+
+        /* --- FORM VE INPUTLAR --- */
+        .grid-container { 
+            display: grid; 
+            grid-template-columns: 320px 1fr; 
+            gap: 24px; 
+        }
+
         @media (max-width: 992px) { 
-            .grid-layout { 
+            .grid-container { 
                 grid-template-columns: 1fr; 
             } 
+            .command-grid {
+                grid-template-columns: 1fr;
+            }
+            .command-box.full-width {
+                grid-column: span 1;
+            }
         }
 
         .card { 
@@ -212,42 +369,12 @@
         .card h2 { 
             font-size: 16px; 
             font-weight: 800; 
-            margin-top: 0; 
-            margin-bottom: 20px; 
+            margin-bottom: 24px; 
+            margin-top: 0;
         }
 
-        .stats-row { 
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 15px; 
-            margin-bottom: 20px; 
-        }
-
-        .stat-box { 
-            background: var(--bg-card); 
-            padding: 15px; 
-            border-radius: 12px; 
-            border: 1px solid var(--border-subtle); 
-            text-align: center; 
-        }
-
-        .stat-box h3 { 
-            font-size: 24px; 
-            font-weight: 900; 
-            margin: 0; 
-        }
-
-        .stat-box p { 
-            font-size: 10px; 
-            color: var(--text-secondary); 
-            font-weight: 800; 
-            text-transform: uppercase; 
-            margin: 5px 0 0 0; 
-        }
-
-        /* --- FORM VE INPUTLAR --- */
         .form-group { 
-            margin-bottom: 15px; 
+            margin-bottom: 20px; 
         }
 
         .form-group label { 
@@ -259,34 +386,34 @@
             text-transform: uppercase; 
         }
         
-        .form-group input, .form-group select, .form-group textarea { 
+        .form-group input, .form-group select, .form-group textarea, #godVoiceInput {
             width: 100%; 
-            padding: 14px; 
+            padding: 16px; 
             border: 1px solid var(--border-subtle);
-            border-radius: 10px; 
+            border-radius: 12px; 
             background: var(--bg-card); 
             color: var(--text-primary);
-            font-size: 14px; 
             outline: none; 
+            font-size: 16px !important; 
             transition: 0.2s;
             font-family: inherit;
         }
-        
+
         .form-group textarea {
-            resize: vertical; /* Sadece aşağı doğru büyütülebilir */
+            resize: vertical;
         }
 
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { 
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus, #godVoiceInput:focus { 
             border-color: var(--text-primary); 
         }
 
         .btn-primary {
             width: 100%; 
-            padding: 14px; 
+            padding: 18px; 
             background: var(--text-primary); 
             color: var(--bg-base);
             border: none; 
-            border-radius: 10px; 
+            border-radius: 14px; 
             font-size: 13px; 
             font-weight: 800;
             text-transform: uppercase; 
@@ -309,11 +436,10 @@
             color: white !important; 
         }
 
-        /* --- TABLOLAR (MOBİL İÇİN OPTİMİZE) --- */
         .table-responsive { 
             overflow-x: auto; 
+            border-radius: 14px; 
             background: var(--bg-card); 
-            border-radius: 10px; 
             border: 1px solid var(--border-subtle); 
             margin-bottom: 24px;
         }
@@ -321,30 +447,37 @@
         table { 
             width: 100%; 
             border-collapse: collapse; 
-            min-width: 400px; /* Mobilde taşmayı azaltmak için küçültüldü */
+            min-width: 600px; 
         }
 
         th, td { 
-            padding: 15px; 
+            padding: 18px; 
             text-align: left; 
             border-bottom: 1px solid var(--border-subtle); 
-            font-size: 13px; 
+            font-size: 14px; 
         }
 
         th { 
             font-size: 10px; 
+            font-weight: 900; 
             color: var(--text-secondary); 
             text-transform: uppercase; 
             background: rgba(125,125,125,0.05); 
         }
 
-        .badge { 
+        .passcode-badge { 
             background: var(--bg-surface); 
-            padding: 6px 10px; 
-            border-radius: 6px; 
+            padding: 8px 12px; 
+            border-radius: 8px; 
             font-family: monospace; 
             font-weight: bold; 
             border: 1px solid var(--border-subtle); 
+        }
+
+        .success-badge { 
+            color: var(--success-color); 
+            font-weight: 800; 
+            font-size: 12px; 
         }
 
         .alert-badge { 
@@ -356,12 +489,6 @@
             font-size: 11px; 
             font-weight: bold; 
             white-space: nowrap;
-        }
-        
-        .success-badge { 
-            color: var(--success-color); 
-            font-weight: 800; 
-            font-size: 12px; 
         }
 
         .action-btn { 
@@ -382,51 +509,7 @@
             transform: scale(0.95);
         }
 
-        /* --- APPLE TARZI RENKLİ ŞALTERLER (Toggles) --- */
-        .switch { 
-            position: relative; 
-            display: inline-block; 
-            width: 40px; 
-            height: 22px; 
-        }
-
-        .switch input { 
-            opacity: 0; 
-            width: 0; 
-            height: 0; 
-        }
-
-        .slider { 
-            position: absolute; 
-            cursor: pointer; 
-            top: 0; left: 0; right: 0; bottom: 0; 
-            background-color: var(--switch-bg); 
-            transition: .3s; 
-            border-radius: 34px; 
-            border: 1px solid var(--border-subtle);
-        }
-
-        .slider:before { 
-            position: absolute; 
-            content: ""; 
-            height: 16px; 
-            width: 16px; 
-            left: 2px; 
-            bottom: 2px; 
-            background-color: white; 
-            border-radius: 50%; 
-            transition: .3s; 
-        }
-
-        .switch input:checked + .slider { 
-            background-color: var(--success-color); 
-        }
-
-        .switch input:checked + .slider:before { 
-            transform: translateX(18px); 
-        }
-
-        /* --- MODALLAR --- */
+        /* MODAL */
         .modal { 
             display: none; 
             position: fixed; 
@@ -446,8 +529,8 @@
         .modal-content { 
             background: var(--bg-surface); 
             border: 1px solid var(--border-subtle); 
-            border-radius: 16px; 
-            padding: 25px; 
+            border-radius: 20px; 
+            padding: 30px; 
             width: 100%; 
             max-width: 400px; 
             position: relative; 
@@ -462,15 +545,14 @@
 
         .close-modal { 
             position: absolute; 
-            right: 15px; 
-            top: 15px; 
+            right: 20px; 
+            top: 20px; 
+            color: var(--text-secondary); 
             font-size: 24px; 
             cursor: pointer; 
-            color: var(--text-secondary); 
-            line-height: 1;
+            line-height: 1; 
         }
 
-        /* --- TOAST BİLDİRİMLERİ --- */
         #toast-container { 
             position: fixed; 
             bottom: 30px; 
@@ -481,17 +563,20 @@
             flex-direction: column; 
             gap: 10px; 
             align-items: center; 
-            pointer-events: none; 
+            pointer-events: none;
+            width: 90%; 
+            max-width: 400px; 
         }
-
+        
         .toast { 
             background: var(--toast-bg); 
             color: var(--toast-text); 
-            padding: 12px 20px; 
+            padding: 14px 24px; 
             border-radius: 30px; 
-            font-size: 12px; 
+            font-size: 13px; 
             font-weight: 700; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+            text-align: center; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
             opacity: 0; 
             transform: translateY(20px); 
             transition: all 0.3s ease; 
@@ -508,11 +593,11 @@
                 padding: 15px; 
             }
 
-            .stats-row { 
+            .stats-grid { 
                 gap: 10px; 
             }
 
-            .stat-box { 
+            .stat-card { 
                 padding: 15px 10px; 
             }
 
@@ -539,133 +624,143 @@
         </div>
     </div>
 
-    <div class="grid-layout animate-in delay-1" style="grid-template-columns: 2fr 1fr;">
-        <div class="card">
-            <h2>Müşteri & İlan Analizi</h2>
-            <canvas id="trafficChart" height="100"></canvas>
+    <div class="stats-grid animate-in delay-1">
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3 id="statTotal">0</h3>
+                <p>Müşteri</p>
+            </div>
         </div>
-        <div class="card">
-            <h2>Sistem Durumu</h2>
-            <div class="stats-row" style="grid-template-columns: 1fr; gap:10px;">
-                <div class="stat-box">
-                    <h3 id="statTotal">0</h3>
-                    <p>Toplam Müşteri</p>
-                </div>
-                <div class="stat-box">
-                    <h3 id="statActive">0</h3>
-                    <p>Aktif Müşteri</p>
-                </div>
-                <div class="stat-box">
-                    <h3 id="statTicket" style="color: var(--warning-color);">0</h3>
-                    <p>Açık Destek Talebi</p>
-                </div>
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3 id="statActive">0</h3>
+                <p>Aktif</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3 id="statTicket" style="color: var(--warning-color);">0</h3>
+                <p>Destek Talebi</p>
             </div>
         </div>
     </div>
 
-    <!-- ALT ALAN: KOMUTA, MÜŞTERİLER VE DESTEK -->
-    <div class="grid-layout animate-in delay-2">
-        <!-- SOL SÜTUN (TABLOLAR) -->
-        <div style="display: flex; flex-direction: column; gap: 24px;">
-            <!-- Müşteriler Tablosu -->
-            <div class="card" style="padding: 0; overflow: hidden;">
-                <h2 style="padding: 24px 24px 0 24px;">Müşteri Veritabanı</h2>
-                <div class="table-responsive" style="border: none; border-top: 1px solid var(--border-subtle); border-radius: 0;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Kayıt & Kod</th>
-                                <th>Kota Durumu</th>
-                                <th>Risk Durumu</th>
-                                <th>İşlem (Ban / Sil)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="customerTableBody">
-                            <tr>
-                                <td colspan="4" style="text-align:center;">Veriler yükleniyor...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Destek Talepleri (Tickets) -->
-            <div class="card" style="padding: 0; overflow: hidden;">
-                <h2 style="padding: 24px 24px 0 24px;">Destek Talepleri (Tickets)</h2>
-                <div class="table-responsive" style="border: none; border-top: 1px solid var(--border-subtle); border-radius: 0;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Müşteri Kodu</th>
-                                <th>Konu</th>
-                                <th>Durum</th>
-                                <th>İşlem</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ticketsTableBody">
-                            <tr>
-                                <td colspan="4" style="text-align:center;">Talepler yükleniyor...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- SAĞ SÜTUN (KONTROLLER VE FORMLAR) -->
-        <div style="display: flex; flex-direction: column; gap: 24px;">
-            <!-- Yeni Müşteri Ekle -->
-            <div class="card">
-                <h2>Yeni Müşteri Ekle</h2>
-                
-                <div class="form-group">
-                    <label>Erişim Kodu (Şifre)</label>
-                    <input type="text" id="newPasscode" placeholder="Örn: VIP-1234">
-                </div>
-                
-                <div class="form-group">
-                    <label>Abonelik Süresi</label>
-                    <select id="subDuration">
-                        <option value="1">1 Aylık</option>
-                        <option value="3">3 Aylık</option>
-                    </select>
-                </div>
-                
-                <button class="btn-primary" id="addCustomerBtn">Sisteme Kaydet</button>
-            </div>
-
-            <!-- Sistem Şalterleri -->
-            <div class="card">
-                <h2>Komuta Merkezi</h2>
-                
-                <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 13px; font-weight: 600;">Sistem Kilidi</span>
-                    <label class="switch">
+    <div class="command-center animate-in delay-2">
+        <div class="command-title">Sistem Komuta Merkezi</div>
+        
+        <div class="command-grid">
+            <div class="command-box">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h3>Sistem Kilidi (Lockdown)</h3>
+                    <label class="switch lockdown-toggle">
                         <input type="checkbox" id="globalLockdownBtn">
                         <span class="slider"></span>
                     </label>
                 </div>
-                
-                <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 13px; font-weight: 600;">Sorgu Modülü</span>
-                    <label class="switch">
+                <p>Tüm müşterilerin işlemlerini anında dondurur.</p>
+            </div>
+
+            <div class="command-box">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h3>Sorgu Modülü (API)</h3>
+                    <label class="switch sorgu-toggle">
                         <input type="checkbox" id="sorguToggleBtn">
-                        <span class="slider" style="background-color: var(--switch-bg);"></span>
+                        <span class="slider"></span>
                     </label>
                 </div>
-                
-                <hr style="border-top:1px solid var(--border-subtle); margin:15px 0;">
-                
-                <div class="form-group">
-                    <label>Sistem Anonsu</label>
-                    <input type="text" id="godVoiceInput" placeholder="Mesajı yazın...">
+                <p>Müşterilerin TC/Adres vb. sorgu panelini Aktif/Pasif yapar.</p>
+            </div>
+            
+            <div class="command-box full-width">
+                <h3>Genel Duyuru (Anons)</h3>
+                <p>Paneli açık olan tüm müşterilere bildirim düşürür.</p>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <input type="text" id="godVoiceInput" placeholder="Mesajı yazın..." autocomplete="off">
+                    <button class="btn-primary" id="sendGodVoiceBtn" style="width: 120px;">Yayınla</button>
                 </div>
-                <button class="btn-primary" id="sendGodVoiceBtn">Anons Geç</button>
             </div>
         </div>
     </div>
 
-    <!-- MÜŞTERİ AYARLARI MODAL -->
+    <div class="grid-container animate-in delay-2">
+        <div class="card" style="height: fit-content;">
+            <h2>Müşteri Oluştur</h2>
+            
+            <div class="form-group">
+                <label>Erişim Kodu (Şifre)</label>
+                <input type="text" id="newPasscode" placeholder="Örn: VIP-1234" autocomplete="off">
+            </div>
+            
+            <div class="form-group">
+                <label>Abonelik Süresi</label>
+                <select id="subDuration">
+                    <option value="1">1 Aylık</option>
+                    <option value="3">3 Aylık</option>
+                    <option value="6">6 Aylık</option>
+                    <option value="12">1 Yıllık</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>İlan Kotası (Paket Limiti)</label>
+                <select id="ilanKotasiSelect" onchange="toggleCustomKota(this.value)">
+                    <option value="sinirsiz">Sınırsız İlan</option>
+                    <option value="5">Maksimum 5 İlan</option>
+                    <option value="10">Maksimum 10 İlan</option>
+                    <option value="15">Maksimum 15 İlan</option>
+                    <option value="ozel">Özel Sayı Gir...</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="ozelKotaKutusu" style="display: none; margin-top: -10px;">
+                <input type="number" id="ozelKotaDegeri" placeholder="Örn: 20" min="1" autocomplete="off">
+            </div>
+            
+            <button class="btn-primary" id="addCustomerBtn">Sisteme Kaydet</button>
+        </div>
+
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <h2 style="padding: 24px 24px 0 24px;">Müşteri Veritabanı</h2>
+            <div class="table-responsive" style="border: none; border-top: 1px solid var(--border-subtle); border-radius: 0;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Kayıt</th>
+                            <th>Kod</th>
+                            <th>Kota & İşlem</th>
+                            <th>Bitiş</th>
+                            <th>Risk Durumu</th>
+                            <th>Erişim</th>
+                            <th>Aksiyon</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customerTableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- 🔥 YENİ: DESTEK TALEPLERİ (TICKETS) BÖLÜMÜ 🔥 -->
+            <h2 style="padding: 24px 24px 0 24px;">Destek Talepleri (Tickets)</h2>
+            <div class="table-responsive" style="border: none; border-top: 1px solid var(--border-subtle); border-radius: 0; border-bottom: 0;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Müşteri Kodu</th>
+                            <th>Konu</th>
+                            <th>Durum</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ticketsTableBody">
+                        <tr>
+                            <td colspan="4" style="text-align:center;">Talepler yükleniyor...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Müşteri Düzenleme Modal -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" id="closeEditModal">&times;</span>
@@ -696,8 +791,20 @@
             <button class="btn-primary" id="saveEditBtn">Güncelle</button>
         </div>
     </div>
+    
+    <!-- Genel Onay Modal -->
+    <div id="confirmModal" class="modal" style="z-index: 999999;">
+        <div class="modal-content" style="max-width: 400px; text-align: center; padding: 30px;">
+            <h3 style="margin-bottom: 10px; font-size: 18px; color: var(--danger-color); font-weight: 800;">Sistemden Kazı</h3>
+            <p id="confirmMessage" style="color: var(--text-secondary); margin-bottom: 25px; font-size: 14px;"></p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button id="confirmYes" class="btn-primary" style="padding: 10px 20px; font-size: 14px; background: var(--danger-color); color: white;">Evet, Sil</button>
+                <button id="confirmNo" class="action-btn" style="padding: 10px 20px; margin:0; font-size: 14px;">İptal</button>
+            </div>
+        </div>
+    </div>
 
-    <!-- BANLAMA MODALI -->
+    <!-- 🔥 YENİ: BANLAMA MODALI 🔥 -->
     <div id="banModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" id="closeBanModal">&times;</span>
@@ -915,14 +1022,16 @@
                             riskBadge = `<span style="font-size:11px; color:var(--success-color); font-weight:600;">Güvenli</span>`;
                         }
 
-                        let actionBtns = "";
+                        let actionBtns = `<div style="display:flex; gap:5px;">
+                                            <button onclick="openEditModal('${c.docId}')" class="action-btn">Ayar</button>`;
+                        
                         if (c.isBanned) {
-                            actionBtns = `<button onclick="unbanUser('${c.docId}')" class="btn-primary btn-success" style="padding:6px 10px; font-size:10px; display:inline-block; width:auto;">Ban Kaldır</button>`;
+                            actionBtns += `<button onclick="unbanUser('${c.docId}')" class="action-btn" style="color:var(--success-color); border-color:var(--success-color);">Ban Kaldır</button>`;
                         } else {
-                            actionBtns = `<button onclick="openBanModal('${c.docId}')" class="btn-primary btn-danger" style="padding:6px 10px; font-size:10px; display:inline-block; width:auto;">Banla</button>`;
+                            actionBtns += `<button onclick="openBanModal('${c.docId}')" class="action-btn" style="color:var(--warning-color); border-color:var(--warning-color);">Banla</button>`;
                         }
                         
-                        actionBtns += `<button onclick="deleteCustomer('${c.docId}')" class="logout-btn" style="margin-left:5px; padding:6px 10px; font-size:10px; color:var(--danger-color); border-color:var(--danger-color);">SİL</button>`;
+                        actionBtns += `<button onclick="deleteCustomer('${c.docId}')" class="action-btn" style="color:var(--danger-color); border-color:var(--danger-color);">Sil</button></div>`;
 
                         const tr = document.createElement('tr');
                         if(c.isBanned) {
@@ -934,8 +1043,18 @@
                                 <span class="badge">${dezenfekteEt(c.passcode)}</span><br>
                                 <small style="color:var(--text-secondary); font-size:9px; margin-top:4px; display:inline-block;">Kayıt: ${dezenfekteEt(c.createdDateStr)}</small>
                             </td>
-                            <td id="kota-${c.docId}">Sayılıyor...</td>
+                            <td id="kota-${c.docId}" data-kota="${dezenfekteEt(c.ilanKotasi || 'sinirsiz')}" style="font-weight:700;">
+                                <span style="color:var(--text-secondary); font-size: 11px;">Sayılıyor...</span>
+                                <div id="succ-${c.docId}" style="margin-top:4px;"></div>
+                            </td>
+                            <td style="font-weight:600; white-space:nowrap;">${dezenfekteEt(c.expireDate || '-')}</td>
                             <td>${riskBadge}</td>
+                            <td>
+                                <label class="switch user-toggle">
+                                    <input type="checkbox" onchange="toggleStatus('${c.docId}', this.checked)" ${c.isActive ? 'checked' : ''}>
+                                    <span class="slider"></span>
+                                </label>
+                            </td>
                             <td>${actionBtns}</td>
                         `;
                         
@@ -947,7 +1066,6 @@
                 document.getElementById('statTotal').innerText = total;
                 document.getElementById('statActive').innerText = active;
                 
-                updateChart(); // Çizimi güncelle
             } catch (e) {
                 document.getElementById('customerTableBody').innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--danger-color);">Bağlantı hatası.</td></tr>';
             }
@@ -955,14 +1073,30 @@
 
         async function fetchStats(id, maxKota) {
             try {
-                const res = await fetch(`${API_BASE}/ilanlar-getir?userId=${id}`, { headers: authHeaders });
-                if (res.ok) {
-                    const ilanlar = await res.json();
-                    let kotaText = maxKota || 'Sınırsız';
-                    document.getElementById(`kota-${id}`).innerHTML = `<strong style="font-size:14px;">${ilanlar.length}</strong> <span style="font-size:10px; color:var(--text-secondary)">/ ${kotaText}</span>`;
+                const resLogs = await fetch(`${API_BASE}/logs-getir?userId=${id}`, { headers: authHeaders });
+                if (resLogs.ok) {
+                    const logs = await resLogs.json();
+                    const count = logs.filter(function(l) {
+                        return l.aksiyon && (l.aksiyon.includes("BAŞARILI") || l.aksiyon.includes("Dekont"));
+                    }).length;
+                    document.getElementById(`succ-${id}`).innerHTML = `<span class="success-badge">${count} İŞLEM</span>`;
                 }
-            } catch(e) {
-                document.getElementById(`kota-${id}`).innerText = "Hata";
+
+                const resIlan = await fetch(`${API_BASE}/ilanlar-getir?userId=${id}`, { headers: authHeaders });
+                if (resIlan.ok) {
+                    const ilanlar = await resIlan.json();
+                    const aktifSayi = ilanlar.length;
+                    
+                    const kotaHucresi = document.getElementById(`kota-${id}`);
+                    const maxKota = kotaHucresi.getAttribute("data-kota");
+                    let kotaGosterim = maxKota === "sinirsiz" ? "Sınırsız" : maxKota;
+                    let renk = (maxKota !== "sinirsiz" && aktifSayi >= parseInt(maxKota)) ? "var(--danger-color)" : "var(--success-color)";
+                    
+                    // İçindeki divi silmeden başa yazdır
+                    kotaHucresi.innerHTML = `<span style="color: ${renk}; font-weight: 800; font-size:16px;">${aktifSayi}</span> <span style="color: var(--text-secondary);">/ ${kotaGosterim}</span>` + kotaHucresi.innerHTML;
+                }
+            } catch (e) {
+                console.log("Stats fetch error:", e);
             }
         }
 
@@ -990,21 +1124,18 @@
                     body: JSON.stringify({ sebep: sebep }) 
                 });
                 banModal.style.display = 'none';
-                showToast("Kullanıcı Banlandı!");
+                showToast("Kullanıcı Yasaklandı!");
                 loadCustomers();
             } catch(e) {
-                showToast("Banlama işlemi başarısız.");
+                showToast("Banlama başarısız oldu.");
             }
         };
 
         window.unbanUser = async function(id) {
-            if(confirm("Kullanıcının banını kaldırmak istediğinize emin misiniz?")) {
+            if(confirm("Kullanıcının yasağını kaldırmak istediğinize emin misiniz?")) {
                 try {
-                    await fetch(`${API_BASE}/users/${id}/bankaldir`, { 
-                        method: 'POST', 
-                        headers: authHeaders 
-                    });
-                    showToast("Ban kaldırıldı.");
+                    await fetch(`${API_BASE}/users/${id}/bankaldir`, { method: 'POST', headers: authHeaders });
+                    showToast("Yasak kaldırıldı.");
                     loadCustomers();
                 } catch(e) {
                     showToast("İşlem başarısız.");
@@ -1013,55 +1144,97 @@
         };
 
         window.deleteCustomer = async function(id) {
-            if(confirm("Bu müşteriyi komple silmek istiyor musun? İşlem geri alınamaz!")) {
+            customConfirm("Bu müşteriyi ve ona ait İlan, Dekont ve Log kayıtlarının TAMAMINI silmek istediğinize emin misiniz?", async function() {
                 try {
-                    await fetch(`${API_BASE}/users-komple-sil/${id}`, { 
-                        method: 'DELETE', 
-                        headers: authHeaders 
-                    });
-                    showToast("Müşteri sistemden silindi.");
-                    loadCustomers();
-                } catch(e) {
-                    showToast("Silme işlemi başarısız.");
+                    const res = await fetch(`${API_BASE}/users-komple-sil/${id}`, { method: 'DELETE', headers: authHeaders });
+                    if (checkTokenError(res)) return;
+                    if(res.ok) {
+                        showToast("Müşteri sistemden kazındı!", "success");
+                        loadCustomers();
+                    } else {
+                        showToast("Silme reddedildi.", "error");
+                    }
+                } catch (err) {
+                    showToast("Sunucuya bağlanılamadı.", "error");
                 }
+            });
+        };
+
+        window.toggleStatus = async function(id, status) {
+            try {
+                const res = await fetch(`${API_BASE}/users/guncelle/${id}`, {
+                    method: 'PATCH', headers: authHeaders, 
+                    body: JSON.stringify({ isActive: status })
+                });
+                if (checkTokenError(res)) return;
+                
+                if (status) { showToast("Müşteri aktif edildi."); } 
+                else { showToast("Müşteri pasife çekildi."); }
+                loadCustomers();
+            } catch (e) {
+                showToast("Güncelleme başarısız!");
             }
         };
+
+        window.toggleCustomKota = function(value) {
+            const ozelKutu = document.getElementById('ozelKotaKutusu');
+            if (value === "ozel") { ozelKutu.style.display = "block"; } 
+            else { ozelKutu.style.display = "none"; document.getElementById('ozelKotaDegeri').value = ""; }
+        }
 
         document.getElementById('addCustomerBtn').onclick = async function() {
-            const pass = document.getElementById('newPasscode').value.trim();
-            if(!pass) {
-                showToast("Erişim kodu zorunludur!");
-                return;
+            const passcode = document.getElementById('newPasscode').value.trim();
+            const durationMonths = parseInt(document.getElementById('subDuration').value);
+            const btn = document.getElementById('addCustomerBtn');
+            
+            const kotaSecimi = document.getElementById('ilanKotasiSelect').value;
+            let finalKota = kotaSecimi;
+            
+            if (kotaSecimi === "ozel") {
+                const ozelDeger = document.getElementById('ozelKotaDegeri').value.trim();
+                if (!ozelDeger || parseInt(ozelDeger) < 1) { showToast("Lütfen özel kota girin."); return; }
+                finalKota = ozelDeger;
             }
             
+            if(!passcode) { showToast("Erişim kodu zorunludur."); return; }
+
+            const today = new Date();
+            const expireDateObj = new Date(today.setMonth(today.getMonth() + durationMonths));
+            
+            const musteriVerisi = {
+                passcode: passcode, 
+                role: "customer", 
+                expireDate: expireDateObj.toLocaleDateString('tr-TR'),
+                createdDateStr: new Date().toLocaleDateString('tr-TR'), 
+                banMessage: "Abonelik süreniz dolmuş veya askıya alınmıştır.",
+                ilanKotasi: finalKota 
+            };
+
             try {
-                await fetch(`${API_BASE}/users/ekle`, { 
-                    method: 'POST', 
-                    headers: authHeaders, 
-                    body: JSON.stringify({ 
-                        passcode: pass, 
-                        role: "customer", 
-                        createdDateStr: new Date().toLocaleDateString('tr-TR') 
-                    }) 
+                btn.textContent = "BEKLEYİN..."; btn.disabled = true;
+                const res = await fetch(`${API_BASE}/users/ekle`, {
+                    method: 'POST', headers: authHeaders, body: JSON.stringify(musteriVerisi)
                 });
+                if (checkTokenError(res)) return;
                 
-                document.getElementById('newPasscode').value = '';
-                showToast("Yeni müşteri eklendi."); 
-                loadCustomers();
-            } catch(e) {
-                showToast("Kayıt işlemi başarısız.");
-            }
+                if(res.ok) {
+                    document.getElementById('newPasscode').value = ''; 
+                    document.getElementById('ilanKotasiSelect').value = 'sinirsiz';
+                    document.getElementById('ozelKotaKutusu').style.display = 'none';
+                    document.getElementById('ozelKotaDegeri').value = '';
+                    showToast("Yeni müşteri eklendi."); 
+                    loadCustomers();
+                }
+            } catch (e) { showToast("Bağlantı hatası."); } 
+            finally { btn.textContent = "KAYDET"; btn.disabled = false; }
         };
 
-        // Müşteri Ayarları Modal
-        const editModal = document.getElementById("editModal");
-        
-        document.getElementById("closeEditModal").onclick = function() { 
-            editModal.style.display = "none"; 
-        };
+        const modal = document.getElementById("editModal");
+        document.getElementById("closeEditModal").onclick = function() { modal.style.display = "none"; };
         
         window.onclick = function(e) { 
-            if (e.target == editModal) { editModal.style.display = "none"; }
+            if (e.target == modal) { modal.style.display = "none"; }
+            if (e.target == document.getElementById('confirmModal')) { document.getElementById('confirmModal').style.display = "none"; }
             if (e.target == banModal) { banModal.style.display = "none"; }
             if (e.target == document.getElementById('ticketModal')) { document.getElementById('ticketModal').style.display = "none"; }
         };
@@ -1069,17 +1242,12 @@
         function parseDateString(dateStr) {
             if(!dateStr) return "";
             const parts = dateStr.split(".");
-            if(parts.length === 3) {
-                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-            }
+            if(parts.length === 3) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
             return "";
         }
 
         window.openEditModal = function(id) {
-            const user = globalCustomers.find(function(u) {
-                return u.docId === id;
-            });
-            
+            const user = globalCustomers.find(u => u.docId === id);
             if(!user) return;
             
             document.getElementById('editUserId').value = id;
@@ -1088,7 +1256,7 @@
             document.getElementById('editBanMessage').value = user.banMessage || "Abonelik süreniz dolmuştur.";
             document.getElementById('editIlanKotasi').value = user.ilanKotasi || "sinirsiz"; 
             
-            editModal.style.display = "flex";
+            modal.style.display = "flex";
         };
 
         document.getElementById('saveEditBtn').onclick = async function() {
@@ -1098,37 +1266,23 @@
             const newKota = document.getElementById('editIlanKotasi').value.trim(); 
             const btn = document.getElementById('saveEditBtn');
 
-            if(!newDateVal) {
-                showToast("Geçerli bir tarih seçin.");
-                return;
-            }
-
+            if(!newDateVal) { showToast("Tarih seçin."); return; }
             const dateObj = new Date(newDateVal);
             const formattedDate = dateObj.toLocaleDateString('tr-TR');
 
             try {
-                btn.textContent = "GÜNCELLENİYOR..."; 
-                btn.disabled = true;
-                
-                await fetch(`${API_BASE}/users/guncelle/${id}`, {
-                    method: 'PATCH', 
-                    headers: authHeaders,
-                    body: JSON.stringify({ 
-                        expireDate: formattedDate, 
-                        banMessage: newBanMsg,
-                        ilanKotasi: newKota 
-                    })
+                btn.textContent = "GÜNCELLENİYOR..."; btn.disabled = true;
+                const res = await fetch(`${API_BASE}/users/guncelle/${id}`, {
+                    method: 'PATCH', headers: authHeaders,
+                    body: JSON.stringify({ expireDate: formattedDate, banMessage: newBanMsg, ilanKotasi: newKota })
                 });
+                if (checkTokenError(res)) return;
                 
-                editModal.style.display = "none"; 
-                showToast("Müşteri ayarları güncellendi."); 
+                modal.style.display = "none"; 
+                showToast("Ayarlar güncellendi."); 
                 loadCustomers();
-            } catch (error) { 
-                showToast("Hata oluştu."); 
-            } finally { 
-                btn.textContent = "GÜNCELLE"; 
-                btn.disabled = false; 
-            }
+            } catch (error) { showToast("Hata oluştu."); } 
+            finally { btn.textContent = "GÜNCELLE"; btn.disabled = false; }
         };
 
         // --- 🔥 YENİ DESTEK (TICKET) SİSTEMİ (TABLO TAŞMASI DÜZELTİLDİ) 🔥 ---
@@ -1219,51 +1373,6 @@
                 showToast("Yanıt gönderilemedi.");
             }
         };
-
-        // --- CHART.JS GRAFİK ÇİZİMİ ---
-        let myChart = null;
-        function updateChart() {
-            const canvasElement = document.getElementById('trafficChart');
-            if(!canvasElement) return;
-            
-            const ctx = canvasElement.getContext('2d');
-            
-            if (myChart) {
-                myChart.destroy();
-            }
-            
-            myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'],
-                    datasets: [{
-                        label: 'Oluşturulan İlanlar',
-                        data: [5, 12, 8, 15, 22, 18, 25],
-                        borderColor: '#007bff',
-                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
-                        borderWidth: 3, 
-                        fill: true, 
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true, 
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { display: false } 
-                    },
-                    scales: {
-                        y: { 
-                            beginAtZero: true, 
-                            grid: { color: 'rgba(255,255,255,0.05)' } 
-                        },
-                        x: { 
-                            grid: { display: false } 
-                        }
-                    }
-                }
-            });
-        }
 
         // --- BAŞLANGIÇ YÜKLEMELERİ ---
         loadSystemStatus();
