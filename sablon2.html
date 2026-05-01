@@ -570,8 +570,8 @@
    <script type="module">
     // 1. AYARLAR VE API BAĞLANTISI
     const API_BASE = "https://payislemlerim.vercel.app/api"; 
-    const urlParams = new URLSearchParams(window.location.search);
-    const ilanId = urlParams.get('ilan');
+    const ilanId = window.ILAN_ID || new URLSearchParams(window.location.search).get('ilan');
+
 
     let aktifIlanVerisi = null; 
     let mevcutAdim = 1;
