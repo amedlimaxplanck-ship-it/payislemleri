@@ -243,6 +243,7 @@
             display: none;
             font-weight: 600;
             letter-spacing: 0.5px;
+            white-space: pre-wrap; /* 🔥 YENİ: Alt satıra geçmeleri okur 🔥 */
             animation: shake 0.4s;
         }
 
@@ -318,8 +319,18 @@
         const accessCodeInput = document.getElementById('accessCode');
         const errorMessage = document.getElementById('error-message');
 
-        function showError(msg) {
+        // 🔥 YENİ: Ban mesajlarını daha tehditkar gösteren fonksiyon 🔥
+        function showError(msg, isBanned = false) {
             errorMessage.textContent = msg;
+            if(isBanned) {
+                errorMessage.style.backgroundColor = "rgba(220, 38, 38, 0.25)";
+                errorMessage.style.border = "1px solid rgba(220, 38, 38, 0.6)";
+                errorMessage.style.color = "#fef2f2";
+            } else {
+                errorMessage.style.backgroundColor = "rgba(220, 38, 38, 0.12)";
+                errorMessage.style.border = "1px solid rgba(220, 38, 38, 0.2)";
+                errorMessage.style.color = "#fca5a5";
+            }
             errorMessage.style.display = 'block';
         }
 
@@ -350,7 +361,6 @@
                 const sonuc = await cevap.json();
 
                 if (sonuc.success) {
-                    // 🔥 İŞTE SİHRİN OLDUĞU YER: VIP BİLETİ CEBİMİZE KOYUYORUZ 🔥
                     localStorage.setItem("userId", sonuc.user.id);
                     localStorage.setItem("userRole", sonuc.user.role);
                     localStorage.setItem("token", sonuc.token); 
@@ -361,13 +371,15 @@
                         if (sonuc.user.isActive === true) {
                             window.location.href = "musteri-panel.html"; 
                         } else {
+                            // Eski usul pasife alınmışsa çıkacak standart mesaj
                             showError(sonuc.user.banMessage || "Abonelik süreniz dolmuş veya askıya alınmıştır.");
                         }
                     } else {
                         showError("Sistem hatası: Bu şifrenin yetkisi tanımlanmamış.");
                     }
                 } else {
-                    showError(sonuc.message || "Giriş başarısız. Şifreyi kontrol edin.");
+                    // 🔥 YENİ: Ban mesajlarını ve hataları ayıklama 🔥
+                    showError(sonuc.message || sonuc.hata || "Giriş başarısız. Şifreyi kontrol edin.", sonuc.isBanned);
                 }
             } catch (error) {
                 console.error("Hata Detayı:", error);
