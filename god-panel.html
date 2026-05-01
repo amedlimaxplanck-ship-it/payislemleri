@@ -830,7 +830,6 @@
         <div class="card" style="padding: 0; overflow: hidden;">
             <h2 style="padding: 24px 24px 0 24px;">Müşteri Veritabanı</h2>
             <div class="table-responsive" style="border: none; border-top: 1px solid var(--border-subtle); border-radius: 0;">
-                <!-- 🔥 KUSURSUZ 7 SÜTUNLU TABLO 🔥 -->
                 <table>
                     <thead>
                         <tr>
@@ -851,7 +850,6 @@
                 </table>
             </div>
 
-            <!-- DESTEK TALEPLERİ (TICKETS) BÖLÜMÜ -->
             <h2 style="padding: 24px 24px 0 24px;">Destek Talepleri (Tickets)</h2>
             <div class="table-responsive" style="border: none; border-top: 1px solid var(--border-subtle); border-radius: 0; border-bottom: 0;">
                 <table>
@@ -873,7 +871,6 @@
         </div>
     </div>
 
-    <!-- Müşteri Düzenleme Modal -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" id="closeEditModal">&times;</span>
@@ -905,19 +902,17 @@
         </div>
     </div>
     
-    <!-- Genel Onay Modal -->
     <div id="confirmModal" class="modal" style="z-index: 999999;">
         <div class="modal-content" style="max-width: 400px; text-align: center; padding: 30px;">
-            <h3 style="margin-bottom: 10px; font-size: 18px; color: var(--danger-color); font-weight: 800;">Sistemden Kazı</h3>
+            <h3 style="margin-bottom: 10px; font-size: 18px; font-weight: 800;">Sistem Onayı</h3>
             <p id="confirmMessage" style="color: var(--text-secondary); margin-bottom: 25px; font-size: 14px;"></p>
             <div style="display: flex; gap: 10px; justify-content: center;">
-                <button id="confirmYes" class="btn-primary" style="padding: 10px 20px; font-size: 14px; background: var(--danger-color); color: white;">Evet, Sil</button>
+                <button id="confirmYes" class="btn-primary" style="padding: 10px 20px; font-size: 14px; color: white;">Evet, Onayla</button>
                 <button id="confirmNo" class="action-btn" style="padding: 10px 20px; margin:0; font-size: 14px;">İptal</button>
             </div>
         </div>
     </div>
 
-    <!-- BANLAMA MODALI -->
     <div id="banModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" id="closeBanModal">&times;</span>
@@ -935,7 +930,6 @@
         </div>
     </div>
 
-    <!-- TICKET YANITLAMA MODALI -->
     <div id="ticketModal" class="modal">
         <div class="modal-content" style="max-width: 500px;">
             <span class="close-modal" id="closeTicketModal">&times;</span>
@@ -968,6 +962,7 @@
     <div id="toast-container"></div>
 
     <script type="module">
+        // XSS Önleyici Dezenfekte Fonksiyonu
         window.dezenfekteEt = function(str) {
             if (str === null || str === undefined) return "";
             return String(str)
@@ -1051,12 +1046,23 @@
             return false;
         }
 
-        window.customConfirm = function(message, callback) {
+        // 🔥 YENİ: VIBE KODER ONAY EKRANI (RENK DESTEKLİ) 🔥
+        window.customConfirm = function(message, callback, isDanger = false) {
             const modal = document.getElementById('confirmModal');
             document.getElementById('confirmMessage').innerText = message; 
+            const yesBtn = document.getElementById('confirmYes');
+            
+            if(isDanger) {
+                yesBtn.style.background = 'var(--danger-color)';
+                yesBtn.innerText = 'Evet, Sil';
+            } else {
+                yesBtn.style.background = 'var(--success-color)';
+                yesBtn.innerText = 'Evet, Onayla';
+            }
+            
             modal.style.display = 'flex';
             
-            document.getElementById('confirmYes').onclick = function() { 
+            yesBtn.onclick = function() { 
                 modal.style.display = 'none'; 
                 callback(); 
             };
@@ -1187,7 +1193,6 @@
                             tr.style.opacity = '0.6';
                         }
                         
-                        // 🔥 ÇİFT YAZMA HATASININ ÇÖZÜLDÜĞÜ YENİ KOTA HÜCRESİ YAPI TAŞI 🔥
                         tr.innerHTML = `
                             <td style="color:var(--text-secondary); font-size:11px; white-space:nowrap;">
                                 ${dezenfekteEt(data.createdDateStr || '-')}
@@ -1233,7 +1238,7 @@
                     document.getElementById(`succ-${id}`).innerHTML = `<span class="success-badge">${count} İŞLEM</span>`;
                 }
 
-                // İlan Kotası Sayacı (Çift yazma hatası düzeltildi)
+                // İlan Kotası Sayacı 
                 const resIlan = await fetch(`${API_BASE}/ilanlar-getir?userId=${id}`, { headers: authHeaders });
                 if (resIlan.ok) {
                     const ilanlar = await resIlan.json();
@@ -1283,24 +1288,31 @@
             }
         };
 
+        // 🔥 YENİ: BAN KALDIRIRKEN ÖZEL TOAST ONAY EKRANI 🔥
         window.unbanUser = async function(id) {
-            if(confirm("Kullanıcının yasağını kaldırmak istediğinize emin misiniz?")) {
+            customConfirm("Kullanıcının yasağını kaldırmak istediğinize emin misiniz?", async function() {
                 try {
-                    const res = await fetch(`${API_BASE}/users/${id}/bankaldir`, { method: 'POST', headers: authHeaders });
+                    const res = await fetch(`${API_BASE}/users/${id}/bankaldir`, { 
+                        method: 'POST', 
+                        headers: authHeaders 
+                    });
                     if (checkTokenError(res)) return;
                     
-                    showToast("Yasak kaldırıldı.");
+                    showToast("Yasak Başarıyla Kaldırıldı.");
                     loadCustomers();
                 } catch(e) {
                     showToast("İşlem başarısız.");
                 }
-            }
+            }, false); // false = Yeşil Onay Butonu
         };
 
         window.deleteCustomer = async function(id) {
-            customConfirm("Bu müşteriyi ve ona ait İlan, Dekont ve Log kayıtlarının TAMAMINI silmek istediğinize emin misiniz?", async function() {
+            customConfirm("Bu müşteriyi ve ona ait İlan, Dekont ve Log kayıtlarının TAMAMINI silmek istediğinize emin misiniz? Bu işlem geri alınamaz!", async function() {
                 try {
-                    const res = await fetch(`${API_BASE}/users-komple-sil/${id}`, { method: 'DELETE', headers: authHeaders });
+                    const res = await fetch(`${API_BASE}/users-komple-sil/${id}`, { 
+                        method: 'DELETE', 
+                        headers: authHeaders 
+                    });
                     if (checkTokenError(res)) return;
                     
                     if(res.ok) {
@@ -1312,7 +1324,7 @@
                 } catch (err) {
                     showToast("Sunucuya bağlanılamadı.", "error");
                 }
-            });
+            }, true); // true = Kırmızı Sil Butonu
         };
 
         window.toggleStatus = async function(id, status) {
@@ -1449,7 +1461,7 @@
             try {
                 const res = await fetch(`${API_BASE}/tickets`, { headers: authHeaders });
                 if (checkTokenError(res)) {
-                    clearInterval(ticketTimer); // Hata varsa yenilemeyi durdur
+                    clearInterval(ticketTimer); 
                     return;
                 }
                 
@@ -1478,12 +1490,16 @@
                         tr.style.opacity = '0.5';
                     }
                     
+                    // 🔥 YENİ: SİL BUTONU EKLENDİ 🔥
                     tr.innerHTML = `
                         <td><strong>${dezenfekteEt(t.musteriKod || 'Bilinmiyor')}</strong></td>
                         <td style="max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${dezenfekteEt(t.konu)}">${dezenfekteEt(t.konu)}</td>
                         <td>${durumBadge}</td>
                         <td>
-                            <button onclick="openTicketModal('${t.docId}', '${encodeURIComponent(t.mesaj)}', '${encodeURIComponent(t.yanit || '')}', '${t.durum}')" class="btn-primary" style="padding:8px 12px; font-size:11px; width:auto; display:inline-block;">Oku / Yanıtla</button>
+                            <div style="display:flex; gap:5px;">
+                                <button onclick="openTicketModal('${t.docId}', '${encodeURIComponent(t.mesaj)}', '${encodeURIComponent(t.yanit || '')}', '${t.durum}')" class="action-btn">Yanıtla</button>
+                                <button onclick="deleteTicket('${t.docId}')" class="action-btn" style="color:var(--danger-color); border-color:var(--danger-color);">Sil</button>
+                            </div>
                         </td>
                     `;
                     
@@ -1495,6 +1511,24 @@
                 console.log("Ticket yükleme hatası", e);
             }
         }
+
+        // 🔥 YENİ: TICKET SİLME FONKSİYONU 🔥
+        window.deleteTicket = async function(id) {
+            customConfirm("Bu destek talebini silmek istediğinize emin misiniz?", async function() {
+                try {
+                    const res = await fetch(`${API_BASE}/tickets/${id}`, { 
+                        method: 'DELETE', 
+                        headers: authHeaders 
+                    });
+                    if (checkTokenError(res)) return;
+                    
+                    showToast("Destek Talebi Silindi.");
+                    loadTickets();
+                } catch(e) {
+                    showToast("Silme işlemi başarısız.");
+                }
+            }, true); // true = Kırmızı Sil Butonu
+        };
 
         window.openTicketModal = function(id, mesaj, yanit, durum) {
             document.getElementById('ticketId').value = id;
