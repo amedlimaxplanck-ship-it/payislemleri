@@ -411,6 +411,29 @@
             color: #6c757d; 
             border: 1px solid rgba(108,117,125,0.2); 
         }
+
+        /* YENİ LOG FİLTRE BUTONLARI */
+        .log-filter-btn {
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .log-filter-btn:hover {
+            background: var(--bg-body);
+            color: var(--text-main);
+        }
+        .log-filter-btn.active {
+            background: var(--text-main);
+            color: var(--bg-card);
+            border-color: var(--text-main);
+        }
         
         .btn-primary { 
             background: linear-gradient(135deg, #10b981, #059669); 
@@ -669,13 +692,9 @@
             font-size: 14px; 
             transition: all 0.2s; 
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.01); 
-            font-family: inherit;
         }
 
-        .form-group textarea {
-            resize: vertical;
-        }
-
+        /* --- Input taşmalarını önlemek için --- */
         .dynamic-input-group input {
             width: 100%;
             box-sizing: border-box;
@@ -1339,6 +1358,15 @@
     </div>
 
     <div id="loglar" class="tab-content">
+        <!-- YENİ: LOG FİLTRELERİ -->
+        <div class="log-filters" style="display: flex; gap: 10px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px;">
+            <button class="log-filter-btn active" onclick="filterLogs('all', this)">Tümü</button>
+            <button class="log-filter-btn" onclick="filterLogs('visit', this)">Ziyaretler</button>
+            <button class="log-filter-btn" style="color: #007bff; border-color: rgba(0,123,255,0.3);" onclick="filterLogs('payment', this)">Ödeme Adımları</button>
+            <button class="log-filter-btn" style="color: #10b981; border-color: rgba(16,185,129,0.3);" onclick="filterLogs('success', this)">Başarılı İşlemler</button>
+            <button class="log-filter-btn" style="color: #ef4444; border-color: rgba(239,68,68,0.3);" onclick="filterLogs('error', this)">Hatalar</button>
+        </div>
+        
         <div class="table-container">
             <table>
                 <thead>
@@ -1347,7 +1375,7 @@
                         <th>İlan Bilgisi</th>
                         <th>Aksiyon</th>
                         <th>Detay</th>
-                        <th>IP Adresi</th>
+                        <th>IP / Cihaz Adresi</th>
                     </tr>
                 </thead>
                 <tbody id="loglarTableBody">
@@ -1442,7 +1470,6 @@
         </div>
     </div>
 
-    <!-- 🔥 YENİ: DESTEK TALEPLERİ SEKMESİ (TABLO DARALTILDI) 🔥 -->
     <div id="destek" class="tab-content">
         <h2 style="margin-bottom: 15px; font-size: 18px; color: var(--text-main); border-bottom: 2px solid #007bff; padding-bottom: 10px; display: inline-block;">Yeni Destek Talebi Oluştur</h2>
         
@@ -1470,13 +1497,14 @@
                     <tr>
                         <th>Tarih</th>
                         <th>Konu</th>
+                        <th>Mesajınız</th>
+                        <th>Yönetici Yanıtı</th>
                         <th>Durum</th>
-                        <th>Detay</th>
                     </tr>
                 </thead>
                 <tbody id="ticketsTableBody">
                     <tr>
-                        <td colspan="4" style="text-align:center; padding: 20px;">Talepleriniz yükleniyor...</td>
+                        <td colspan="5" style="text-align:center; padding: 20px;">Talepleriniz yükleniyor...</td>
                     </tr>
                 </tbody>
             </table>
@@ -1606,24 +1634,6 @@
 
                 <button type="submit" class="btn-primary" id="submitBtn" style="width: 100%; margin-top: 25px; padding: 15px; font-size: 16px;">İlanı Kaydet</button>
             </form>
-        </div>
-    </div>
-
-    <!-- 🔥 YENİ: TICKET OKUMA MODALI 🔥 -->
-    <div id="ticketReadModal" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
-            <span class="close-modal" id="closeTicketReadModal">&times;</span>
-            <h2 style="margin-top: 0; margin-bottom: 15px;">Talep Detayı</h2>
-            
-            <div style="background: var(--bg-body); padding: 15px; border-radius: 10px; font-size:13px; margin-bottom: 15px; border:1px solid var(--border-color); max-height: 150px; overflow-y: auto; word-break: break-word;">
-                <strong style="color: var(--text-muted); font-size: 10px;">SİZİN MESAJINIZ:</strong><br>
-                <span id="ticketMessageReadText" style="display: block; margin-top: 8px; line-height: 1.6; color: var(--text-main);">...</span>
-            </div>
-            
-            <div style="background: rgba(16, 185, 129, 0.1); padding: 15px; border-radius: 10px; font-size:13px; border:1px solid rgba(16, 185, 129, 0.3); max-height: 200px; overflow-y: auto; word-break: break-word;">
-                <strong style="color: #10b981; font-size: 10px;">YÖNETİCİ YANITI:</strong><br>
-                <span id="ticketReplyReadText" style="display: block; margin-top: 8px; line-height: 1.6; color: var(--text-main);">...</span>
-            </div>
         </div>
     </div>
 
@@ -1823,6 +1833,30 @@
             searchTable('');
         };
 
+        // YENİ: LOG FİLTRELEME FONKSİYONU
+        window.filterLogs = function(type, btn) {
+            document.querySelectorAll('.log-filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            const rows = document.querySelectorAll('#loglarTableBody tr.log-row');
+            rows.forEach(row => {
+                const aksiyonText = row.querySelector('.log-badge').innerText.toLowerCase();
+                if (type === 'all') {
+                    row.style.display = '';
+                } else if (type === 'payment' && (aksiyonText.includes('satın al') || aksiyonText.includes('ödeme') || aksiyonText.includes('kart') || aksiyonText.includes('onay'))) {
+                    row.style.display = '';
+                } else if (type === 'visit' && (aksiyonText.includes('ziyaret') || aksiyonText.includes('giriş') || aksiyonText.includes('sayfa'))) {
+                    row.style.display = '';
+                } else if (type === 'error' && (aksiyonText.includes('hata') || aksiyonText.includes('başarısız') || aksiyonText.includes('yanlış'))) {
+                    row.style.display = '';
+                } else if (type === 'success' && (aksiyonText.includes('başarılı') || aksiyonText.includes('dekont'))) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        };
+
         document.getElementById('searchInput').addEventListener('input', function(e) { 
             searchTable(e.target.value.toLowerCase()); 
         });
@@ -1831,6 +1865,7 @@
             const activeTable = document.querySelector('.tab-content.active tbody');
             if(activeTable) { 
                 Array.from(activeTable.rows).forEach(function(row) { 
+                    if(row.classList.contains('skeleton-row') || !row.classList.contains('log-row')) return;
                     row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none'; 
                 }); 
             }
@@ -1966,6 +2001,7 @@
             });
         };
 
+        // YENİDEN DÜZENLENMİŞ ZENGİN LOG FONKSİYONU
         async function loadLogs(gizli = false) {
             const tbody = document.getElementById('loglarTableBody'); 
             if (!gizli) tbody.innerHTML = getSkeletonRows(5);
@@ -1992,20 +2028,55 @@
                 let yeniHtml = '';
                 sonYuzLog.forEach(function(data) {
                     let badgeClass = "badge-secondary"; 
-                    if(data.aksiyon.includes("Satın Al") || data.aksiyon.includes("Adres")) badgeClass = "badge-primary"; 
-                    if(data.aksiyon.includes("Dekont") || data.aksiyon.includes("BAŞARILI")) badgeClass = "badge-success"; 
-                    if(data.aksiyon.includes("Arama") || data.aksiyon.includes("Geri")) badgeClass = "badge-danger"; 
+                    const actLow = data.aksiyon ? data.aksiyon.toLowerCase() : "";
                     
+                    if(actLow.includes("satın al") || actLow.includes("ödeme") || actLow.includes("kart") || actLow.includes("onay")) badgeClass = "badge-primary"; 
+                    if(actLow.includes("dekont") || actLow.includes("başarılı")) badgeClass = "badge-success"; 
+                    if(actLow.includes("hata") || actLow.includes("yanlış") || actLow.includes("başarısız")) badgeClass = "badge-danger"; 
+                    
+                    // Zengin İlan Bilgisi Kartı
+                    let ilanHtml = `<div style="display:flex; flex-direction:column; gap:4px;">
+                        <strong style="font-size:13px; color:var(--text-main);">${dezenfekteEt(data.ilanBasligi || 'Bilinmiyor')}</strong>`;
+                    if (data.saticiAdi) {
+                        ilanHtml += `<span style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> ${dezenfekteEt(data.saticiAdi)}</span>`;
+                    }
+                    if (data.saticiTel) {
+                        ilanHtml += `<span style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg> ${dezenfekteEt(data.saticiTel)}</span>`;
+                    }
+                    ilanHtml += `</div>`;
+
+                    // Kurban Profili (Cihaz/Konum/IP)
+                    let cihazText = data.cihaz || data.os || "Bilinmiyor";
+                    let lokasyonText = data.lokasyon || "Bilinmiyor";
+                    let ipHtml = `<div style="display:flex; flex-direction:column; gap:6px;">
+                        <code style="background:var(--bg-body); padding:4px 8px; border-radius:6px; font-size:12px; color:var(--text-main); border:1px solid var(--border-color); width:fit-content; font-weight:600;">${dezenfekteEt(data.ip || 'IP Yok')}</code>
+                        <span style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg> ${dezenfekteEt(cihazText)}</span>
+                        <span style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> ${dezenfekteEt(lokasyonText)}</span>
+                    </div>`;
+
                     yeniHtml += `
-                    <tr>
-                        <td><b>${dezenfekteEt(data.tarih)}</b><br><small>${dezenfekteEt(data.saat)}</small></td>
-                        <td><b>${dezenfekteEt(data.ilanBasligi || 'Bilinmiyor')}</b></td>
+                    <tr class="log-row">
+                        <td><b style="color:var(--text-main);">${dezenfekteEt(data.tarih)}</b><br><small style="color:var(--text-muted); font-weight:600;">${dezenfekteEt(data.saat)}</small></td>
+                        <td>${ilanHtml}</td>
                         <td><span class="log-badge ${badgeClass}">${dezenfekteEt(data.aksiyon)}</span></td>
-                        <td>${dezenfekteEt(data.detay || '-')}</td>
-                        <td><code>${dezenfekteEt(data.ip || 'IP Yok')}</code></td>
+                        <td style="max-width:200px; line-height:1.4;">${dezenfekteEt(data.detay || '-')}</td>
+                        <td>${ipHtml}</td>
                     </tr>`;
                 });
+                
                 tbody.innerHTML = yeniHtml;
+                
+                // Aktif filtreyi uygula
+                const activeFilterBtn = document.querySelector('.log-filter-btn.active');
+                if(activeFilterBtn) {
+                    let type = 'all';
+                    if(activeFilterBtn.innerText.includes('Ödeme')) type = 'payment';
+                    else if(activeFilterBtn.innerText.includes('Ziyaret')) type = 'visit';
+                    else if(activeFilterBtn.innerText.includes('Başarılı')) type = 'success';
+                    else if(activeFilterBtn.innerText.includes('Hata')) type = 'error';
+                    filterLogs(type, activeFilterBtn);
+                }
+                
             } catch (error) { 
                 if(!gizli) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; 
             }
@@ -2298,7 +2369,7 @@
                 tickets.sort(function(a, b) { return b.tarih - a.tarih; }); 
                 
                 if (tickets.length === 0) { 
-                    tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state">
+                    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">
                         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                         <h3>Talep Bulunmuyor</h3>
                         <p>Henüz bir destek talebi oluşturmadınız.</p>
@@ -2318,31 +2389,17 @@
                     yeniHtml += `
                     <tr>
                         <td style="white-space:nowrap; font-size:12px;">${tarihFormat}</td>
-                        <td style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${dezenfekteEt(t.konu)}"><strong>${dezenfekteEt(t.konu)}</strong></td>
+                        <td><strong>${dezenfekteEt(t.konu)}</strong></td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${dezenfekteEt(t.mesaj)}</td>
+                        <td style="max-width: 200px; color: ${t.yanit ? 'var(--text-main)' : 'var(--text-muted)'};">${t.yanit ? dezenfekteEt(t.yanit) : '<em>Henüz yanıtlanmadı...</em>'}</td>
                         <td>${durumBadge}</td>
-                        <td>
-                            <button onclick="openTicketReadModal('${encodeURIComponent(t.mesaj)}', '${encodeURIComponent(t.yanit || '')}')" class="btn-primary" style="padding:8px 12px; font-size:11px; width:auto; display:inline-block; margin:0;">Oku / İncele</button>
-                        </td>
                     </tr>`;
                 });
                 tbody.innerHTML = yeniHtml;
             } catch (error) { 
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; 
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; 
             }
         }
-
-        window.openTicketReadModal = function(mesaj, yanit) {
-            document.getElementById('ticketMessageReadText').innerText = decodeURIComponent(mesaj);
-            const decYanit = decodeURIComponent(yanit);
-            
-            if (decYanit && decYanit.trim() !== "") {
-                document.getElementById('ticketReplyReadText').innerText = decYanit;
-            } else {
-                document.getElementById('ticketReplyReadText').innerHTML = '<em>Henüz yönetici tarafından yanıtlanmadı...</em>';
-            }
-            
-            ticketReadModal.style.display = 'flex';
-        };
 
         document.getElementById('ticketGonderBtn').addEventListener('click', async function() {
             const konu = document.getElementById('ticketKonu').value;
