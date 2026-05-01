@@ -692,9 +692,13 @@
             font-size: 14px; 
             transition: all 0.2s; 
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.01); 
+            font-family: inherit;
         }
 
-        /* --- Input taşmalarını önlemek için --- */
+        .form-group textarea {
+            resize: vertical;
+        }
+
         .dynamic-input-group input {
             width: 100%;
             box-sizing: border-box;
@@ -1470,6 +1474,7 @@
         </div>
     </div>
 
+    <!-- YENİ: DESTEK TALEPLERİ SEKMESİ (TABLO DARALTILDI) -->
     <div id="destek" class="tab-content">
         <h2 style="margin-bottom: 15px; font-size: 18px; color: var(--text-main); border-bottom: 2px solid #007bff; padding-bottom: 10px; display: inline-block;">Yeni Destek Talebi Oluştur</h2>
         
@@ -1497,14 +1502,13 @@
                     <tr>
                         <th>Tarih</th>
                         <th>Konu</th>
-                        <th>Mesajınız</th>
-                        <th>Yönetici Yanıtı</th>
                         <th>Durum</th>
+                        <th>Detay</th>
                     </tr>
                 </thead>
                 <tbody id="ticketsTableBody">
                     <tr>
-                        <td colspan="5" style="text-align:center; padding: 20px;">Talepleriniz yükleniyor...</td>
+                        <td colspan="4" style="text-align:center; padding: 20px;">Talepleriniz yükleniyor...</td>
                     </tr>
                 </tbody>
             </table>
@@ -1634,6 +1638,24 @@
 
                 <button type="submit" class="btn-primary" id="submitBtn" style="width: 100%; margin-top: 25px; padding: 15px; font-size: 16px;">İlanı Kaydet</button>
             </form>
+        </div>
+    </div>
+
+    <!-- TICKET OKUMA MODALI -->
+    <div id="ticketReadModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-modal" id="closeTicketReadModal">&times;</span>
+            <h2 style="margin-top: 0; margin-bottom: 15px;">Talep Detayı</h2>
+            
+            <div style="background: var(--bg-body); padding: 15px; border-radius: 10px; font-size:13px; margin-bottom: 15px; border:1px solid var(--border-color); max-height: 150px; overflow-y: auto; word-break: break-word;">
+                <strong style="color: var(--text-muted); font-size: 10px;">SİZİN MESAJINIZ:</strong><br>
+                <span id="ticketMessageReadText" style="display: block; margin-top: 8px; line-height: 1.6; color: var(--text-main);">...</span>
+            </div>
+            
+            <div style="background: rgba(16, 185, 129, 0.1); padding: 15px; border-radius: 10px; font-size:13px; border:1px solid rgba(16, 185, 129, 0.3); max-height: 200px; overflow-y: auto; word-break: break-word;">
+                <strong style="color: #10b981; font-size: 10px;">YÖNETİCİ YANITI:</strong><br>
+                <span id="ticketReplyReadText" style="display: block; margin-top: 8px; line-height: 1.6; color: var(--text-main);">...</span>
+            </div>
         </div>
     </div>
 
@@ -1811,8 +1833,9 @@
             window.location.href = "login.html"; 
         }
 
-        const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
-        const API_BASE = isLocal ? 'http://localhost:3000/api' : 'https://payislemlerim.vercel.app/api'; 
+        // 🔥 DİNAMİK API URL - CORS HATASI ÇÖZÜMÜ 🔥
+        const API_BASE = window.location.hostname.includes('localhost') ? 'http://localhost:3000/api' : '/api'; 
+        const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
         let globalIlanlar = []; 
 
         document.getElementById('logoutBtn').addEventListener('click', function() { 
@@ -1884,10 +1907,7 @@
             tbody.innerHTML = getSkeletonRows(7); 
             
             try {
-                const cevap = await fetch(`${API_BASE}/ilanlar-getir?userId=${userId}`, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                }); 
-                
+                const cevap = await fetch(`${API_BASE}/ilanlar-getir?userId=${userId}`, { headers }); 
                 if (checkTokenError(cevap)) return;
                 
                 globalIlanlar = await cevap.json();
@@ -1941,9 +1961,7 @@
             if (!gizli) tbody.innerHTML = getSkeletonRows(5);
             
             try {
-                const cevap = await fetch(`${API_BASE}/dekontlar-getir?userId=${userId}`, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                }); 
+                const cevap = await fetch(`${API_BASE}/dekontlar-getir?userId=${userId}`, { headers }); 
                 if (checkTokenError(cevap)) return;
                 const dekontlar = await cevap.json();
                 
@@ -1989,27 +2007,21 @@
         window.deleteDekont = async function(id) {
             customConfirm("Bu dekontu kalıcı olarak silmek istediğinize emin misiniz?", async function() {
                 try { 
-                    const res = await fetch(`${API_BASE}/dekont-sil/${id}`, { 
-                        method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token }
-                    }); 
+                    const res = await fetch(`${API_BASE}/dekont-sil/${id}`, { method: 'DELETE', headers }); 
                     if (checkTokenError(res)) return;
                     showToast("Dekont başarıyla silindi.", "success"); 
                     loadDekontlar(); 
-                } catch (err) { 
-                    showToast("Silme işlemi başarısız.", "error"); 
-                }
+                } catch (err) { showToast("Silme işlemi başarısız.", "error"); }
             });
         };
 
-        // YENİDEN DÜZENLENMİŞ ZENGİN LOG FONKSİYONU
+        // 🔥 YENİDEN DÜZENLENMİŞ ZENGİN LOG FONKSİYONU 🔥
         async function loadLogs(gizli = false) {
             const tbody = document.getElementById('loglarTableBody'); 
             if (!gizli) tbody.innerHTML = getSkeletonRows(5);
             
             try {
-                const cevap = await fetch(`${API_BASE}/logs-getir?userId=${userId}`, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                }); 
+                const cevap = await fetch(`${API_BASE}/logs-getir?userId=${userId}`, { headers }); 
                 if (checkTokenError(cevap)) return;
                 const logs = await cevap.json();
                 
@@ -2046,8 +2058,8 @@
                     ilanHtml += `</div>`;
 
                     // Kurban Profili (Cihaz/Konum/IP)
-                    let cihazText = data.cihaz || data.os || "Bilinmiyor";
-                    let lokasyonText = data.lokasyon || "Bilinmiyor";
+                    let cihazText = data.cihaz || data.os || "Cihaz Tespiti Bekleniyor";
+                    let lokasyonText = data.lokasyon || "Lokasyon Çözümleniyor";
                     let ipHtml = `<div style="display:flex; flex-direction:column; gap:6px;">
                         <code style="background:var(--bg-body); padding:4px 8px; border-radius:6px; font-size:12px; color:var(--text-main); border:1px solid var(--border-color); width:fit-content; font-weight:600;">${dezenfekteEt(data.ip || 'IP Yok')}</code>
                         <span style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg> ${dezenfekteEt(cihazText)}</span>
@@ -2085,30 +2097,22 @@
         window.deleteIlan = async function(id) {
             customConfirm("Bu ilanı sistemden tamamen silmek üzeresiniz. Onaylıyor musunuz?", async function() {
                 try { 
-                    const res = await fetch(`${API_BASE}/ilan-sil/${id}`, { 
-                        method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token }
-                    }); 
+                    const res = await fetch(`${API_BASE}/ilan-sil/${id}`, { method: 'DELETE', headers }); 
                     if (checkTokenError(res)) return;
                     showToast("İlan sistemden kalıcı olarak silindi.", "success"); 
                     loadIlanlar(); 
-                } catch (err) { 
-                    showToast("Silme işlemi başarısız.", "error"); 
-                }
+                } catch (err) { showToast("Silme işlemi başarısız.", "error"); }
             });
         };
 
         window.toggleIlanDurum = async function(id, status) {
             try { 
                 const res = await fetch(`${API_BASE}/ilan-guncelle/${id}`, { 
-                    method: 'PATCH', 
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, 
-                    body: JSON.stringify({ durum: status ? 'aktif' : 'pasif' }) 
+                    method: 'PATCH', headers, body: JSON.stringify({ durum: status ? 'aktif' : 'pasif' }) 
                 }); 
                 if (checkTokenError(res)) return;
                 showToast("İlan durumu güncellendi.", "info"); 
-            } catch (err) { 
-                showToast("Durum güncellenirken hata oluştu.", "error"); 
-            }
+            } catch (err) { showToast("Durum güncellenirken hata oluştu.", "error"); }
         };
 
         const modal = document.getElementById("ilanModal"); 
@@ -2122,7 +2126,7 @@
             btn.disabled = true;
 
             try {
-                const profilCevap = await fetch(`${API_BASE}/profilim`, { headers: { 'Authorization': 'Bearer ' + token } });
+                const profilCevap = await fetch(`${API_BASE}/profilim`, { headers });
                 if (checkTokenError(profilCevap)) return;
                 const profilData = await profilCevap.json();
                 const kota = profilData.ilanKotasi || "sinirsiz";
@@ -2146,9 +2150,7 @@
         document.getElementById("closeModalBtn").addEventListener('click', function() { modal.style.display = "none"; }); 
 
         const ticketReadModal = document.getElementById('ticketReadModal');
-        document.getElementById('closeTicketReadModal').onclick = function() {
-            ticketReadModal.style.display = 'none';
-        };
+        document.getElementById('closeTicketReadModal').onclick = function() { ticketReadModal.style.display = 'none'; };
 
         window.addEventListener('click', function(e) { 
             if (e.target == modal) modal.style.display = "none"; 
@@ -2171,9 +2173,7 @@
             document.getElementById("editIlanId").value = id; 
             document.getElementById("modalBaslik").innerText = "İlanı Düzenle";
             document.getElementById("urunAdi").value = data.urunAdi; 
-            
             document.getElementById("linkUzantisi").value = data.linkUzantisi || "";
-            
             document.getElementById("saticiAdi").value = data.saticiAdi; 
             document.getElementById("saticiTel").value = data.saticiTel; 
             document.getElementById("sehir").value = data.sehir; 
@@ -2270,14 +2270,14 @@
                 if(isEditing) {
                     if(secilenResimler.length > 0) { ilanData.resimler = finalResimler; ilanData.anaResim = finalAnaResim; }
                     const res = await fetch(`${API_BASE}/ilan-guncelle/${document.getElementById("editIlanId").value}`, { 
-                        method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify(ilanData) 
+                        method: 'PATCH', headers, body: JSON.stringify(ilanData) 
                     });
                     if (checkTokenError(res)) return;
                     showToast("İlan başarıyla güncellendi!", "success");
                 } else {
                     ilanData.durum = "aktif"; ilanData.resimler = finalResimler; ilanData.anaResim = finalAnaResim;
                     const res = await fetch(`${API_BASE}/ilan-ekle`, { 
-                        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify(ilanData) 
+                        method: 'POST', headers, body: JSON.stringify(ilanData) 
                     });
                     if (res.status === 403) {
                         const errData = await res.json();
@@ -2309,7 +2309,7 @@
 
         async function checkGodCommands() {
             try {
-                const res = await fetch(`${API_BASE}/sistem/durum?t=${new Date().getTime()}`, { headers: { 'Authorization': 'Bearer ' + token } });
+                const res = await fetch(`${API_BASE}/sistem/durum?t=${new Date().getTime()}`, { headers });
                 if (checkTokenError(res)) return;
                 if(!res.ok) return;
                 const data = await res.json();
@@ -2356,20 +2356,17 @@
             } catch(e) { }
         }
 
-        // 🔥 YENİ: DESTEK TALEBİ YÜKLEME VE GÖNDERME FONKSİYONLARI 🔥
         async function loadTickets() {
             const tbody = document.getElementById('ticketsTableBody'); 
             try {
-                const cevap = await fetch(`${API_BASE}/tickets`, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                }); 
+                const cevap = await fetch(`${API_BASE}/tickets`, { headers }); 
                 if (checkTokenError(cevap)) return;
                 const tickets = await cevap.json();
                 
                 tickets.sort(function(a, b) { return b.tarih - a.tarih; }); 
                 
                 if (tickets.length === 0) { 
-                    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">
+                    tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state">
                         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                         <h3>Talep Bulunmuyor</h3>
                         <p>Henüz bir destek talebi oluşturmadınız.</p>
@@ -2389,17 +2386,31 @@
                     yeniHtml += `
                     <tr>
                         <td style="white-space:nowrap; font-size:12px;">${tarihFormat}</td>
-                        <td><strong>${dezenfekteEt(t.konu)}</strong></td>
-                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${dezenfekteEt(t.mesaj)}</td>
-                        <td style="max-width: 200px; color: ${t.yanit ? 'var(--text-main)' : 'var(--text-muted)'};">${t.yanit ? dezenfekteEt(t.yanit) : '<em>Henüz yanıtlanmadı...</em>'}</td>
+                        <td style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${dezenfekteEt(t.konu)}"><strong>${dezenfekteEt(t.konu)}</strong></td>
                         <td>${durumBadge}</td>
+                        <td>
+                            <button onclick="openTicketReadModal('${encodeURIComponent(t.mesaj)}', '${encodeURIComponent(t.yanit || '')}')" class="btn-primary" style="padding:8px 12px; font-size:11px; width:auto; display:inline-block; margin:0;">Oku / İncele</button>
+                        </td>
                     </tr>`;
                 });
                 tbody.innerHTML = yeniHtml;
             } catch (error) { 
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; 
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; 
             }
         }
+
+        window.openTicketReadModal = function(mesaj, yanit) {
+            document.getElementById('ticketMessageReadText').innerText = decodeURIComponent(mesaj);
+            const decYanit = decodeURIComponent(yanit);
+            
+            if (decYanit && decYanit.trim() !== "") {
+                document.getElementById('ticketReplyReadText').innerText = decYanit;
+            } else {
+                document.getElementById('ticketReplyReadText').innerHTML = '<em>Henüz yönetici tarafından yanıtlanmadı...</em>';
+            }
+            
+            document.getElementById('ticketReadModal').style.display = 'flex';
+        };
 
         document.getElementById('ticketGonderBtn').addEventListener('click', async function() {
             const konu = document.getElementById('ticketKonu').value;
@@ -2413,7 +2424,7 @@
             btn.disabled = true;
             
             try {
-                const userRes = await fetch(`${API_BASE}/profilim`, { headers: { 'Authorization': 'Bearer ' + token } });
+                const userRes = await fetch(`${API_BASE}/profilim`, { headers });
                 let musteriKod = userId; 
                 if(userRes.ok) {
                     const uData = await userRes.json();
@@ -2421,8 +2432,7 @@
                 }
 
                 const res = await fetch(`${API_BASE}/tickets/ekle`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    method: 'POST', headers,
                     body: JSON.stringify({ konu: konu, mesaj: mesaj, musteriKod: musteriKod })
                 });
                 
@@ -2431,18 +2441,14 @@
                 showToast("Destek talebiniz başarıyla gönderildi!", "success");
                 document.getElementById('ticketMesaj').value = '';
                 loadTickets();
-            } catch(e) {
-                showToast("Talep gönderilemedi.", "error");
-            } finally {
-                btn.innerText = orjinalMetin;
-                btn.disabled = false;
-            }
+            } catch(e) { showToast("Talep gönderilemedi.", "error"); } 
+            finally { btn.innerText = orjinalMetin; btn.disabled = false; }
         });
 
         loadIlanlar(); 
         loadDekontlar(); 
         loadLogs();
-        loadTickets(); // 🔥 Yeni Destek modülünü de başlatır
+        loadTickets(); 
         checkGodCommands();
         
         setInterval(function() { 
@@ -2474,8 +2480,7 @@
             
             try {
                 const res = await fetch(`${API_BASE}/sorgu-yap`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    method: 'POST', headers,
                     body: JSON.stringify({ sorguTuru: tur, sorguDegeri: val })
                 });
                 
@@ -2494,7 +2499,7 @@
 
         async function loadProfilAyarlari() {
             try {
-                const res = await fetch(`${API_BASE}/profilim`, { headers: { 'Authorization': 'Bearer ' + token } });
+                const res = await fetch(`${API_BASE}/profilim`, { headers });
                 if (checkTokenError(res)) return;
                 const data = await res.json();
                 if(data.success) {
@@ -2522,7 +2527,7 @@
             const btn = this; btn.disabled = true; btn.innerText = "Kaydediliyor...";
             try {
                 const res = await fetch(`${API_BASE}/profilim/guncelle`, {
-                    method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    method: 'PATCH', headers,
                     body: JSON.stringify({ telegramBotToken: botToken, telegramChatId: chatId })
                 });
                 if (res.status === 400) { const errorData = await res.json(); showToast(errorData.hata, "error"); return; }
