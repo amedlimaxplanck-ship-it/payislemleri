@@ -829,8 +829,18 @@
 
         <div class="card" style="padding: 0; overflow: hidden;">
             <h2 style="padding: 24px 24px 0 24px;">Müşteri Veritabanı</h2>
-            <div class="table-responsive" style="border: none; border-top: 1px solid var(--border-subtle); border-radius: 0;">
-                <table>
+            <!-- 🔥 TİTREMEYİ ÖNLEYEN MİN-HEIGHT VE BETON TABLO KALIBI 🔥 -->
+            <div class="table-responsive" style="border: none; border-top: 1px solid var(--border-subtle); border-radius: 0; min-height: 400px;">
+                <table style="table-layout: fixed; width: 100%; min-width: 900px;">
+                    <colgroup>
+                        <col style="width: 100px;"> <!-- Kayıt -->
+                        <col style="width: 110px;"> <!-- Kod -->
+                        <col style="width: 150px;"> <!-- Kota & İşlem -->
+                        <col style="width: 100px;"> <!-- Bitiş -->
+                        <col style="width: 130px;"> <!-- Risk Durumu -->
+                        <col style="width: 80px;">  <!-- Erişim -->
+                        <col style="width: 170px;"> <!-- Aksiyon -->
+                    </colgroup>
                     <thead>
                         <tr>
                             <th>Kayıt</th>
@@ -851,8 +861,14 @@
             </div>
 
             <h2 style="padding: 24px 24px 0 24px;">Destek Talepleri (Tickets)</h2>
-            <div class="table-responsive" style="border: none; border-top: 1px solid var(--border-subtle); border-radius: 0; border-bottom: 0;">
-                <table>
+            <div class="table-responsive" style="border: none; border-top: 1px solid var(--border-subtle); border-radius: 0; border-bottom: 0; min-height: 250px;">
+                <table style="table-layout: fixed; width: 100%; min-width: 600px;">
+                    <colgroup>
+                        <col style="width: 120px;">
+                        <col style="width: auto;">
+                        <col style="width: 120px;">
+                        <col style="width: 150px;">
+                    </colgroup>
                     <thead>
                         <tr>
                             <th>Müşteri Kodu</th>
@@ -1193,16 +1209,17 @@
                             tr.style.opacity = '0.6';
                         }
                         
+                        // 🔥 HÜCRELERİN VE SATIRLARIN SABİTLENMESİ 🔥
                         tr.innerHTML = `
-                            <td style="color:var(--text-secondary); font-size:11px; white-space:nowrap;">
+                            <td style="color:var(--text-secondary); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                                 ${dezenfekteEt(data.createdDateStr || '-')}
                             </td>
                             <td><span class="passcode-badge">${dezenfekteEt(data.passcode)}</span></td>
-                            <td style="font-weight:700;">
-                                <div id="kota-text-${data.docId}"><span style="color:var(--text-secondary); font-size: 11px;">Sayılıyor...</span></div>
-                                <div id="succ-${data.docId}" style="margin-top:4px;"></div>
+                            <td style="font-weight:700; height:65px; vertical-align:middle;">
+                                <div id="kota-text-${data.docId}" style="min-height: 22px; display:flex; align-items:center;"><span style="color:var(--text-secondary); font-size: 11px;">Sayılıyor...</span></div>
+                                <div id="succ-${data.docId}" style="margin-top:4px; min-height: 22px; display:flex; align-items:center;"></div>
                             </td>
-                            <td style="font-weight:600; white-space:nowrap;">${dezenfekteEt(data.expireDate || '-')}</td>
+                            <td style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dezenfekteEt(data.expireDate || '-')}</td>
                             <td>${riskBadge}</td>
                             <td>
                                 <label class="switch user-toggle">
@@ -1210,7 +1227,7 @@
                                     <span class="slider"></span>
                                 </label>
                             </td>
-                            <td>${actionBtns}</td>
+                            <td style="white-space:nowrap;">${actionBtns}</td>
                         `;
                         
                         tbody.appendChild(tr);
@@ -1490,7 +1507,6 @@
                         tr.style.opacity = '0.5';
                     }
                     
-                    // 🔥 YENİ: SİL BUTONU EKLENDİ 🔥
                     tr.innerHTML = `
                         <td><strong>${dezenfekteEt(t.musteriKod || 'Bilinmiyor')}</strong></td>
                         <td style="max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${dezenfekteEt(t.konu)}">${dezenfekteEt(t.konu)}</td>
@@ -1512,7 +1528,6 @@
             }
         }
 
-        // 🔥 YENİ: TICKET SİLME FONKSİYONU 🔥
         window.deleteTicket = async function(id) {
             customConfirm("Bu destek talebini silmek istediğinize emin misiniz?", async function() {
                 try {
@@ -1527,7 +1542,7 @@
                 } catch(e) {
                     showToast("Silme işlemi başarısız.");
                 }
-            }, true); // true = Kırmızı Sil Butonu
+            }, true); 
         };
 
         window.openTicketModal = function(id, mesaj, yanit, durum) {
