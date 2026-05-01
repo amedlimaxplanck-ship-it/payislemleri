@@ -794,6 +794,12 @@
         <div class="card" style="height: fit-content;">
             <h2>Müşteri Oluştur</h2>
             
+            <!-- 🔥 YENİ EKLENEN İSİM KUTUSU 🔥 -->
+            <div class="form-group">
+                <label>Takma İsim / Müşteri Adı</label>
+                <input type="text" id="newCustomerName" placeholder="Örn: Ahmet Abi (Adana)" autocomplete="off">
+            </div>
+
             <div class="form-group">
                 <label>Erişim Kodu (Şifre)</label>
                 <input type="text" id="newPasscode" placeholder="Örn: VIP-1234" autocomplete="off">
@@ -829,12 +835,12 @@
 
         <div class="card" style="padding: 0; overflow: hidden;">
             <h2 style="padding: 24px 24px 0 24px;">Müşteri Veritabanı</h2>
-            <!-- 🔥 TİTREMEYİ ÖNLEYEN MİN-HEIGHT VE BETON TABLO KALIBI 🔥 -->
+            <!-- TİTREMEYİ ÖNLEYEN MİN-HEIGHT VE BETON TABLO KALIBI -->
             <div class="table-responsive" style="border: none; border-top: 1px solid var(--border-subtle); border-radius: 0; min-height: 400px;">
                 <table style="table-layout: fixed; width: 100%; min-width: 900px;">
                     <colgroup>
                         <col style="width: 100px;"> <!-- Kayıt -->
-                        <col style="width: 110px;"> <!-- Kod -->
+                        <col style="width: 130px;"> <!-- Kod & İsim -->
                         <col style="width: 150px;"> <!-- Kota & İşlem -->
                         <col style="width: 100px;"> <!-- Bitiş -->
                         <col style="width: 130px;"> <!-- Risk Durumu -->
@@ -844,7 +850,7 @@
                     <thead>
                         <tr>
                             <th>Kayıt</th>
-                            <th>Kod</th>
+                            <th>Müşteri Bilgisi</th>
                             <th>Kota & İşlem</th>
                             <th>Bitiş</th>
                             <th>Risk Durumu</th>
@@ -864,14 +870,14 @@
             <div class="table-responsive" style="border: none; border-top: 1px solid var(--border-subtle); border-radius: 0; border-bottom: 0; min-height: 250px;">
                 <table style="table-layout: fixed; width: 100%; min-width: 600px;">
                     <colgroup>
-                        <col style="width: 120px;">
+                        <col style="width: 140px;">
                         <col style="width: auto;">
                         <col style="width: 120px;">
                         <col style="width: 150px;">
                     </colgroup>
                     <thead>
                         <tr>
-                            <th>Müşteri Kodu</th>
+                            <th>Müşteri Bilgisi</th>
                             <th>Konu</th>
                             <th>Durum</th>
                             <th>İşlem</th>
@@ -894,6 +900,12 @@
             
             <input type="hidden" id="editUserId">
             
+            <!-- 🔥 YENİ EKLENEN İSİM KUTUSU (DÜZENLE) 🔥 -->
+            <div class="form-group">
+                <label>Takma İsim / Müşteri Adı</label>
+                <input type="text" id="editCustomerName" placeholder="Müşteri adını girin...">
+            </div>
+
             <div class="form-group">
                 <label>Erişim Kodu</label>
                 <input type="text" id="editPasscode" readonly style="opacity: 0.5; pointer-events: none;">
@@ -1051,7 +1063,6 @@
             'Authorization': `Bearer ${token}` 
         };
 
-        // 🔥 YENİ: KİBARLAŞTIRILMIŞ KICK-OVERLAY TETİKLEYİCİ 🔥
         function checkTokenError(res) {
             if (res.status === 401 || res.status === 403) {
                 document.getElementById('kick-overlay').classList.add('active');
@@ -1062,7 +1073,6 @@
             return false;
         }
 
-        // 🔥 YENİ: VIBE KODER ONAY EKRANI (RENK DESTEKLİ) 🔥
         window.customConfirm = function(message, callback, isDanger = false) {
             const modal = document.getElementById('confirmModal');
             document.getElementById('confirmMessage').innerText = message; 
@@ -1209,12 +1219,17 @@
                             tr.style.opacity = '0.6';
                         }
                         
-                        // 🔥 HÜCRELERİN VE SATIRLARIN SABİTLENMESİ 🔥
+                        // 🔥 İSİM VE ERİŞİM KODU BİRLİKTE 🔥
+                        let musteriAdGosterim = data.isim ? data.isim : 'İsimsiz Müşteri';
+
                         tr.innerHTML = `
                             <td style="color:var(--text-secondary); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                                 ${dezenfekteEt(data.createdDateStr || '-')}
                             </td>
-                            <td><span class="passcode-badge">${dezenfekteEt(data.passcode)}</span></td>
+                            <td>
+                                <div style="font-weight:800; font-size:12px; margin-bottom:4px; color:var(--text-primary);">${dezenfekteEt(musteriAdGosterim)}</div>
+                                <span class="passcode-badge" style="font-size:10px; padding:4px 6px;">${dezenfekteEt(data.passcode)}</span>
+                            </td>
                             <td style="font-weight:700; height:65px; vertical-align:middle;">
                                 <div id="kota-text-${data.docId}" style="min-height: 22px; display:flex; align-items:center;"><span style="color:var(--text-secondary); font-size: 11px;">Sayılıyor...</span></div>
                                 <div id="succ-${data.docId}" style="margin-top:4px; min-height: 22px; display:flex; align-items:center;"></div>
@@ -1305,7 +1320,6 @@
             }
         };
 
-        // 🔥 YENİ: BAN KALDIRIRKEN ÖZEL TOAST ONAY EKRANI 🔥
         window.unbanUser = async function(id) {
             customConfirm("Kullanıcının yasağını kaldırmak istediğinize emin misiniz?", async function() {
                 try {
@@ -1368,6 +1382,7 @@
 
         document.getElementById('addCustomerBtn').onclick = async function() {
             const passcode = document.getElementById('newPasscode').value.trim();
+            const musteriIsim = document.getElementById('newCustomerName').value.trim() || "İsimsiz Müşteri"; // 🔥 YENİ
             const durationMonths = parseInt(document.getElementById('subDuration').value);
             const btn = document.getElementById('addCustomerBtn');
             
@@ -1387,6 +1402,7 @@
             
             const musteriVerisi = {
                 passcode: passcode, 
+                isim: musteriIsim, // 🔥 YENİ
                 role: "customer", 
                 expireDate: expireDateObj.toLocaleDateString('tr-TR'),
                 createdDateStr: new Date().toLocaleDateString('tr-TR'), 
@@ -1403,6 +1419,7 @@
                 
                 if(res.ok) {
                     document.getElementById('newPasscode').value = ''; 
+                    document.getElementById('newCustomerName').value = ''; // 🔥 YENİ
                     document.getElementById('ilanKotasiSelect').value = 'sinirsiz';
                     document.getElementById('ozelKotaKutusu').style.display = 'none';
                     document.getElementById('ozelKotaDegeri').value = '';
@@ -1438,6 +1455,7 @@
             if(!user) return;
             
             document.getElementById('editUserId').value = id;
+            document.getElementById('editCustomerName').value = user.isim || ""; // 🔥 YENİ
             document.getElementById('editPasscode').value = user.passcode;
             document.getElementById('editExpireDate').value = parseDateString(user.expireDate);
             document.getElementById('editBanMessage').value = user.banMessage || "Abonelik süreniz dolmuştur.";
@@ -1448,6 +1466,7 @@
 
         document.getElementById('saveEditBtn').onclick = async function() {
             const id = document.getElementById('editUserId').value;
+            const newIsim = document.getElementById('editCustomerName').value.trim() || "İsimsiz Müşteri"; // 🔥 YENİ
             const newDateVal = document.getElementById('editExpireDate').value;
             const newBanMsg = document.getElementById('editBanMessage').value.trim();
             const newKota = document.getElementById('editIlanKotasi').value.trim(); 
@@ -1461,7 +1480,7 @@
                 btn.textContent = "GÜNCELLENİYOR..."; btn.disabled = true;
                 const res = await fetch(`${API_BASE}/users/guncelle/${id}`, {
                     method: 'PATCH', headers: authHeaders,
-                    body: JSON.stringify({ expireDate: formattedDate, banMessage: newBanMsg, ilanKotasi: newKota })
+                    body: JSON.stringify({ isim: newIsim, expireDate: formattedDate, banMessage: newBanMsg, ilanKotasi: newKota })
                 });
                 if (checkTokenError(res)) return;
                 
@@ -1507,8 +1526,16 @@
                         tr.style.opacity = '0.5';
                     }
                     
+                    // 🔥 TICKET TABLOSUNDA İSİM EŞLEŞTİRME VE TAŞMA ÖNLEMİ 🔥
+                    let cst = globalCustomers.find(c => c.docId === t.musteriKod || c.passcode === t.musteriKod);
+                    let mName = cst ? (cst.isim || "İsimsiz") : "Bilinmiyor";
+                    let mPass = cst ? cst.passcode : (t.musteriKod || "Bilinmiyor");
+
                     tr.innerHTML = `
-                        <td><strong>${dezenfekteEt(t.musteriKod || 'Bilinmiyor')}</strong></td>
+                        <td style="word-break: break-all; padding-right:10px;">
+                            <div style="font-weight:800; font-size:12px; margin-bottom:4px; color:var(--text-primary);">${dezenfekteEt(mName)}</div>
+                            <span class="passcode-badge" style="font-size:10px; padding:4px 6px;">${dezenfekteEt(mPass)}</span>
+                        </td>
                         <td style="max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${dezenfekteEt(t.konu)}">${dezenfekteEt(t.konu)}</td>
                         <td>${durumBadge}</td>
                         <td>
@@ -1583,7 +1610,8 @@
         // --- BAŞLANGIÇ YÜKLEMELERİ ---
         loadSystemStatus();
         loadCustomers();
-        loadTickets();
+        // Load tickets after customers so we can map the names correctly
+        setTimeout(loadTickets, 500); 
         
         ticketTimer = setInterval(function() {
             loadTickets();
