@@ -589,6 +589,99 @@
             transform: translateY(0); 
         }
 
+        /* YUMUŞATILMIŞ GÜVENLİK EKRANI (KICK OVERLAY) */
+        #kick-overlay {
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            z-index: 999999999; 
+            background: rgba(255, 255, 255, 0.7); 
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px); 
+            align-items: center; 
+            justify-content: center; 
+            opacity: 0; 
+            transition: opacity 0.4s ease; 
+        }
+
+        [data-theme="dark"] #kick-overlay { 
+            background: rgba(9, 9, 11, 0.85); 
+        }
+
+        .kick-card {
+            background: var(--bg-card); 
+            padding: 40px; 
+            border-radius: 20px; 
+            text-align: center; 
+            max-width: 420px; 
+            box-shadow: 0 30px 60px -12px rgba(59, 130, 246, 0.25); 
+            border: 1px solid rgba(59, 130, 246, 0.3); 
+            transform: scale(0.95); 
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+
+        .kick-card svg {
+            width: 60px;
+            height: 60px;
+            stroke: #3b82f6;
+            margin-bottom: 20px;
+            animation: pulseWarning 2s infinite;
+        }
+
+        @keyframes pulseWarning {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.5)); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .kick-card h2 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #3b82f6;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kick-card p {
+            font-size: 14px;
+            color: var(--text-main);
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .kick-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .kick-btn:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        #kick-overlay.active { 
+            display: flex; 
+            opacity: 1; 
+        }
+
+        #kick-overlay.active .kick-card { 
+            transform: scale(1); 
+        }
+
         /* MOBİL DÜZELTMELER */
         @media (max-width: 768px) {
             body { 
@@ -614,6 +707,19 @@
     </style>
 </head>
 <body>
+
+    <div id="kick-overlay">
+        <div class="kick-card">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <h2>Oturum Yenilendi</h2>
+            <p>Güvenliğiniz için bağlantınız yenilendi. Başka bir cihazdan giriş yapmış veya sayfayı arka planda bekletmiş olabilirsiniz.</p>
+            <button class="kick-btn" onclick="window.location.href='login.html'">Tekrar Giriş Yap</button>
+        </div>
+    </div>
 
     <div class="header animate-in">
         <h1>God<span>Panel</span></h1>
@@ -934,13 +1040,12 @@
             'Authorization': `Bearer ${token}` 
         };
 
+        // 🔥 YENİ: KİBARLAŞTIRILMIŞ KICK-OVERLAY TETİKLEYİCİ 🔥
         function checkTokenError(res) {
             if (res.status === 401 || res.status === 403) {
-                showToast("Oturum süresi doldu veya yetkisiz erişim!");
-                setTimeout(function() {
-                    localStorage.clear();
-                    window.location.href = "login.html";
-                }, 1500);
+                document.getElementById('kick-overlay').classList.add('active');
+                document.body.style.overflow = 'hidden';
+                localStorage.clear();
                 return true;
             }
             return false;
@@ -1038,14 +1143,13 @@
         let globalCustomers = [];
         
         async function loadCustomers() {
-            const tbody = document.getElementById('customerTableBody'); 
-            
             try {
                 const res = await fetch(`${API_BASE}/users`, { headers: authHeaders });
                 if (checkTokenError(res)) return;
                 
                 globalCustomers = await res.json();
-                tbody.innerHTML = ''; 
+                const tbody = document.getElementById('customerTableBody'); 
+                tbody.innerHTML = '';
                 
                 let total = 0, active = 0;
                 
@@ -1067,7 +1171,6 @@
                             riskBadge = `<span style="font-size:11px; color:var(--success-color); font-weight:600;">Güvenli</span>`;
                         }
 
-                        // AKSİYON BUTONLARI
                         let actionBtns = `<div style="display:flex; gap:5px;">
                                             <button onclick="openEditModal('${data.docId}')" class="action-btn">Ayar</button>`;
                         
@@ -1084,14 +1187,14 @@
                             tr.style.opacity = '0.6';
                         }
                         
-                        // 🔥 7 SÜTUN BURADA BASILIYOR 🔥
+                        // 🔥 ÇİFT YAZMA HATASININ ÇÖZÜLDÜĞÜ YENİ KOTA HÜCRESİ YAPI TAŞI 🔥
                         tr.innerHTML = `
                             <td style="color:var(--text-secondary); font-size:11px; white-space:nowrap;">
                                 ${dezenfekteEt(data.createdDateStr || '-')}
                             </td>
                             <td><span class="passcode-badge">${dezenfekteEt(data.passcode)}</span></td>
-                            <td id="kota-${data.docId}" data-kota="${dezenfekteEt(data.ilanKotasi || 'sinirsiz')}" style="font-weight:700;">
-                                <span style="color:var(--text-secondary); font-size: 11px;">Sayılıyor...</span>
+                            <td style="font-weight:700;">
+                                <div id="kota-text-${data.docId}"><span style="color:var(--text-secondary); font-size: 11px;">Sayılıyor...</span></div>
                                 <div id="succ-${data.docId}" style="margin-top:4px;"></div>
                             </td>
                             <td style="font-weight:600; white-space:nowrap;">${dezenfekteEt(data.expireDate || '-')}</td>
@@ -1114,12 +1217,13 @@
                 document.getElementById('statActive').innerText = active;
                 
             } catch (e) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--danger-color);">Bağlantı hatası.</td></tr>';
+                document.getElementById('customerTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--danger-color);">Bağlantı hatası.</td></tr>';
             }
         }
 
         async function fetchStats(id, maxKota) {
             try {
+                // Dekont Sayacı
                 const resLogs = await fetch(`${API_BASE}/logs-getir?userId=${id}`, { headers: authHeaders });
                 if (resLogs.ok) {
                     const logs = await resLogs.json();
@@ -1129,17 +1233,17 @@
                     document.getElementById(`succ-${id}`).innerHTML = `<span class="success-badge">${count} İŞLEM</span>`;
                 }
 
+                // İlan Kotası Sayacı (Çift yazma hatası düzeltildi)
                 const resIlan = await fetch(`${API_BASE}/ilanlar-getir?userId=${id}`, { headers: authHeaders });
                 if (resIlan.ok) {
                     const ilanlar = await resIlan.json();
                     const aktifSayi = ilanlar.length;
                     
-                    const kotaHucresi = document.getElementById(`kota-${id}`);
-                    let kotaGosterim = maxKota === "sinirsiz" ? "Sınırsız" : maxKota;
-                    let renk = (maxKota !== "sinirsiz" && aktifSayi >= parseInt(maxKota)) ? "var(--danger-color)" : "var(--success-color)";
+                    let gecerliKota = (maxKota && maxKota !== 'undefined') ? maxKota : "sinirsiz";
+                    let kotaGosterim = gecerliKota === "sinirsiz" ? "Sınırsız" : gecerliKota;
+                    let renk = (gecerliKota !== "sinirsiz" && aktifSayi >= parseInt(gecerliKota)) ? "var(--danger-color)" : "var(--success-color)";
                     
-                    // İçindeki divi silmeden başa yazdır
-                    kotaHucresi.innerHTML = `<span style="color: ${renk}; font-weight: 800; font-size:16px;">${aktifSayi}</span> <span style="color: var(--text-secondary);">/ ${kotaGosterim}</span>` + kotaHucresi.innerHTML;
+                    document.getElementById(`kota-text-${id}`).innerHTML = `<span style="color: ${renk}; font-weight: 800; font-size:16px;">${aktifSayi}</span> <span style="color: var(--text-secondary);">/ ${kotaGosterim}</span>`;
                 }
             } catch (e) {
                 console.log("Stats fetch error:", e);
@@ -1340,10 +1444,14 @@
         };
 
         // --- DESTEK (TICKET) SİSTEMİ ---
+        let ticketTimer;
         async function loadTickets() {
             try {
                 const res = await fetch(`${API_BASE}/tickets`, { headers: authHeaders });
-                if (checkTokenError(res)) return;
+                if (checkTokenError(res)) {
+                    clearInterval(ticketTimer); // Hata varsa yenilemeyi durdur
+                    return;
+                }
                 
                 const tickets = await res.json();
                 const tbody = document.getElementById('ticketsTableBody'); 
@@ -1370,7 +1478,6 @@
                         tr.style.opacity = '0.5';
                     }
                     
-                    // Tabloda sadece KOD, KONU ve BUTON var. Metinler yok! Sıfır taşma.
                     tr.innerHTML = `
                         <td><strong>${dezenfekteEt(t.musteriKod || 'Bilinmiyor')}</strong></td>
                         <td style="max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${dezenfekteEt(t.konu)}">${dezenfekteEt(t.konu)}</td>
@@ -1429,8 +1536,7 @@
         loadCustomers();
         loadTickets();
         
-        // Düzenli aralıklarla yeni ticket var mı diye kontrol et
-        setInterval(function() {
+        ticketTimer = setInterval(function() {
             loadTickets();
         }, 10000); 
 
