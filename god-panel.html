@@ -205,7 +205,7 @@
         .stat-info h3 { 
             font-size: 28px; 
             font-weight: 900; 
-            margin-bottom: 2px; 
+            margin: 0 0 2px 0; 
         }
 
         .stat-info p { 
@@ -213,7 +213,7 @@
             color: var(--text-secondary); 
             font-weight: 800; 
             text-transform: uppercase; 
-            margin: 5px 0 0 0;
+            margin: 0;
         }
 
         /* --- KOMUTA MERKEZİ --- */
@@ -447,7 +447,7 @@
         table { 
             width: 100%; 
             border-collapse: collapse; 
-            min-width: 600px; 
+            min-width: 700px; 
         }
 
         th, td { 
@@ -472,6 +472,7 @@
             font-family: monospace; 
             font-weight: bold; 
             border: 1px solid var(--border-subtle); 
+            display: inline-block;
         }
 
         .success-badge { 
@@ -495,12 +496,13 @@
             background: transparent; 
             color: var(--text-primary); 
             border: 1px solid var(--border-subtle); 
-            padding: 8px 16px; 
+            padding: 8px 12px; 
             border-radius: 8px; 
             cursor: pointer; 
             font-size: 11px; 
             font-weight: 700; 
             transition: 0.2s;
+            white-space: nowrap;
         }
 
         .action-btn:active { 
@@ -722,6 +724,7 @@
         <div class="card" style="padding: 0; overflow: hidden;">
             <h2 style="padding: 24px 24px 0 24px;">Müşteri Veritabanı</h2>
             <div class="table-responsive" style="border: none; border-top: 1px solid var(--border-subtle); border-radius: 0;">
+                <!-- 🔥 KUSURSUZ 7 SÜTUNLU TABLO 🔥 -->
                 <table>
                     <thead>
                         <tr>
@@ -734,11 +737,15 @@
                             <th>Aksiyon</th>
                         </tr>
                     </thead>
-                    <tbody id="customerTableBody"></tbody>
+                    <tbody id="customerTableBody">
+                        <tr>
+                            <td colspan="7" style="text-align:center;">Veriler yükleniyor...</td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
 
-            <!-- 🔥 YENİ: DESTEK TALEPLERİ (TICKETS) BÖLÜMÜ 🔥 -->
+            <!-- DESTEK TALEPLERİ (TICKETS) BÖLÜMÜ -->
             <h2 style="padding: 24px 24px 0 24px;">Destek Talepleri (Tickets)</h2>
             <div class="table-responsive" style="border: none; border-top: 1px solid var(--border-subtle); border-radius: 0; border-bottom: 0;">
                 <table>
@@ -804,7 +811,7 @@
         </div>
     </div>
 
-    <!-- 🔥 YENİ: BANLAMA MODALI 🔥 -->
+    <!-- BANLAMA MODALI -->
     <div id="banModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" id="closeBanModal">&times;</span>
@@ -822,7 +829,7 @@
         </div>
     </div>
 
-    <!-- 🔥 YENİ: TICKET YANITLAMA MODALI (GENİŞLETİLDİ) 🔥 -->
+    <!-- TICKET YANITLAMA MODALI -->
     <div id="ticketModal" class="modal">
         <div class="modal-content" style="max-width: 500px;">
             <span class="close-modal" id="closeTicketModal">&times;</span>
@@ -830,7 +837,6 @@
             
             <input type="hidden" id="ticketId">
             
-            <!-- Müşterinin Destanı İçin Scrollable (Kaydırılabilir) Alan -->
             <div style="background: var(--bg-card); padding: 15px; border-radius: 10px; font-size:13px; margin-bottom: 15px; border:1px solid var(--border-subtle); max-height: 200px; overflow-y: auto; word-break: break-word;">
                 <strong style="color: var(--text-secondary); font-size: 10px;">MÜŞTERİ MESAJI:</strong><br>
                 <span id="ticketMessageText" style="display: block; margin-top: 8px; line-height: 1.6;">...</span>
@@ -838,7 +844,6 @@
             
             <div class="form-group">
                 <label>Yönetici Yanıtı (Sizin Cevabınız)</label>
-                <!-- Geniş, Alt Satıra Geçilebilen Textarea -->
                 <textarea id="ticketReplyInput" rows="4" placeholder="Bu talebe vereceğiniz yanıtı buraya yazın..."></textarea>
             </div>
             
@@ -857,7 +862,6 @@
     <div id="toast-container"></div>
 
     <script type="module">
-        // XSS Önleyici Dezenfekte Fonksiyonu
         window.dezenfekteEt = function(str) {
             if (str === null || str === undefined) return "";
             return String(str)
@@ -930,10 +934,39 @@
             'Authorization': `Bearer ${token}` 
         };
 
+        function checkTokenError(res) {
+            if (res.status === 401 || res.status === 403) {
+                showToast("Oturum süresi doldu veya yetkisiz erişim!");
+                setTimeout(function() {
+                    localStorage.clear();
+                    window.location.href = "login.html";
+                }, 1500);
+                return true;
+            }
+            return false;
+        }
+
+        window.customConfirm = function(message, callback) {
+            const modal = document.getElementById('confirmModal');
+            document.getElementById('confirmMessage').innerText = message; 
+            modal.style.display = 'flex';
+            
+            document.getElementById('confirmYes').onclick = function() { 
+                modal.style.display = 'none'; 
+                callback(); 
+            };
+            
+            document.getElementById('confirmNo').onclick = function() { 
+                modal.style.display = 'none'; 
+            };
+        }
+
         // --- SİSTEM ŞALTERLERİ ---
         async function loadSystemStatus() {
             try {
                 const res = await fetch(`${API_BASE}/sistem/durum?t=${Date.now()}`, { headers: authHeaders });
+                if (checkTokenError(res)) return;
+                
                 if (res.ok) {
                     const data = await res.json();
                     document.getElementById('globalLockdownBtn').checked = data.kilitDurumu === true;
@@ -949,11 +982,13 @@
 
         document.getElementById('globalLockdownBtn').onchange = async function(e) {
             try {
-                await fetch(`${API_BASE}/sistem/kilit`, { 
+                const res = await fetch(`${API_BASE}/sistem/kilit`, { 
                     method: 'POST', 
                     headers: authHeaders, 
                     body: JSON.stringify({ kilitDurumu: e.target.checked }) 
                 });
+                if (checkTokenError(res)) return;
+                
                 if (e.target.checked) {
                     showToast("Sistem Kilitlendi!");
                 } else {
@@ -966,11 +1001,13 @@
 
         document.getElementById('sorguToggleBtn').onchange = async function(e) {
             try {
-                await fetch(`${API_BASE}/sistem/sorgu-toggle`, { 
+                const res = await fetch(`${API_BASE}/sistem/sorgu-toggle`, { 
                     method: 'POST', 
                     headers: authHeaders, 
                     body: JSON.stringify({ aktif: e.target.checked }) 
                 });
+                if (checkTokenError(res)) return;
+                
                 if (e.target.checked) {
                     showToast("Sorgu Paneli Aktif Edildi.");
                 } else {
@@ -984,11 +1021,13 @@
         document.getElementById('sendGodVoiceBtn').onclick = async function() {
             const msg = document.getElementById('godVoiceInput').value.trim();
             try {
-                await fetch(`${API_BASE}/sistem/anons`, { 
+                const res = await fetch(`${API_BASE}/sistem/anons`, { 
                     method: 'POST', 
                     headers: authHeaders, 
                     body: JSON.stringify({ mesaj: msg, zaman: Date.now() }) 
                 });
+                if (checkTokenError(res)) return;
+                
                 showToast("Sistem Anonsu Güncellendi.");
             } catch(err) {
                 showToast("Anons geçilemedi!");
@@ -999,59 +1038,67 @@
         let globalCustomers = [];
         
         async function loadCustomers() {
+            const tbody = document.getElementById('customerTableBody'); 
+            
             try {
                 const res = await fetch(`${API_BASE}/users`, { headers: authHeaders });
-                globalCustomers = await res.json();
+                if (checkTokenError(res)) return;
                 
-                const tbody = document.getElementById('customerTableBody'); 
-                tbody.innerHTML = '';
+                globalCustomers = await res.json();
+                tbody.innerHTML = ''; 
                 
                 let total = 0, active = 0;
                 
-                globalCustomers.forEach(function(c) {
-                    if (c.role === 'customer') {
+                globalCustomers.sort(function(x, y) {
+                    return (y.createdAt || 0) - (x.createdAt || 0);
+                });
+
+                for(let data of globalCustomers) {
+                    if (data.role === 'customer') {
                         total++; 
-                        if(c.isActive) active++;
+                        if(data.isActive) active++;
                         
                         let riskBadge = "";
-                        if (c.isBanned) {
+                        if (data.isBanned) {
                             riskBadge = `<span class="alert-badge" style="background:var(--danger-color); color:white;">YASAKLI</span>`;
-                        } else if (c.isSuspicious) {
-                            riskBadge = `<span class="alert-badge" title="${dezenfekteEt(c.suspicionReason)}">⚠️ ŞÜPHELİ IP</span>`;
+                        } else if (data.isSuspicious) {
+                            riskBadge = `<span class="alert-badge" title="${dezenfekteEt(data.suspicionReason)}">⚠️ ŞÜPHELİ IP</span>`;
                         } else {
                             riskBadge = `<span style="font-size:11px; color:var(--success-color); font-weight:600;">Güvenli</span>`;
                         }
 
+                        // AKSİYON BUTONLARI
                         let actionBtns = `<div style="display:flex; gap:5px;">
-                                            <button onclick="openEditModal('${c.docId}')" class="action-btn">Ayar</button>`;
+                                            <button onclick="openEditModal('${data.docId}')" class="action-btn">Ayar</button>`;
                         
-                        if (c.isBanned) {
-                            actionBtns += `<button onclick="unbanUser('${c.docId}')" class="action-btn" style="color:var(--success-color); border-color:var(--success-color);">Ban Kaldır</button>`;
+                        if (data.isBanned) {
+                            actionBtns += `<button onclick="unbanUser('${data.docId}')" class="action-btn" style="color:var(--success-color); border-color:var(--success-color);">Ban Kaldır</button>`;
                         } else {
-                            actionBtns += `<button onclick="openBanModal('${c.docId}')" class="action-btn" style="color:var(--warning-color); border-color:var(--warning-color);">Banla</button>`;
+                            actionBtns += `<button onclick="openBanModal('${data.docId}')" class="action-btn" style="color:var(--warning-color); border-color:var(--warning-color);">Banla</button>`;
                         }
                         
-                        actionBtns += `<button onclick="deleteCustomer('${c.docId}')" class="action-btn" style="color:var(--danger-color); border-color:var(--danger-color);">Sil</button></div>`;
+                        actionBtns += `<button onclick="deleteCustomer('${data.docId}')" class="action-btn" style="color:var(--danger-color); border-color:var(--danger-color);">Sil</button></div>`;
 
                         const tr = document.createElement('tr');
-                        if(c.isBanned) {
+                        if(data.isBanned) {
                             tr.style.opacity = '0.6';
                         }
                         
+                        // 🔥 7 SÜTUN BURADA BASILIYOR 🔥
                         tr.innerHTML = `
-                            <td>
-                                <span class="badge">${dezenfekteEt(c.passcode)}</span><br>
-                                <small style="color:var(--text-secondary); font-size:9px; margin-top:4px; display:inline-block;">Kayıt: ${dezenfekteEt(c.createdDateStr)}</small>
+                            <td style="color:var(--text-secondary); font-size:11px; white-space:nowrap;">
+                                ${dezenfekteEt(data.createdDateStr || '-')}
                             </td>
-                            <td id="kota-${c.docId}" data-kota="${dezenfekteEt(c.ilanKotasi || 'sinirsiz')}" style="font-weight:700;">
+                            <td><span class="passcode-badge">${dezenfekteEt(data.passcode)}</span></td>
+                            <td id="kota-${data.docId}" data-kota="${dezenfekteEt(data.ilanKotasi || 'sinirsiz')}" style="font-weight:700;">
                                 <span style="color:var(--text-secondary); font-size: 11px;">Sayılıyor...</span>
-                                <div id="succ-${c.docId}" style="margin-top:4px;"></div>
+                                <div id="succ-${data.docId}" style="margin-top:4px;"></div>
                             </td>
-                            <td style="font-weight:600; white-space:nowrap;">${dezenfekteEt(c.expireDate || '-')}</td>
+                            <td style="font-weight:600; white-space:nowrap;">${dezenfekteEt(data.expireDate || '-')}</td>
                             <td>${riskBadge}</td>
                             <td>
                                 <label class="switch user-toggle">
-                                    <input type="checkbox" onchange="toggleStatus('${c.docId}', this.checked)" ${c.isActive ? 'checked' : ''}>
+                                    <input type="checkbox" onchange="toggleStatus('${data.docId}', this.checked)" ${data.isActive ? 'checked' : ''}>
                                     <span class="slider"></span>
                                 </label>
                             </td>
@@ -1059,15 +1106,15 @@
                         `;
                         
                         tbody.appendChild(tr);
-                        fetchStats(c.docId, c.ilanKotasi);
+                        fetchStats(data.docId, data.ilanKotasi);
                     }
-                });
+                }
                 
                 document.getElementById('statTotal').innerText = total;
                 document.getElementById('statActive').innerText = active;
                 
             } catch (e) {
-                document.getElementById('customerTableBody').innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--danger-color);">Bağlantı hatası.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--danger-color);">Bağlantı hatası.</td></tr>';
             }
         }
 
@@ -1088,7 +1135,6 @@
                     const aktifSayi = ilanlar.length;
                     
                     const kotaHucresi = document.getElementById(`kota-${id}`);
-                    const maxKota = kotaHucresi.getAttribute("data-kota");
                     let kotaGosterim = maxKota === "sinirsiz" ? "Sınırsız" : maxKota;
                     let renk = (maxKota !== "sinirsiz" && aktifSayi >= parseInt(maxKota)) ? "var(--danger-color)" : "var(--success-color)";
                     
@@ -1118,11 +1164,13 @@
             const sebep = document.getElementById('banReasonInput').value;
             
             try {
-                await fetch(`${API_BASE}/users/${id}/banla`, { 
+                const res = await fetch(`${API_BASE}/users/${id}/banla`, { 
                     method: 'POST', 
                     headers: authHeaders, 
                     body: JSON.stringify({ sebep: sebep }) 
                 });
+                if (checkTokenError(res)) return;
+                
                 banModal.style.display = 'none';
                 showToast("Kullanıcı Yasaklandı!");
                 loadCustomers();
@@ -1134,7 +1182,9 @@
         window.unbanUser = async function(id) {
             if(confirm("Kullanıcının yasağını kaldırmak istediğinize emin misiniz?")) {
                 try {
-                    await fetch(`${API_BASE}/users/${id}/bankaldir`, { method: 'POST', headers: authHeaders });
+                    const res = await fetch(`${API_BASE}/users/${id}/bankaldir`, { method: 'POST', headers: authHeaders });
+                    if (checkTokenError(res)) return;
+                    
                     showToast("Yasak kaldırıldı.");
                     loadCustomers();
                 } catch(e) {
@@ -1148,6 +1198,7 @@
                 try {
                     const res = await fetch(`${API_BASE}/users-komple-sil/${id}`, { method: 'DELETE', headers: authHeaders });
                     if (checkTokenError(res)) return;
+                    
                     if(res.ok) {
                         showToast("Müşteri sistemden kazındı!", "success");
                         loadCustomers();
@@ -1229,14 +1280,17 @@
             finally { btn.textContent = "KAYDET"; btn.disabled = false; }
         };
 
-        const modal = document.getElementById("editModal");
-        document.getElementById("closeEditModal").onclick = function() { modal.style.display = "none"; };
+        const editModal = document.getElementById("editModal");
+        const ticketModal = document.getElementById('ticketModal');
+
+        document.getElementById("closeEditModal").onclick = function() { editModal.style.display = "none"; };
+        document.getElementById('closeTicketModal').onclick = function() { ticketModal.style.display = 'none'; };
         
         window.onclick = function(e) { 
-            if (e.target == modal) { modal.style.display = "none"; }
+            if (e.target == editModal) { editModal.style.display = "none"; }
             if (e.target == document.getElementById('confirmModal')) { document.getElementById('confirmModal').style.display = "none"; }
             if (e.target == banModal) { banModal.style.display = "none"; }
-            if (e.target == document.getElementById('ticketModal')) { document.getElementById('ticketModal').style.display = "none"; }
+            if (e.target == ticketModal) { ticketModal.style.display = "none"; }
         };
 
         function parseDateString(dateStr) {
@@ -1256,7 +1310,7 @@
             document.getElementById('editBanMessage').value = user.banMessage || "Abonelik süreniz dolmuştur.";
             document.getElementById('editIlanKotasi').value = user.ilanKotasi || "sinirsiz"; 
             
-            modal.style.display = "flex";
+            editModal.style.display = "flex";
         };
 
         document.getElementById('saveEditBtn').onclick = async function() {
@@ -1278,19 +1332,20 @@
                 });
                 if (checkTokenError(res)) return;
                 
-                modal.style.display = "none"; 
+                editModal.style.display = "none"; 
                 showToast("Ayarlar güncellendi."); 
                 loadCustomers();
             } catch (error) { showToast("Hata oluştu."); } 
             finally { btn.textContent = "GÜNCELLE"; btn.disabled = false; }
         };
 
-        // --- 🔥 YENİ DESTEK (TICKET) SİSTEMİ (TABLO TAŞMASI DÜZELTİLDİ) 🔥 ---
+        // --- DESTEK (TICKET) SİSTEMİ ---
         async function loadTickets() {
             try {
                 const res = await fetch(`${API_BASE}/tickets`, { headers: authHeaders });
-                const tickets = await res.json();
+                if (checkTokenError(res)) return;
                 
+                const tickets = await res.json();
                 const tbody = document.getElementById('ticketsTableBody'); 
                 tbody.innerHTML = '';
                 
@@ -1334,12 +1389,6 @@
             }
         }
 
-        const ticketModal = document.getElementById('ticketModal');
-        
-        document.getElementById('closeTicketModal').onclick = function() { 
-            ticketModal.style.display = 'none'; 
-        };
-
         window.openTicketModal = function(id, mesaj, yanit, durum) {
             document.getElementById('ticketId').value = id;
             document.getElementById('ticketMessageText').innerText = decodeURIComponent(mesaj);
@@ -1360,11 +1409,12 @@
             const durum = document.getElementById('ticketStatusSelect').value;
             
             try {
-                await fetch(`${API_BASE}/tickets/${id}/yanitla`, { 
+                const res = await fetch(`${API_BASE}/tickets/${id}/yanitla`, { 
                     method: 'PATCH', 
                     headers: authHeaders, 
                     body: JSON.stringify({ yanit: yanit, durum: durum }) 
                 });
+                if (checkTokenError(res)) return;
                 
                 ticketModal.style.display = 'none';
                 showToast("Talep başarıyla yanıtlandı.");
