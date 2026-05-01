@@ -1,3 +1,7 @@
+
+
+
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -1995,7 +1999,7 @@
                 const kota = profilData.ilanKotasi || "sinirsiz";
 
                 if (kota !== "sinirsiz" && globalIlanlar.length >= parseInt(kota)) {
-                    showToast(`Paket limitinize (${kota} İlan) ulaştınız!`, "error", "KOTA DOLDU");
+                    showToast(`Paket limitinize (${kota} İlan) ulaştınız! Yönetici ile iletişime geçin`, "error", "KOTA DOLDU");
                     btn.innerText = orjinalMetin; btn.disabled = false; return; 
                 }
 
