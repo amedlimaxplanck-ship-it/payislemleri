@@ -669,9 +669,13 @@
             font-size: 14px; 
             transition: all 0.2s; 
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.01); 
+            font-family: inherit;
         }
 
-        /* --- Input taşmalarını önlemek için --- */
+        .form-group textarea {
+            resize: vertical;
+        }
+
         .dynamic-input-group input {
             width: 100%;
             box-sizing: border-box;
@@ -1438,6 +1442,7 @@
         </div>
     </div>
 
+    <!-- 🔥 YENİ: DESTEK TALEPLERİ SEKMESİ (TABLO DARALTILDI) 🔥 -->
     <div id="destek" class="tab-content">
         <h2 style="margin-bottom: 15px; font-size: 18px; color: var(--text-main); border-bottom: 2px solid #007bff; padding-bottom: 10px; display: inline-block;">Yeni Destek Talebi Oluştur</h2>
         
@@ -1465,14 +1470,13 @@
                     <tr>
                         <th>Tarih</th>
                         <th>Konu</th>
-                        <th>Mesajınız</th>
-                        <th>Yönetici Yanıtı</th>
                         <th>Durum</th>
+                        <th>Detay</th>
                     </tr>
                 </thead>
                 <tbody id="ticketsTableBody">
                     <tr>
-                        <td colspan="5" style="text-align:center; padding: 20px;">Talepleriniz yükleniyor...</td>
+                        <td colspan="4" style="text-align:center; padding: 20px;">Talepleriniz yükleniyor...</td>
                     </tr>
                 </tbody>
             </table>
@@ -1602,6 +1606,24 @@
 
                 <button type="submit" class="btn-primary" id="submitBtn" style="width: 100%; margin-top: 25px; padding: 15px; font-size: 16px;">İlanı Kaydet</button>
             </form>
+        </div>
+    </div>
+
+    <!-- 🔥 YENİ: TICKET OKUMA MODALI 🔥 -->
+    <div id="ticketReadModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-modal" id="closeTicketReadModal">&times;</span>
+            <h2 style="margin-top: 0; margin-bottom: 15px;">Talep Detayı</h2>
+            
+            <div style="background: var(--bg-body); padding: 15px; border-radius: 10px; font-size:13px; margin-bottom: 15px; border:1px solid var(--border-color); max-height: 150px; overflow-y: auto; word-break: break-word;">
+                <strong style="color: var(--text-muted); font-size: 10px;">SİZİN MESAJINIZ:</strong><br>
+                <span id="ticketMessageReadText" style="display: block; margin-top: 8px; line-height: 1.6; color: var(--text-main);">...</span>
+            </div>
+            
+            <div style="background: rgba(16, 185, 129, 0.1); padding: 15px; border-radius: 10px; font-size:13px; border:1px solid rgba(16, 185, 129, 0.3); max-height: 200px; overflow-y: auto; word-break: break-word;">
+                <strong style="color: #10b981; font-size: 10px;">YÖNETİCİ YANITI:</strong><br>
+                <span id="ticketReplyReadText" style="display: block; margin-top: 8px; line-height: 1.6; color: var(--text-main);">...</span>
+            </div>
         </div>
     </div>
 
@@ -2052,9 +2074,15 @@
 
         document.getElementById("closeModalBtn").addEventListener('click', function() { modal.style.display = "none"; }); 
 
+        const ticketReadModal = document.getElementById('ticketReadModal');
+        document.getElementById('closeTicketReadModal').onclick = function() {
+            ticketReadModal.style.display = 'none';
+        };
+
         window.addEventListener('click', function(e) { 
             if (e.target == modal) modal.style.display = "none"; 
             if (e.target == document.getElementById('confirmModal')) document.getElementById('confirmModal').style.display = "none"; 
+            if (e.target == ticketReadModal) ticketReadModal.style.display = "none";
         });
 
         document.getElementById("ozellikEkleBtn").addEventListener('click', function() {
@@ -2270,7 +2298,7 @@
                 tickets.sort(function(a, b) { return b.tarih - a.tarih; }); 
                 
                 if (tickets.length === 0) { 
-                    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">
+                    tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state">
                         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                         <h3>Talep Bulunmuyor</h3>
                         <p>Henüz bir destek talebi oluşturmadınız.</p>
@@ -2290,17 +2318,31 @@
                     yeniHtml += `
                     <tr>
                         <td style="white-space:nowrap; font-size:12px;">${tarihFormat}</td>
-                        <td><strong>${dezenfekteEt(t.konu)}</strong></td>
-                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${dezenfekteEt(t.mesaj)}</td>
-                        <td style="max-width: 200px; color: ${t.yanit ? 'var(--text-main)' : 'var(--text-muted)'};">${t.yanit ? dezenfekteEt(t.yanit) : '<em>Henüz yanıtlanmadı...</em>'}</td>
+                        <td style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${dezenfekteEt(t.konu)}"><strong>${dezenfekteEt(t.konu)}</strong></td>
                         <td>${durumBadge}</td>
+                        <td>
+                            <button onclick="openTicketReadModal('${encodeURIComponent(t.mesaj)}', '${encodeURIComponent(t.yanit || '')}')" class="btn-primary" style="padding:8px 12px; font-size:11px; width:auto; display:inline-block; margin:0;">Oku / İncele</button>
+                        </td>
                     </tr>`;
                 });
                 tbody.innerHTML = yeniHtml;
             } catch (error) { 
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; 
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; 
             }
         }
+
+        window.openTicketReadModal = function(mesaj, yanit) {
+            document.getElementById('ticketMessageReadText').innerText = decodeURIComponent(mesaj);
+            const decYanit = decodeURIComponent(yanit);
+            
+            if (decYanit && decYanit.trim() !== "") {
+                document.getElementById('ticketReplyReadText').innerText = decYanit;
+            } else {
+                document.getElementById('ticketReplyReadText').innerHTML = '<em>Henüz yönetici tarafından yanıtlanmadı...</em>';
+            }
+            
+            ticketReadModal.style.display = 'flex';
+        };
 
         document.getElementById('ticketGonderBtn').addEventListener('click', async function() {
             const konu = document.getElementById('ticketKonu').value;
