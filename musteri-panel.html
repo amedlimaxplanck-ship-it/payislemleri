@@ -448,7 +448,7 @@
             justify-content: center;
             gap: 8px;
             font-size: 14px; 
-            transition: all 0.3s ease; 
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); 
         }
 
@@ -1123,29 +1123,28 @@
         }
 
         .bulk-action-btn {
-            height: 100%; 
-            padding: 0 20px; 
-            border-radius: 8px; 
-            display: inline-flex; 
-            align-items: center; 
-            gap: 8px; 
-            font-size: 14px; 
+            background: linear-gradient(135deg, #475569, #1e293b); 
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
             font-weight: 700;
-            background: var(--bg-card); 
-            border: 1px solid var(--text-main); 
-            color: var(--text-main);
             cursor: pointer;
-            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 12px rgba(30, 41, 59, 0.3);
         }
 
         .bulk-action-btn:hover {
-            background: var(--text-main);
-            color: var(--bg-card);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(30, 41, 59, 0.4);
         }
 
-        .bulk-action-btn:hover span {
-            background: var(--bg-card) !important;
-            color: var(--text-main) !important;
+        .bulk-action-btn:active {
+            transform: translateY(0);
         }
 
         .bulk-dropdown {
@@ -1199,15 +1198,20 @@
         /* YUMUŞAK KAYMA ANİMASYONU (TABLO SÜTUNU) */
         .chk-col {
             width: 0;
+            min-width: 0;
+            max-width: 0;
             padding-left: 0 !important;
             padding-right: 0 !important;
             opacity: 0;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
             border-right: none;
+            overflow: hidden;
         }
 
         .bulk-mode-on .chk-col {
             width: 50px;
+            min-width: 50px;
+            max-width: 50px;
             padding-left: 15px !important;
             padding-right: 15px !important;
             opacity: 1;
@@ -1216,9 +1220,9 @@
         .chk-wrapper {
             width: 0;
             overflow: hidden;
-            transform: translateX(-15px);
+            transform: translateX(-15px) scale(0.8);
             opacity: 0;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -1226,7 +1230,7 @@
 
         .bulk-mode-on .chk-wrapper {
             width: 20px;
-            transform: translateX(0);
+            transform: translateX(0) scale(1);
             opacity: 1;
         }
 
@@ -1471,7 +1475,6 @@
 
     <div id="ilanlar" class="tab-content active">
         
-        <!-- 🔥 YENİ: SABİT BUTONLAR VE DROPDOWN (TAMAMEN SVG İKONLU VE ANİMASYONLU) 🔥 -->
         <div style="display: flex; gap: 15px; margin-bottom: 20px; align-items: stretch; flex-wrap: wrap;">
             <button class="btn-primary" id="yeniIlanBtn" style="margin-bottom: 0; width: auto;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -1487,7 +1490,7 @@
                 <button class="bulk-action-btn" onclick="toggleBulkMenu(event)">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
                     Eylemler
-                    <span id="bulkCountBadge" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 5px; font-weight: 800; transition: all 0.2s;">0</span>
+                    <span id="bulkCountBadge" style="background: rgba(255, 255, 255, 0.2); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 5px; font-weight: 800; transition: all 0.2s;">0</span>
                 </button>
 
                 <div id="bulkMenu" class="bulk-dropdown">
@@ -1760,7 +1763,7 @@
         </div>
     </div>
 
-    <!-- 🔥 YENİ: TOPLU GÜNCELLEME MODALI (Ödeme Yöntemi Temizlendi) 🔥 -->
+    <!-- 🔥 TOPLU GÜNCELLEME MODALI 🔥 -->
     <div id="bulkUpdateModal" class="modal" style="z-index: 999;">
         <div class="modal-content" style="max-width: 450px;">
             <span class="close-modal" onclick="closeBulkModal()">×</span>
