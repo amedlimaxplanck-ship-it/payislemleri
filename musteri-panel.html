@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="format-detection" content="telephone=no">
     <title>Müşteri Paneli - İlan Yönetimi</title>
     <style>
@@ -10,1308 +10,210 @@
 
         /* --- AÇIK/KOYU MOD RENK MOTORU --- */
         :root {
-            --bg-body: #f0f2f5;
-            --bg-card: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --table-header: #f8fafc;
-            --input-bg: #ffffff;
-            --modal-bg: rgba(15, 23, 42, 0.4);
-            --primary-glow: rgba(0, 123, 255, 0.2);
+            --bg-body: #f0f2f5; --bg-card: #ffffff; --text-main: #1e293b; --text-muted: #64748b;
+            --border-color: #e2e8f0; --table-header: #f8fafc; --input-bg: #ffffff;
+            --modal-bg: rgba(15, 23, 42, 0.4); --primary-glow: rgba(0, 123, 255, 0.2);
             --god-glow: rgba(79, 70, 229, 0.25);
         }
 
         [data-theme="dark"] {
-            --bg-body: #09090b;
-            --bg-card: #18181b;
-            --text-main: #f8fafc;
-            --text-muted: #a1a1aa;
-            --border-color: #27272a;
-            --table-header: #09090b;
-            --input-bg: #18181b;
-            --modal-bg: rgba(0, 0, 0, 0.6);
-            --primary-glow: rgba(0, 123, 255, 0.4);
+            --bg-body: #09090b; --bg-card: #18181b; --text-main: #f8fafc; --text-muted: #a1a1aa;
+            --border-color: #27272a; --table-header: #09090b; --input-bg: #18181b;
+            --modal-bg: rgba(0, 0, 0, 0.6); --primary-glow: rgba(0, 123, 255, 0.4);
             --god-glow: rgba(79, 70, 229, 0.3);
         }
 
-        * { 
-            box-sizing: border-box; 
-            margin: 0; 
-            padding: 0; 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            transition: background-color 0.3s, border-color 0.3s, color 0.3s, box-shadow 0.3s; 
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; transition: background-color 0.3s, border-color 0.3s, color 0.3s, box-shadow 0.3s; }
+        body { background-color: var(--bg-body); padding: 25px; color: var(--text-main); line-height: 1.5; overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        [data-theme="dark"] ::-webkit-scrollbar-thumb { background: #3f3f46; }
+        [data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #52525b; }
 
-        body { 
-            background-color: var(--bg-body); 
-            padding: 25px; 
-            color: var(--text-main); 
-            line-height: 1.5; 
-        }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: var(--bg-card); padding: 18px 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid var(--border-color); backdrop-filter: blur(10px); }
+        .header h1 { font-size: 22px; font-weight: 800; background: linear-gradient(135deg, #007bff, #00d2ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px; }
+        .header-controls { display: flex; align-items: center; gap: 20px; }
         
-        ::-webkit-scrollbar { 
-            width: 8px; 
-            height: 8px; 
-        }
+        .theme-switch { position: relative; width: 52px; height: 26px; display: inline-block; }
+        .theme-switch input { opacity: 0; width: 0; height: 0; }
+        .theme-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e2e8f0; transition: .4s; border-radius: 34px; border: 1px solid rgba(0,0,0,0.05); }
+        .theme-slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 2px; background-color: white; transition: .4s cubic-bezier(0.68, -0.55, 0.265, 1.55); border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        input:checked + .theme-slider { background-color: #007bff; border-color: #007bff; }
+        input:checked + .theme-slider:before { transform: translateX(24px); }
 
-        ::-webkit-scrollbar-track { 
-            background: transparent; 
-        }
+        .logout-btn { background: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.2); padding: 8px 18px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px; transition: all 0.2s ease; }
+        .logout-btn:hover { background: #dc3545; color: white; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(220,53,69,0.3); }
 
-        ::-webkit-scrollbar-thumb { 
-            background: #cbd5e1; 
-            border-radius: 10px; 
-        }
+        #god-announcement-static { display: none; align-items: center; gap: 15px; background: linear-gradient(135deg, #4f46e5, #312e81); color: white; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 8px 20px var(--god-glow); animation: fadeInDown 0.4s ease; border: 1px solid #3730a3; }
+        #god-announcement-static .icon { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: rgba(255,255,255,0.15); border-radius: 50%; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        #god-announcement-static .text-content { display: flex; flex-direction: column; }
+        #god-announcement-static .label { font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
+        #god-announcement-static #announcement-text-static { font-weight: 700; font-size: 14px; letter-spacing: 0.3px; line-height: 1.4; }
 
-        ::-webkit-scrollbar-thumb:hover { 
-            background: #94a3b8; 
-        }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-        [data-theme="dark"] ::-webkit-scrollbar-thumb { 
-            background: #3f3f46; 
-        }
+        .dashboard-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 25px; } 
+        .stat-card { background: var(--bg-card); padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-bottom: 4px solid #007bff; transition: all 0.3s ease; }
+        .stat-card h3 { font-size: 32px; font-weight: 800; color: var(--text-main); margin-bottom: 5px; }
+        .stat-card p { font-size: 12px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        [data-theme="dark"] ::-webkit-scrollbar-thumb:hover { 
-            background: #52525b; 
-        }
+        .search-container { margin-bottom: 25px; }
+        .search-input { width: 100%; padding: 16px 20px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 10px; font-size: 15px; outline: none; transition: all 0.3s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        .search-input:focus { border-color: #007bff; box-shadow: 0 0 0 4px var(--primary-glow); transform: translateY(-1px); }
 
-        .header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 20px; 
-            background: var(--bg-card); 
-            padding: 18px 25px; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03); 
-            border: 1px solid var(--border-color); 
-            backdrop-filter: blur(10px); 
-        }
-
-        .header h1 { 
-            font-size: 22px; 
-            font-weight: 800; 
-            background: linear-gradient(135deg, #007bff, #00d2ff); 
-            -webkit-background-clip: text; 
-            -webkit-text-fill-color: transparent; 
-            letter-spacing: -0.5px; 
-        }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; background: var(--bg-card); padding: 8px; border-radius: 10px; border: 1px solid var(--border-color); }
+        .tab-btn { padding: 12px 20px; background: transparent; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; color: var(--text-muted); transition: all 0.3s ease; flex: 1; text-align: center; font-size: 14px; }
+        .tab-btn:hover { color: var(--text-main); background: var(--bg-body); }
+        .tab-btn.active { background: #007bff; color: white; box-shadow: 0 4px 12px var(--primary-glow); }
         
-        .header-controls { 
-            display: flex; 
-            align-items: center; 
-            gap: 20px; 
-        }
-
-        .theme-switch { 
-            position: relative; 
-            width: 52px; 
-            height: 26px; 
-            display: inline-block; 
-        }
-
-        .theme-switch input { 
-            opacity: 0; 
-            width: 0; 
-            height: 0; 
-        }
-
-        .theme-slider { 
-            position: absolute; 
-            cursor: pointer; 
-            top: 0; 
-            left: 0; 
-            right: 0; 
-            bottom: 0; 
-            background-color: #e2e8f0; 
-            transition: .4s; 
-            border-radius: 34px; 
-            border: 1px solid rgba(0,0,0,0.05); 
-        }
-
-        .theme-slider:before { 
-            position: absolute; 
-            content: ""; 
-            height: 20px; 
-            width: 20px; 
-            left: 3px; 
-            bottom: 2px; 
-            background-color: white; 
-            transition: .4s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
-            border-radius: 50%; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
-        }
-
-        input:checked + .theme-slider { 
-            background-color: #007bff; 
-            border-color: #007bff; 
-        }
-
-        input:checked + .theme-slider:before { 
-            transform: translateX(24px); 
-        }
-
-        .logout-btn { 
-            background: rgba(220, 53, 69, 0.1); 
-            color: #dc3545; 
-            border: 1px solid rgba(220, 53, 69, 0.2); 
-            padding: 8px 18px; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-weight: 700; 
-            font-size: 13px; 
-            transition: all 0.2s ease; 
-        }
-
-        .logout-btn:hover { 
-            background: #dc3545; 
-            color: white; 
-            transform: translateY(-1px); 
-            box-shadow: 0 4px 10px rgba(220,53,69,0.3); 
-        }
+        .tab-content { display: none; background: var(--bg-card); padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid var(--border-color); }
+        .tab-content.active { display: block; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes slideUp { from {opacity: 0; transform: translateY(10px);} to {opacity: 1; transform: translateY(0);} }
         
-        /* --- YENİ SABİT ANONUS BARI (DETAYLI MEGAFON) --- */
-        #god-announcement-static { 
-            display: none; 
-            align-items: center; 
-            gap: 15px; 
-            background: linear-gradient(135deg, #4f46e5, #312e81); 
-            color: white; 
-            padding: 16px 20px; 
-            border-radius: 12px; 
-            margin-bottom: 20px; 
-            box-shadow: 0 8px 20px var(--god-glow); 
-            animation: fadeInDown 0.4s ease; 
-            border: 1px solid #3730a3; 
-        }
-
-        #god-announcement-static .icon { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            width: 36px; 
-            height: 36px; 
-            background: rgba(255,255,255,0.15); 
-            border-radius: 50%; 
-            flex-shrink: 0; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
-        }
-
-        #god-announcement-static .text-content { 
-            display: flex; 
-            flex-direction: column; 
-        }
-
-        #god-announcement-static .label { 
-            font-size: 10px; 
-            font-weight: 800; 
-            color: rgba(255,255,255,0.7); 
-            text-transform: uppercase; 
-            letter-spacing: 1px; 
-            margin-bottom: 3px; 
-        }
-
-        #god-announcement-static #announcement-text-static { 
-            font-weight: 700; 
-            font-size: 14px; 
-            letter-spacing: 0.3px; 
-            line-height: 1.4; 
-        }
-
-        @keyframes fadeInDown { 
-            from { opacity: 0; transform: translateY(-10px); } 
-            to { opacity: 1; transform: translateY(0); } 
-        }
-
-        .dashboard-cards { 
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 20px; 
-            margin-bottom: 25px; 
-        } 
-
-        .stat-card { 
-            background: var(--bg-card); 
-            padding: 20px; 
-            border-radius: 12px; 
-            text-align: center; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.02); 
-            border: 1px solid var(--border-color); 
-            border-bottom: 4px solid #007bff; 
-            transition: all 0.3s ease; 
-        }
-
-        .stat-card h3 { 
-            font-size: 32px; 
-            font-weight: 800; 
-            color: var(--text-main); 
-            margin-bottom: 5px; 
-        }
-
-        .stat-card p { 
-            font-size: 12px; 
-            color: var(--text-muted); 
-            font-weight: 700; 
-            text-transform: uppercase; 
-            letter-spacing: 0.5px; 
-        }
-
-        .search-container { 
-            margin-bottom: 25px; 
-        }
-
-        .search-input { 
-            width: 100%; 
-            padding: 16px 20px; 
-            background: var(--input-bg); 
-            border: 1px solid var(--border-color); 
-            color: var(--text-main); 
-            border-radius: 10px; 
-            font-size: 15px; 
-            outline: none; 
-            transition: all 0.3s ease; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.02); 
-        }
-
-        .search-input:focus { 
-            border-color: #007bff; 
-            box-shadow: 0 0 0 4px var(--primary-glow); 
-            transform: translateY(-1px); 
-        }
-
-        .tabs { 
-            display: flex; 
-            gap: 10px; 
-            margin-bottom: 20px; 
-            background: var(--bg-card); 
-            padding: 8px; 
-            border-radius: 10px; 
-            border: 1px solid var(--border-color); 
-        }
-
-        .tab-btn { 
-            padding: 12px 20px; 
-            background: transparent; 
-            border: none; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            font-weight: 600; 
-            color: var(--text-muted); 
-            transition: all 0.3s ease; 
-            flex: 1; 
-            text-align: center; 
-            font-size: 14px; 
-        }
-
-        .tab-btn:hover { 
-            color: var(--text-main); 
-            background: var(--bg-body); 
-        }
-
-        .tab-btn.active { 
-            background: #007bff; 
-            color: white; 
-            box-shadow: 0 4px 12px var(--primary-glow); 
-        }
+        .table-container { overflow-x: auto; margin-top: 15px; border-radius: 8px; border: 1px solid var(--border-color); position: relative; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th, td { padding: 16px 20px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 14px; vertical-align: middle; color: var(--text-main); }
+        th { background-color: var(--table-header); color: var(--text-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; position: sticky; top: 0; z-index: 10; }
+        tbody tr { transition: background-color 0.2s ease; }
+        tbody tr:hover { background-color: var(--table-header); }
         
-        .tab-content { 
-            display: none; 
-            background: var(--bg-card); 
-            padding: 25px; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03); 
-            border: 1px solid var(--border-color); 
-        }
+        .log-badge { display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; }
+        .badge-primary { background-color: rgba(0, 123, 255, 0.1); color: #007bff; border: 1px solid rgba(0,123,255,0.2); }
+        .badge-success { background-color: rgba(40, 167, 69, 0.1); color: #28a745; border: 1px solid rgba(40,167,69,0.2); }
+        .badge-danger { background-color: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220,53,69,0.2); }
+        .badge-secondary { background-color: rgba(108, 117, 125, 0.1); color: #6c757d; border: 1px solid rgba(108,117,125,0.2); }
 
-        .tab-content.active { 
-            display: block; 
-            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
-        }
-
-        @keyframes slideUp { 
-            from {opacity: 0; transform: translateY(10px);} 
-            to {opacity: 1; transform: translateY(0);} 
-        }
+        .log-filter-btn { padding: 8px 16px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; font-size: 12px; font-weight: 700; color: var(--text-muted); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+        .log-filter-btn:hover { background: var(--bg-body); color: var(--text-main); }
+        .log-filter-btn.active { background: var(--text-main); color: var(--bg-card); border-color: var(--text-main); }
         
-        .table-container { 
-            overflow-x: auto; 
-            margin-top: 15px; 
-            border-radius: 8px; 
-            border: 1px solid var(--border-color); 
-            position: relative; 
-        }
-
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            min-width: 800px; 
-        }
-
-        th, td { 
-            padding: 16px 20px; 
-            text-align: left; 
-            border-bottom: 1px solid var(--border-color); 
-            font-size: 14px; 
-            vertical-align: middle; 
-            color: var(--text-main); 
-        }
-
-        th { 
-            background-color: var(--table-header); 
-            color: var(--text-muted); 
-            font-size: 12px; 
-            font-weight: 700; 
-            text-transform: uppercase; 
-            letter-spacing: 0.5px; 
-            position: sticky; 
-            top: 0; 
-            z-index: 10; 
-        }
-
-        tbody tr { 
-            transition: background-color 0.2s ease; 
-        }
-
-        tbody tr:hover { 
-            background-color: var(--table-header); 
-        }
+        .btn-primary { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4); }
         
-        .log-badge { 
-            display: inline-flex; 
-            align-items: center; 
-            justify-content: center; 
-            padding: 6px 12px; 
-            border-radius: 6px; 
-            font-size: 11px; 
-            font-weight: 700; 
-            color: #fff; 
-            white-space: nowrap; 
-        }
-
-        .badge-primary { 
-            background-color: rgba(0, 123, 255, 0.1); 
-            color: #007bff; 
-            border: 1px solid rgba(0,123,255,0.2); 
-        }
-
-        .badge-success { 
-            background-color: rgba(40, 167, 69, 0.1); 
-            color: #28a745; 
-            border: 1px solid rgba(40,167,69,0.2); 
-        }
-
-        .badge-danger { 
-            background-color: rgba(220, 53, 69, 0.1); 
-            color: #dc3545; 
-            border: 1px solid rgba(220,53,69,0.2); 
-        }
-
-        .badge-secondary { 
-            background-color: rgba(108, 117, 125, 0.1); 
-            color: #6c757d; 
-            border: 1px solid rgba(108,117,125,0.2); 
-        }
-
-        .log-filter-btn {
-            padding: 8px 16px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-        .log-filter-btn:hover {
-            background: var(--bg-body);
-            color: var(--text-main);
-        }
-        .log-filter-btn.active {
-            background: var(--text-main);
-            color: var(--bg-card);
-            border-color: var(--text-main);
-        }
+        .action-btn { background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-right: 5px; font-weight: 700; transition: all 0.2s ease; }
+        .action-btn:hover { background: var(--border-color); }
+        .delete-btn { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; transition: all 0.2s ease; }
+        .delete-btn:hover { background: #ef4444; color: white; }
+        .link-btn { border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; width: 100%; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.2s; background: var(--input-bg); }
+        .link-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+        .link-btn.sari { border-color: #fef08a; color: #a16207; background: rgba(254, 240, 138, 0.2); }
+        .link-btn.sari:hover { background: #fef08a; color: #713f12; border-color: #fde047; }
+        .link-btn.kirmizi { border-color: #fecaca; color: #b91c1c; background: rgba(254, 202, 202, 0.2); }
+        .link-btn.kirmizi:hover { background: #fecaca; color: #991b1b; border-color: #fca5a5; }
+        .view-btn { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.3); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; transition: all 0.2s ease; }
+        .view-btn:hover { background: #8b5cf6; color: white; }
         
-        .btn-primary { 
-            background: linear-gradient(135deg, #10b981, #059669); 
-            color: white; 
-            border: none; 
-            padding: 12px 24px; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-weight: 700; 
-            display: inline-flex; 
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-size: 14px; 
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); 
-        }
+        .thumb-img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; background: var(--border-color); display: block; border: 2px solid var(--bg-body); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 
-        .btn-primary:hover { 
-            transform: translateY(-2px); 
-            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4); 
-        }
+        .switch { position: relative; display: inline-block; width: 46px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e2e8f0; transition: .4s; border-radius: 26px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s cubic-bezier(0.68, -0.55, 0.265, 1.55); border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        input:checked + .slider { background-color: #10b981; }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: var(--modal-bg); backdrop-filter: blur(8px); padding-top: 40px; }
+        .modal-content { background-color: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); margin: auto; padding: 30px; border-radius: 16px; width: 95%; max-width: 750px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); animation: modalPop 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes modalPop { 0% { opacity: 0; transform: scale(0.95) translateY(20px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+        .close-modal { color: var(--text-muted); float: right; font-size: 28px; font-weight: bold; cursor: pointer; transition: color 0.2s; line-height: 1; }
+        .close-modal:hover { color: var(--text-main); }
         
-        .action-btn { 
-            background: var(--bg-body); 
-            color: var(--text-main); 
-            border: 1px solid var(--border-color); 
-            padding: 8px 14px; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            font-size: 12px; 
-            margin-right: 5px; 
-            font-weight: 700; 
-            transition: all 0.2s ease; 
-        }
-
-        .action-btn:hover { 
-            background: var(--border-color); 
-        }
+        .form-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px; }
+        @media(min-width: 600px) { .form-grid { grid-template-columns: 1fr 1fr; } }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-size: 13px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 0.3px; }
+        .form-group input, .form-group select, .form-group textarea { padding: 12px 15px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-main); border-radius: 8px; outline: none; font-size: 14px; transition: all 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.01); font-family: inherit; }
+        .form-group textarea { resize: vertical; }
+        .dynamic-input-group input { width: 100%; box-sizing: border-box; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #007bff; box-shadow: 0 0 0 3px var(--primary-glow); }
         
-        .delete-btn { 
-            background: rgba(239, 68, 68, 0.1); 
-            color: #ef4444; 
-            border: 1px solid rgba(239, 68, 68, 0.3); 
-            padding: 8px 14px; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            font-size: 12px; 
-            font-weight: 700; 
-            transition: all 0.2s ease; 
-        }
-
-        .delete-btn:hover { 
-            background: #ef4444; 
-            color: white; 
-        }
+        .ozellik-row { display: flex; gap: 10px; margin-bottom: 12px; align-items: center; }
+        .ozellik-row input { flex: 1; padding: 12px 15px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-main); border-radius: 8px; transition: border-color 0.2s; min-width: 0; }
+        .ozellik-row input:focus { border-color: #007bff; }
+        .ozellik-sil { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); width: 44px; height: 44px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; }
+        .ozellik-sil:hover { background: #ef4444; color: white; }
         
-        .link-btn { 
-            border: 1px solid var(--border-color); 
-            padding: 8px 12px; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            font-size: 12px; 
-            font-weight: 600; 
-            width: 100%; 
-            margin-bottom: 8px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 5px; 
-            transition: all 0.2s; 
-            background: var(--input-bg); 
-        }
+        .image-upload-box { border: 2px dashed var(--border-color); padding: 30px; text-align: center; border-radius: 12px; background: var(--bg-body); color: var(--text-muted); cursor: pointer; margin-top: 10px; transition: all 0.3s; font-weight: 600; }
+        .image-upload-box:hover { border-color: #007bff; background: var(--primary-glow); color: #007bff; }
+        .image-preview-container { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 15px; }
+        .preview-img { width: 90px; height: 90px; object-fit: cover; border-radius: 8px; border: 2px solid var(--border-color); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
 
-        .link-btn:hover { 
-            transform: translateY(-1px); 
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05); 
-        }
+        .skeleton-row td { position: relative; overflow: hidden; }
+        .skeleton-box { height: 24px; background: var(--border-color); border-radius: 6px; width: 100%; position: relative; overflow: hidden; }
+        .skeleton-box::after { content: ""; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: skeletonSweep 1.2s infinite; }
+        [data-theme="dark"] .skeleton-box::after { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); }
+        @keyframes skeletonSweep { 100% { left: 100%; } }
 
-        .link-btn.sari { 
-            border-color: #fef08a; 
-            color: #a16207; 
-            background: rgba(254, 240, 138, 0.2); 
-        }
+        #toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 999999; display: flex; flex-direction: column; gap: 15px; pointer-events: none; }
+        .toast { min-width: 300px; background: var(--bg-card); border-left: 5px solid; padding: 16px 20px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); color: var(--text-main); font-weight: 600; font-size: 14px; opacity: 0; transform: translateX(120%); transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); border: 1px solid var(--border-color); }
+        .toast.show { opacity: 1; transform: translateX(0); }
+        .toast.success { border-left-color: #10b981; } .toast.error { border-left-color: #ef4444; } .toast.info { border-left-color: #3b82f6; }
+        .toast-title { font-size: 11px; text-transform: uppercase; font-weight: 800; opacity: 0.6; margin-bottom: 4px; display: block; letter-spacing: 0.5px; }
 
-        .link-btn.sari:hover { 
-            background: #fef08a; 
-            color: #713f12; 
-            border-color: #fde047; 
-        }
+        /* --- OVERLAY EKRANLARI (KICK, LOCKDOWN, KANBAN) --- */
+        .overlay-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999999; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); align-items: center; justify-content: center; opacity: 0; transition: opacity 0.5s ease; }
+        [data-theme="dark"] .overlay-screen { background: rgba(9, 9, 11, 0.85); }
+        .overlay-card { background: var(--bg-card); padding: 40px; border-radius: 20px; text-align: center; max-width: 420px; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.25); border: 1px solid var(--border-color); transform: translateY(20px) scale(0.95); transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .overlay-screen.active { display: flex; opacity: 1; }
+        .overlay-screen.active .overlay-card { transform: translateY(0) scale(1); }
+        .overlay-card h2 { font-size: 22px; font-weight: 800; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .overlay-card p { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 25px; }
 
-        .link-btn.kirmizi { 
-            border-color: #fecaca; 
-            color: #b91c1c; 
-            background: rgba(254, 202, 202, 0.2); 
-        }
+        @keyframes pulseWarning { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.5)); } 100% { transform: scale(1); opacity: 1; } }
+        .kick-icon { width: 60px; height: 60px; stroke: #ef4444; margin-bottom: 20px; animation: pulseWarning 2s infinite; }
+        .kick-btn { background: #ef4444; color: white; border: none; padding: 14px 30px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; width: 100%; transition: all 0.2s; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
+        .kick-btn:hover { background: #dc2626; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4); }
 
-        .link-btn.kirmizi:hover { 
-            background: #fecaca; 
-            color: #991b1b; 
-            border-color: #fca5a5; 
-        }
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 50px 20px; color: var(--text-muted); text-align: center; animation: fadeIn 0.6s ease-out; }
+        .empty-state svg { width: 72px; height: 72px; margin-bottom: 18px; opacity: 0.6; stroke: var(--text-muted); filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1)); animation: floatIcon 4s ease-in-out infinite; }
+        @keyframes floatIcon { 0% { transform: translateY(0px); } 50% { transform: translateY(-12px) scale(1.05); stroke: #007bff; opacity: 1; filter: drop-shadow(0 15px 25px rgba(0,123,255,0.3)); } 100% { transform: translateY(0px); } }
+        .empty-state h3 { font-size: 18px; font-weight: 800; color: var(--text-main); margin-bottom: 8px; letter-spacing: -0.3px; }
+        .empty-state p { font-size: 13px; max-width: 320px; line-height: 1.6; }
 
-        .view-btn { 
-            background: rgba(139, 92, 246, 0.1); 
-            color: #8b5cf6; 
-            border: 1px solid rgba(139, 92, 246, 0.3); 
-            padding: 8px 14px; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            font-size: 12px; 
-            font-weight: 700; 
-            transition: all 0.2s ease; 
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .view-btn:hover { 
-            background: #8b5cf6; 
-            color: white; 
-        }
+        /* 🔥 TOPLU İŞLEMLER (BULK) CSS 🔥 */
+        .apple-checkbox { width: 18px; height: 18px; cursor: pointer; accent-color: #4f46e5; margin: 0 auto; display: block; }
+        .bulk-mode-btn { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
+        .bulk-mode-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4); }
+        .bulk-mode-btn.active { background: var(--bg-body); color: var(--text-main); box-shadow: none; border: 1px solid var(--border-color); }
+        .bulk-mode-btn.active:hover { transform: none; background: var(--border-color); }
         
-        .thumb-img { 
-            width: 56px; 
-            height: 56px; 
-            object-fit: cover; 
-            border-radius: 8px; 
-            background: var(--border-color); 
-            display: block; 
-            border: 2px solid var(--bg-body); 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
-        }
-
-        .switch { 
-            position: relative; 
-            display: inline-block; 
-            width: 46px; 
-            height: 26px; 
-        }
-
-        .switch input { 
-            opacity: 0; 
-            width: 0; 
-            height: 0; 
-        }
-
-        .slider { 
-            position: absolute; 
-            cursor: pointer; 
-            top: 0; 
-            left: 0; 
-            right: 0; 
-            bottom: 0; 
-            background-color: #e2e8f0; 
-            transition: .4s; 
-            border-radius: 26px; 
-        }
-
-        .slider:before { 
-            position: absolute; 
-            content: ""; 
-            height: 18px; 
-            width: 18px; 
-            left: 4px; 
-            bottom: 4px; 
-            background-color: white; 
-            transition: .4s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
-            border-radius: 50%; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
-        }
-
-        input:checked + .slider { 
-            background-color: #10b981; 
-        }
-
-        input:checked + .slider:before { 
-            transform: translateX(20px); 
-        }
-
-        .modal { 
-            display: none; 
-            position: fixed; 
-            z-index: 1000; 
-            left: 0; 
-            top: 0; 
-            width: 100%; 
-            height: 100%; 
-            overflow: auto; 
-            background-color: var(--modal-bg); 
-            backdrop-filter: blur(8px); 
-            padding-top: 40px; 
-        }
-
-        .modal-content { 
-            background-color: var(--bg-card); 
-            color: var(--text-main); 
-            border: 1px solid var(--border-color); 
-            margin: auto; 
-            padding: 30px; 
-            border-radius: 16px; 
-            width: 95%; 
-            max-width: 750px; 
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
-            animation: modalPop 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
-        }
-
-        @keyframes modalPop { 
-            0% { opacity: 0; transform: scale(0.95) translateY(20px); } 
-            100% { opacity: 1; transform: scale(1) translateY(0); } 
-        }
-
-        .close-modal { 
-            color: var(--text-muted); 
-            float: right; 
-            font-size: 28px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            transition: color 0.2s; 
-            line-height: 1; 
-        }
-
-        .close-modal:hover { 
-            color: var(--text-main); 
-        }
-        
-        .form-grid { 
-            display: grid; 
-            grid-template-columns: 1fr; 
-            gap: 20px; 
-            margin-top: 20px; 
-        }
-
-        @media(min-width: 600px) { 
-            .form-grid { 
-                grid-template-columns: 1fr 1fr; 
-            } 
-        }
-
-        .form-group { 
-            display: flex; 
-            flex-direction: column; 
-        }
-
-        .form-group label { 
-            font-size: 13px; 
-            font-weight: 700; 
-            color: var(--text-muted); 
-            margin-bottom: 8px; 
-            letter-spacing: 0.3px; 
-        }
-
-        .form-group input, .form-group select, .form-group textarea { 
-            padding: 12px 15px; 
-            border: 1px solid var(--border-color); 
-            background: var(--input-bg); 
-            color: var(--text-main); 
-            border-radius: 8px; 
-            outline: none; 
-            font-size: 14px; 
-            transition: all 0.2s; 
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.01); 
-            font-family: inherit;
-        }
-
-        .form-group textarea {
-            resize: vertical;
-        }
-
-        .dynamic-input-group input {
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { 
-            border-color: #007bff; 
-            box-shadow: 0 0 0 3px var(--primary-glow); 
-        }
-        
-        .ozellik-row { 
-            display: flex; 
-            gap: 10px; 
-            margin-bottom: 12px; 
-            align-items: center; 
-        }
-
-        .ozellik-row input { 
-            flex: 1; 
-            padding: 12px 15px; 
-            border: 1px solid var(--border-color); 
-            background: var(--input-bg); 
-            color: var(--text-main); 
-            border-radius: 8px; 
-            transition: border-color 0.2s; 
-            min-width: 0; 
-        }
-
-        .ozellik-row input:focus { 
-            border-color: #007bff; 
-        }
-
-        .ozellik-sil { 
-            background: rgba(239, 68, 68, 0.1); 
-            color: #ef4444; 
-            border: 1px solid rgba(239, 68, 68, 0.3); 
-            width: 44px; 
-            height: 44px; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            transition: all 0.2s; 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0; 
-            padding: 0; 
-        }
-
-        .ozellik-sil:hover { 
-            background: #ef4444; 
-            color: white; 
-        }
-        
-        .image-upload-box { 
-            border: 2px dashed var(--border-color); 
-            padding: 30px; 
-            text-align: center; 
-            border-radius: 12px; 
-            background: var(--bg-body); 
-            color: var(--text-muted); 
-            cursor: pointer; 
-            margin-top: 10px; 
-            transition: all 0.3s; 
-            font-weight: 600; 
-        }
-
-        .image-upload-box:hover { 
-            border-color: #007bff; 
-            background: var(--primary-glow); 
-            color: #007bff; 
-        }
-
-        .image-preview-container { 
-            display: flex; 
-            flex-wrap: wrap; 
-            gap: 12px; 
-            margin-top: 15px; 
-        }
-
-        .preview-img { 
-            width: 90px; 
-            height: 90px; 
-            object-fit: cover; 
-            border-radius: 8px; 
-            border: 2px solid var(--border-color); 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
-        }
-
-        .skeleton-row td { 
-            position: relative; 
-            overflow: hidden; 
-        }
-
-        .skeleton-box { 
-            height: 24px; 
-            background: var(--border-color); 
-            border-radius: 6px; 
-            width: 100%; 
-            position: relative; 
-            overflow: hidden; 
-        }
-
-        .skeleton-box::after { 
-            content: ""; 
-            position: absolute; 
-            top: 0; 
-            left: -100%; 
-            width: 50%; 
-            height: 100%; 
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); 
-            animation: skeletonSweep 1.2s infinite; 
-        }
-
-        [data-theme="dark"] .skeleton-box::after { 
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); 
-        }
-
-        @keyframes skeletonSweep { 
-            100% { left: 100%; } 
-        }
-
-        #toast-container { 
-            position: fixed; 
-            bottom: 30px; 
-            right: 30px; 
-            z-index: 999999; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px; 
-            pointer-events: none; 
-        }
-
-        .toast { 
-            min-width: 300px; 
-            background: var(--bg-card); 
-            border-left: 5px solid; 
-            padding: 16px 20px; 
-            border-radius: 10px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
-            color: var(--text-main); 
-            font-weight: 600; 
-            font-size: 14px; 
-            opacity: 0; 
-            transform: translateX(120%); 
-            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
-            border: 1px solid var(--border-color); 
-        }
-
-        .toast.show { 
-            opacity: 1; 
-            transform: translateX(0); 
-        }
-
-        .toast.success { 
-            border-left-color: #10b981; 
-        }
-
-        .toast.error { 
-            border-left-color: #ef4444; 
-        }
-
-        .toast.info { 
-            border-left-color: #3b82f6; 
-        }
-
-        .toast-title { 
-            font-size: 11px; 
-            text-transform: uppercase; 
-            font-weight: 800; 
-            opacity: 0.6; 
-            margin-bottom: 4px; 
-            display: block; 
-            letter-spacing: 0.5px; 
-        }
-
-        /* --- ELİT SİSTEM KİLİDİ (LOCKDOWN) --- */
-        #lockdown-overlay { 
-            display: none; 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            z-index: 99999999; 
-            background: rgba(255, 255, 255, 0.6); 
-            backdrop-filter: blur(15px); 
-            -webkit-backdrop-filter: blur(15px); 
-            align-items: center; 
-            justify-content: center; 
-            opacity: 0; 
-            transition: opacity 0.5s ease; 
-        }
-
-        [data-theme="dark"] #lockdown-overlay { 
-            background: rgba(9, 9, 11, 0.7); 
-        }
-
-        .lockdown-card { 
-            background: var(--bg-card); 
-            padding: 40px; 
-            border-radius: 20px; 
-            text-align: center; 
-            max-width: 400px; 
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15); 
-            border: 1px solid var(--border-color); 
-            transform: translateY(20px); 
-            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); 
-        }
-
-        .lockdown-card svg { 
-            width: 48px; 
-            height: 48px; 
-            fill: #ef4444; 
-            margin-bottom: 15px; 
-        }
-
-        .lockdown-card h2 { 
-            font-size: 20px; 
-            font-weight: 800; 
-            color: var(--text-main); 
-            margin-bottom: 10px; 
-        }
-
-        .lockdown-card p { 
-            font-size: 14px; 
-            color: var(--text-muted); 
-            line-height: 1.6; 
-        }
-
-        #lockdown-overlay.active { 
-            display: flex; 
-            opacity: 1; 
-        }
-
-        #lockdown-overlay.active .lockdown-card { 
-            transform: translateY(0); 
-        }
-        
-        /* 🔥 YENİ: OTURUM SONLANDIRILDI (KICK) EKRANI 🔥 */
-        #kick-overlay {
-            display: none; 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            z-index: 999999999; 
-            background: rgba(255, 255, 255, 0.7); 
-            backdrop-filter: blur(20px); 
-            -webkit-backdrop-filter: blur(20px); 
-            align-items: center; 
-            justify-content: center; 
-            opacity: 0; 
-            transition: opacity 0.4s ease; 
-        }
-
-        [data-theme="dark"] #kick-overlay { 
-            background: rgba(9, 9, 11, 0.85); 
-        }
-
-        .kick-card {
-            background: var(--bg-card); 
-            padding: 40px; 
-            border-radius: 20px; 
-            text-align: center; 
-            max-width: 420px; 
-            box-shadow: 0 30px 60px -12px rgba(239, 68, 68, 0.25); 
-            border: 1px solid rgba(239, 68, 68, 0.3); 
-            transform: scale(0.95); 
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
-        }
-
-        .kick-card svg {
-            width: 60px;
-            height: 60px;
-            stroke: #ef4444;
-            margin-bottom: 20px;
-            animation: pulseWarning 2s infinite;
-        }
-
-        @keyframes pulseWarning {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.7; filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.5)); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .kick-card h2 {
-            font-size: 22px;
-            font-weight: 800;
-            color: #ef4444;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .kick-card p {
-            font-size: 14px;
-            color: var(--text-main);
-            line-height: 1.6;
-            margin-bottom: 25px;
-        }
-
-        .kick-btn {
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 14px 30px;
-            border-radius: 10px;
-            font-weight: 700;
-            font-size: 14px;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.2s;
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
-        }
-
-        .kick-btn:hover {
-            background: #dc2626;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
-        }
-
-        #kick-overlay.active { 
-            display: flex; 
-            opacity: 1; 
-        }
-
-        #kick-overlay.active .kick-card { 
-            transform: scale(1); 
-        }
-
-        /* --- HAVALI BOŞ DURUM (EMPTY STATE) --- */
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 50px 20px;
-            color: var(--text-muted);
-            text-align: center;
-            animation: fadeIn 0.6s ease-out;
-        }
-
-        .empty-state svg {
-            width: 72px;
-            height: 72px;
-            margin-bottom: 18px;
-            opacity: 0.6;
-            stroke: var(--text-muted);
-            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
-            animation: floatIcon 4s ease-in-out infinite;
-        }
-
-        @keyframes floatIcon {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-12px) scale(1.05); stroke: #007bff; opacity: 1; filter: drop-shadow(0 15px 25px rgba(0,123,255,0.3)); }
-            100% { transform: translateY(0px); }
-        }
-
-        .empty-state h3 {
-            font-size: 18px;
-            font-weight: 800;
-            color: var(--text-main);
-            margin-bottom: 8px;
-            letter-spacing: -0.3px;
-        }
-
-        .empty-state p {
-            font-size: 13px;
-            max-width: 320px;
-            line-height: 1.6;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* 🔥 SABİT TOPLU İŞLEM MENÜSÜ & ANİMASYON CSS 🔥 */
-        .apple-checkbox { 
-            width: 18px; 
-            height: 18px; 
-            cursor: pointer; 
-            accent-color: #4f46e5; 
-            margin: 0 auto; 
-            display: block; 
-        }
-
-        .bulk-mode-btn {
-            background: linear-gradient(135deg, #6366f1, #4f46e5); 
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-        }
-
-        .bulk-mode-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
-        }
-
-        .bulk-mode-btn.active {
-            background: var(--bg-body);
-            color: var(--text-main);
-            box-shadow: none;
-            border: 1px solid var(--border-color);
-        }
-
-        .bulk-mode-btn.active:hover {
-            transform: none;
-            background: var(--border-color);
-        }
-
-        .bulk-action-btn {
-            background: linear-gradient(135deg, #475569, #1e293b); 
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 4px 12px rgba(30, 41, 59, 0.3);
-        }
-
-        .bulk-action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(30, 41, 59, 0.4);
-        }
-
-        .bulk-action-btn:active {
-            transform: translateY(0);
-        }
-
-        .bulk-dropdown {
-            display: none;
-            position: absolute;
-            top: calc(100% + 8px);
-            left: 0;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            min-width: 220px;
-            z-index: 100;
-            overflow: hidden;
-            animation: fadeInDown 0.2s ease;
-        }
-        
-        .bulk-dropdown.show { 
-            display: block; 
-        }
-        
-        .bulk-dropdown-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 14px 16px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-main);
-            border-bottom: 1px solid var(--border-color);
-            transition: background 0.2s;
-        }
-        
-        .bulk-dropdown-item:last-child { 
-            border-bottom: none; 
-        }
-        
-        .bulk-dropdown-item:hover { 
-            background: var(--bg-body); 
-        }
-        
-        .bulk-dropdown-item.danger { 
-            color: #ef4444; 
-        }
-        
-        .bulk-dropdown-item.danger:hover { 
-            background: rgba(239,68,68,0.05); 
-        }
-
-        /* YUMUŞAK KAYMA ANİMASYONU (TABLO SÜTUNU) */
-        .chk-col {
-            width: 0;
-            min-width: 0;
-            max-width: 0;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-            border-right: none;
-            overflow: hidden;
-        }
-
-        .bulk-mode-on .chk-col {
-            width: 50px;
-            min-width: 50px;
-            max-width: 50px;
-            padding-left: 15px !important;
-            padding-right: 15px !important;
-            opacity: 1;
-        }
-
-        .chk-wrapper {
-            width: 0;
-            overflow: hidden;
-            transform: translateX(-15px) scale(0.8);
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .bulk-mode-on .chk-wrapper {
-            width: 20px;
-            transform: translateX(0) scale(1);
-            opacity: 1;
-        }
+        .bulk-action-btn { background: linear-gradient(135deg, #475569, #1e293b); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 4px 12px rgba(30, 41, 59, 0.3); }
+        .bulk-action-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(30, 41, 59, 0.4); }
+        .bulk-action-btn:active { transform: translateY(0); }
+
+        .bulk-dropdown { display: none; position: absolute; top: calc(100% + 8px); left: 0; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); min-width: 220px; z-index: 100; overflow: hidden; animation: fadeInDown 0.2s ease; }
+        .bulk-dropdown.show { display: block; }
+        .bulk-dropdown-item { display: flex; align-items: center; gap: 10px; padding: 14px 16px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-main); border-bottom: 1px solid var(--border-color); transition: background 0.2s; }
+        .bulk-dropdown-item:last-child { border-bottom: none; }
+        .bulk-dropdown-item:hover { background: var(--bg-body); }
+        .bulk-dropdown-item.danger { color: #ef4444; }
+        .bulk-dropdown-item.danger:hover { background: rgba(239,68,68,0.05); }
+
+        .chk-col { width: 0; min-width: 0; max-width: 0; padding-left: 0 !important; padding-right: 0 !important; opacity: 0; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); border-right: none; overflow: hidden; }
+        .bulk-mode-on .chk-col { width: 50px; min-width: 50px; max-width: 50px; padding-left: 15px !important; padding-right: 15px !important; opacity: 1; }
+        .chk-wrapper { width: 0; overflow: hidden; transform: translateX(-15px) scale(0.8); opacity: 0; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); display: flex; justify-content: center; align-items: center; }
+        .bulk-mode-on .chk-wrapper { width: 20px; transform: translateX(0) scale(1); opacity: 1; }
 
         /* 🔥 KANBAN PANO CSS 🔥 */
-        .kanban-overlay {
-            display: none; 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            z-index: 999999; 
-            background: var(--bg-body); 
-            overflow: hidden; 
-            flex-direction: column;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .kanban-header {
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding: 20px 25px; 
-            background: var(--bg-card); 
-            border-bottom: 1px solid var(--border-color); 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-        }
-
-        .kanban-board {
-            display: flex; 
-            gap: 20px; 
-            padding: 25px; 
-            height: calc(100% - 80px); 
-            overflow-x: auto;
-        }
-
-        .kanban-column {
-            flex: 1; 
-            min-width: 300px; 
-            background: var(--bg-card); 
-            border-radius: 12px; 
-            border: 1px solid var(--border-color); 
-            display: flex; 
-            flex-direction: column; 
-            height: 100%;
-        }
-
-        .kanban-col-header {
-            padding: 15px; 
-            border-bottom: 1px solid var(--border-color); 
-            font-weight: 800; 
-            font-size: 14px; 
-            color: var(--text-main); 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-        }
-
-        .kanban-cards {
-            padding: 15px; 
-            overflow-y: auto; 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px;
-        }
-
-        .kanban-card {
-            background: var(--bg-body); 
-            border: 1px solid var(--border-color); 
-            border-radius: 10px; 
-            padding: 15px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02); 
-            animation: slideUp 0.3s ease-out; 
-            border-left: 4px solid #64748b;
-        }
-
+        .kanban-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999999; background: var(--bg-body); overflow: hidden; flex-direction: column; animation: fadeIn 0.3s ease; }
+        .kanban-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 25px; background: var(--bg-card); border-bottom: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+        .kanban-board { display: flex; gap: 20px; padding: 25px; height: calc(100% - 80px); overflow-x: auto; scroll-snap-type: x mandatory; }
+        .kanban-column { flex: 1; min-width: 300px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); display: flex; flex-direction: column; height: 100%; scroll-snap-align: center; }
+        .kanban-col-header { padding: 15px; border-bottom: 1px solid var(--border-color); font-weight: 800; font-size: 14px; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; }
+        .kanban-cards { padding: 15px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 15px; }
+        .kanban-card { background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 10px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); animation: slideUp 0.3s ease-out; border-left: 4px solid #64748b; }
+        
         .k-card-visit { border-left-color: #64748b; }
         .k-card-payment { border-left-color: #3b82f6; }
         .k-card-sms { border-left-color: #f59e0b; }
         .k-card-success { border-left-color: #10b981; }
+
+        @keyframes pulseRed { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+        .idle-warning { border-left-color: #ef4444 !important; animation: pulseRed 1.5s infinite !important; }
 
         .k-card-title { font-weight: 800; font-size: 13px; margin-bottom: 5px; color: var(--text-main); }
         .k-card-ip { font-size: 11px; font-family: monospace; font-weight: bold; background: var(--bg-card); padding: 4px 6px; border-radius: 4px; display: inline-block; margin-bottom: 8px; border: 1px solid var(--border-color); color: var(--text-main); }
@@ -1346,40 +248,43 @@
             th:first-child, td:first-child { position: sticky; left: 0; background-color: var(--bg-card); z-index: 2; }
             td:first-child { box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
             th:first-child { z-index: 11; box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
+            .kanban-board { padding: 15px; scroll-padding: 15px; }
+            .kanban-column { min-width: 85vw; }
         }
 
         @media (max-width: 480px) {
             .header h1 { font-size: 18px; }
-            .lockdown-card, .kick-card { margin: 15px; padding: 25px; }
+            .overlay-card { margin: 15px; padding: 25px; }
         }
     </style>
 </head>
 <body>
 
-    <div id="lockdown-overlay">
-        <div class="lockdown-card">
-            <svg viewBox="0 0 24 24">
+    <!-- LOCKDOWN OVERLAY -->
+    <div id="lockdown-overlay" class="overlay-screen">
+        <div class="overlay-card">
+            <svg viewBox="0 0 24 24" style="width:48px;height:48px;fill:#ef4444;margin-bottom:15px;">
                 <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
             </svg>
-            <h2>Sistem Erişimi Duraklatıldı</h2>
+            <h2 style="color:var(--text-main);">Sistem Erişimi Duraklatıldı</h2>
             <p>Güvenlik protokolleri gereği hesabınızın işlemleri geçici olarak durdurulmuştur. Lütfen destek ile iletişime geçin.</p>
         </div>
     </div>
 
-    <div id="kick-overlay">
-        <div class="kick-card">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- KICK OVERLAY -->
+    <div id="kick-overlay" class="overlay-screen">
+        <div class="overlay-card" style="box-shadow: 0 30px 60px -12px rgba(239, 68, 68, 0.25); border-color: rgba(239, 68, 68, 0.3);">
+            <svg class="kick-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                <line x1="12" y1="9" x2="12" y2="13"></line>
-                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                <line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>
             </svg>
-            <h2>Oturum Sonlandırıldı!</h2>
+            <h2 style="color:#ef4444;">Oturum Sonlandırıldı!</h2>
             <p>Hesabınıza başka bir cihazdan giriş yapıldığı veya oturum süreniz dolduğu için güvenliğiniz amacıyla sistemden çıkarıldınız.</p>
             <button class="kick-btn" onclick="window.location.href='login.html'">Giriş Ekranına Dön</button>
         </div>
     </div>
 
-    <!-- 🔥 KANBAN PANO (TAM EKRAN AÇILIR) 🔥 -->
+    <!-- 🔥 CANLI PANO KANBAN OVERLAY 🔥 -->
     <div id="kanbanOverlay" class="kanban-overlay">
         <div class="kanban-header">
             <div>
@@ -1387,7 +292,7 @@
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>
                     Canlı Operasyon Panosu
                 </h2>
-                <p style="font-size: 12px; color: var(--text-muted); margin: 5px 0 0 0;">Kurbanların sistemdeki anlık yolculuğu (Son 24 saat)</p>
+                <p style="font-size: 12px; color: var(--text-muted); margin: 5px 0 0 0;">Kurbanların sistemdeki anlık yolculuğu (Son 24 saat | Mobil için yana kaydırın)</p>
             </div>
             <button class="action-btn" onclick="closeKanbanBoard()" style="font-size: 14px; padding: 8px 16px; background: var(--bg-card);">Kapat ✕</button>
         </div>
@@ -1411,13 +316,11 @@
         </div>
     </div>
 
+    <!-- MAIN DASHBOARD -->
     <div class="header">
         <h1>Müşteri Paneli</h1>
         <div class="header-controls">
-            <label class="theme-switch">
-                <input type="checkbox" id="themeToggle">
-                <div class="theme-slider"></div>
-            </label>
+            <label class="theme-switch"><input type="checkbox" id="themeToggle"><div class="theme-slider"></div></label>
             <button class="logout-btn" id="logoutBtn">Çıkış Yap</button>
         </div>
     </div>
@@ -1425,10 +328,7 @@
     <div id="god-announcement-static">
         <div class="icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 9H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1"/>
-                <path d="M6 9l11-4v14L6 15V9z"/>
-                <path d="M17 5h1a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1"/>
-                <path d="M7 15l-2.5 5.5a1.8 1.8 0 0 0 3.3 1.5l2.7-5.5"/>
+                <path d="M6 9H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1"/><path d="M6 9l11-4v14L6 15V9z"/><path d="M17 5h1a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1"/><path d="M7 15l-2.5 5.5a1.8 1.8 0 0 0 3.3 1.5l2.7-5.5"/>
             </svg>
         </div>
         <div class="text-content">
@@ -1438,18 +338,9 @@
     </div>
 
     <div class="dashboard-cards">
-        <div class="stat-card">
-            <h3 id="stat-ilan">0</h3>
-            <p>Aktif İlan</p>
-        </div>
-        <div class="stat-card">
-            <h3 id="stat-dekont">0</h3>
-            <p>Gelen Dekont</p>
-        </div>
-        <div class="stat-card">
-            <h3 id="stat-log">0</h3>
-            <p>Sistem Logu</p>
-        </div>
+        <div class="stat-card"><h3 id="stat-ilan">0</h3><p>Aktif İlan</p></div>
+        <div class="stat-card"><h3 id="stat-dekont">0</h3><p>Gelen Dekont</p></div>
+        <div class="stat-card"><h3 id="stat-log">0</h3><p>Sistem Logu</p></div>
     </div>
 
     <div class="search-container">
@@ -1465,8 +356,8 @@
         <button class="tab-btn" onclick="switchTab('ayarlar', event)">Ayarlar</button>
     </div>
 
+    <!-- İLANLAR SEKMESİ -->
     <div id="ilanlar" class="tab-content active">
-        
         <div style="display: flex; gap: 15px; margin-bottom: 20px; align-items: stretch; flex-wrap: wrap;">
             <button class="btn-primary" id="yeniIlanBtn" style="margin-bottom: 0; width: auto;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -1482,9 +373,8 @@
                 <button class="bulk-action-btn" onclick="toggleBulkMenu(event)">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
                     Eylemler
-                    <span id="bulkCountBadge" style="background: rgba(255, 255, 255, 0.2); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 5px; font-weight: 800; transition: all 0.2s;">0</span>
+                    <span id="bulkCountBadge" style="background: rgba(255, 255, 255, 0.2); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 5px; font-weight: 800;">0</span>
                 </button>
-
                 <div id="bulkMenu" class="bulk-dropdown">
                     <div class="bulk-dropdown-item" onclick="openBulkUpdateModal()">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
@@ -1520,33 +410,24 @@
                         <th>İşlem</th>
                     </tr>
                 </thead>
-                <tbody id="ilanlarTableBody">
-                </tbody>
+                <tbody id="ilanlarTableBody"></tbody>
             </table>
         </div>
     </div>
 
+    <!-- DEKONTLAR SEKMESİ -->
     <div id="dekontlar" class="tab-content">
         <div class="table-container">
             <table>
-                <thead>
-                    <tr>
-                        <th>Tarih / Saat</th>
-                        <th>İlan Başlığı</th>
-                        <th>Alıcı Adı</th>
-                        <th>Alıcı Telefon</th>
-                        <th>İşlem</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>Tarih / Saat</th><th>İlan Başlığı</th><th>Alıcı Adı</th><th>Alıcı Telefon</th><th>İşlem</th></tr></thead>
                 <tbody id="dekontlarTableBody">
-                    <tr>
-                        <td colspan="5" style="text-align:center; padding: 20px;">Dekontlar yükleniyor...</td>
-                    </tr>
+                    <tr><td colspan="5" style="text-align:center; padding: 20px;">Dekontlar yükleniyor...</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
 
+    <!-- LOGLAR SEKMESİ -->
     <div id="loglar" class="tab-content">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
             <div class="log-filters" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; flex: 1;">
@@ -1556,135 +437,43 @@
                 <button class="log-filter-btn" style="color: #10b981; border-color: rgba(16,185,129,0.3);" onclick="filterLogs('success', this)">Başarılı İşlemler</button>
                 <button class="log-filter-btn" style="color: #ef4444; border-color: rgba(239,68,68,0.3);" onclick="filterLogs('error', this)">Hatalar</button>
             </div>
-            
             <button class="btn-primary" onclick="openKanbanBoard()" style="margin-bottom: 0; display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>
                 Canlı Pano
             </button>
         </div>
-        
         <div class="table-container">
             <table style="table-layout: fixed; width: 100%; min-width: 900px;">
-                <colgroup>
-                    <col style="width: 110px;">
-                    <col style="width: 220px;">
-                    <col style="width: 140px;">
-                    <col style="width: auto;">
-                    <col style="width: 180px;">
-                </colgroup>
-                <thead>
-                    <tr>
-                        <th>Tarih / Saat</th>
-                        <th>İlan Bilgisi</th>
-                        <th>Aksiyon</th>
-                        <th>Detay</th>
-                        <th>IP / Cihaz Adresi</th>
-                    </tr>
-                </thead>
+                <colgroup><col style="width: 110px;"><col style="width: 220px;"><col style="width: 140px;"><col style="width: auto;"><col style="width: 180px;"></colgroup>
+                <thead><tr><th>Tarih / Saat</th><th>İlan Bilgisi</th><th>Aksiyon</th><th>Detay</th><th>IP / Cihaz Adresi</th></tr></thead>
                 <tbody id="loglarTableBody">
-                    <tr>
-                        <td colspan="5" style="text-align:center; padding: 20px;">Sistem logları yükleniyor...</td>
-                    </tr>
+                    <tr><td colspan="5" style="text-align:center; padding: 20px;">Sistem logları yükleniyor...</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
 
+    <!-- SORGU SEKMESİ -->
     <div id="sorgu" class="tab-content">
         <div style="background: linear-gradient(135deg, rgba(79, 70, 229, 0.05), rgba(139, 92, 246, 0.05)); border: 1px solid rgba(139, 92, 246, 0.2); padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 25px;">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 15px; animation: floatIcon 3s ease-in-out infinite;">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
             <h2 style="color: #8b5cf6; font-size: 22px; font-weight: 800; margin-bottom: 10px;">Sorgu Paneli</h2>
-            <p style="color: var(--text-muted); font-size: 14px; max-width: 500px; margin: 0 auto; line-height: 1.6;">Bu alan üzerinden TC Kimlik No, Ad Soyad, Telefon veya Adres bilgisi ile detaylı sorgulama yapabilirsiniz.</p>
+            <p style="color: var(--text-muted); font-size: 14px; max-width: 500px; margin: 0 auto; line-height: 1.6;">Bu alan üzerinden detaylı sorgulama yapabilirsiniz.</p>
         </div>
-
-        <div id="sorguBakimUyarisi" style="display: none; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; padding: 15px; border-radius: 10px; text-align: center; font-weight: 700; margin-bottom: 20px;">
-            Sorgu sistemi şu an bakımda veya geçici olarak devre dışıdır. Lütfen daha sonra tekrar deneyin.
-        </div>
-
-        <div id="sorguFormAlani" class="form-grid" style="max-width: 800px; transition: all 0.3s ease;">
-            <div class="form-group" style="flex: 1;">
-                <label>Sorgu Türü</label>
-                <select id="sorguTuruSelect">
-                    <option value="tc">TC Kimlik No Sorgula</option>
-                    <option value="adsoyad">Ad Soyad Sorgula</option>
-                    <option value="telefon">Telefon No Sorgula</option>
-                    <option value="adres">Adres Sorgula</option>
-                </select>
-            </div>
-            
-            <div class="form-group" style="flex: 2; margin-bottom: 0;">
-                <label>Sorgu Değerleri</label>
-                
-                <div id="inputGroup-tc" class="dynamic-input-group" style="display: block;">
-                    <input type="text" id="sorguTc" placeholder="11 Haneli TC Kimlik No girin..." maxlength="11">
-                </div>
-                
-                <div id="inputGroup-adsoyad" class="dynamic-input-group" style="display: none; gap: 10px;">
-                    <input type="text" id="sorguAd" placeholder="Ad" style="flex: 1;">
-                    <input type="text" id="sorguSoyad" placeholder="Soyad" style="flex: 1;">
-                </div>
-                
-                <div id="inputGroup-telefon" class="dynamic-input-group" style="display: none;">
-                    <input type="tel" id="sorguTelefon" placeholder="Örn: 0555 555 55 55">
-                </div>
-                
-                <div id="inputGroup-adres" class="dynamic-input-group" style="display: none;">
-                    <input type="text" id="sorguAdres" placeholder="İl, ilçe veya açık adres kelimesi girin...">
-                </div>
-            </div>
-        </div>
-        
-        <button class="btn-primary" id="sorguBaslatBtn" style="margin-top: 20px; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s ease;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <span>Sorgulamayı Başlat</span>
-        </button>
-
-        <div id="sorguSonucAlani" class="table-container" style="margin-top: 25px; transition: all 0.3s ease;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>TC Kimlik</th>
-                        <th>Ad Soyad</th>
-                        <th>Telefon</th>
-                        <th>Açık Adres</th>
-                        <th>Aksiyon</th>
-                    </tr>
-                </thead>
-                <tbody id="sorguTableBody">
-                    <tr class="skeleton-row">
-                        <td><div class="skeleton-box"></div></td>
-                        <td><div class="skeleton-box"></div></td>
-                        <td><div class="skeleton-box"></div></td>
-                        <td><div class="skeleton-box"></div></td>
-                        <td><div class="skeleton-box"></div></td>
-                    </tr>
-                    <tr class="skeleton-row">
-                        <td><div class="skeleton-box"></div></td>
-                        <td><div class="skeleton-box"></div></td>
-                        <td><div class="skeleton-box"></div></td>
-                        <td><div class="skeleton-box"></div></td>
-                        <td><div class="skeleton-box"></div></td>
-                    </tr>
-                </tbody>
-            </table>
+        <div id="sorguBakimUyarisi" style="display: block; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; padding: 15px; border-radius: 10px; text-align: center; font-weight: 700; margin-bottom: 20px;">
+            Sorgu sistemi geçici olarak devre dışıdır.
         </div>
     </div>
 
+    <!-- DESTEK SEKMESİ -->
     <div id="destek" class="tab-content">
         <h2 style="margin-bottom: 15px; font-size: 18px; color: var(--text-main); border-bottom: 2px solid #007bff; padding-bottom: 10px; display: inline-block;">Yeni Destek Talebi Oluştur</h2>
-        
         <div class="form-grid" style="max-width: 800px; margin-bottom: 30px;">
             <div class="form-group" style="flex: 1;">
                 <label>Konu</label>
-                <select id="ticketKonu">
-                    <option value="Sistem Hatası / Bug">Sistem Hatası / Bug</option>
-                    <option value="İlan Sorunu">İlan Sorunu</option>
-                    <option value="Bakiye / Ödeme">Bakiye / Ödeme</option>
-                    <option value="Diğer">Diğer</option>
-                </select>
+                <select id="ticketKonu"><option value="Sistem Hatası / Bug">Sistem Hatası / Bug</option><option value="İlan Sorunu">İlan Sorunu</option><option value="Diğer">Diğer</option></select>
             </div>
             <div class="form-group" style="flex: 2;">
                 <label>Mesajınız</label>
@@ -1692,99 +481,46 @@
             </div>
         </div>
         <button class="btn-primary" id="ticketGonderBtn" style="margin-bottom: 30px; max-width: 250px;">Talebi Gönder</button>
-
         <h2 style="margin-bottom: 15px; font-size: 18px; color: var(--text-main); border-bottom: 2px solid #007bff; padding-bottom: 10px; display: inline-block;">Geçmiş Taleplerim</h2>
         <div class="table-container">
             <table>
-                <thead>
-                    <tr>
-                        <th>Tarih</th>
-                        <th>Konu</th>
-                        <th>Durum</th>
-                        <th>Detay</th>
-                    </tr>
-                </thead>
-                <tbody id="ticketsTableBody">
-                    <tr>
-                        <td colspan="4" style="text-align:center; padding: 20px;">Talepleriniz yükleniyor...</td>
-                    </tr>
-                </tbody>
+                <thead><tr><th>Tarih</th><th>Konu</th><th>Durum</th><th>Detay</th></tr></thead>
+                <tbody id="ticketsTableBody"><tr><td colspan="4" style="text-align:center; padding: 20px;">Talepleriniz yükleniyor...</td></tr></tbody>
             </table>
         </div>
     </div>
 
+    <!-- AYARLAR SEKMESİ -->
     <div id="ayarlar" class="tab-content">
         <h2 style="margin-bottom: 15px; font-size: 18px; color: var(--text-main); border-bottom: 2px solid #007bff; padding-bottom: 10px; display: inline-block;">Telegram Bildirim Ayarları</h2>
-        
-        <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); padding: 20px; border-radius: 12px; margin-bottom: 25px;">
-            <h3 style="color: #3b82f6; font-size: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; font-weight: 800;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                Nasıl Alınır? (Hızlı Rehber)
-            </h3>
-            
-            <div style="margin-bottom: 15px;">
-                <strong style="color: var(--text-main); font-size: 14px;">1. Bot Token Alma:</strong>
-                <p style="font-size: 13px; color: var(--text-muted); margin-top: 5px; line-height: 1.6;">
-                    Telegram'da arama kısmına <b>@BotFather</b> yazın ve başlatın. Sırasıyla <code style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px; color: #ef4444;">/newbot</code> yazın, botunuza bir isim ve kullanıcı adı verin. BotFather size <code style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px;">1234567890:ABCdef...</code> şeklinde bir Token verecektir. Onu kopyalayıp aşağıdaki ilk kutuya yapıştırın.
-                </p>
-            </div>
-
-            <div>
-                <strong style="color: var(--text-main); font-size: 14px;">2. Chat ID Alma:</strong>
-                <p style="font-size: 13px; color: var(--text-muted); margin-top: 5px; line-height: 1.6;">
-                    Telegram'da arama kısmına <b>@RawDataBot</b> yazın ve başlatın. Bot size anında uzun bir mesaj atacaktır. O mesajın içindeki <code style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px; color: #10b981;">"id": 123456789</code> kısmındaki numarayı (sadece rakamları) kopyalayıp aşağıdaki ikinci kutuya yapıştırın.
-                </p>
-            </div>
-        </div>
         <div class="form-grid" style="max-width: 600px;">
-            <div class="form-group">
-                <label>Telegram Bot Token</label>
-                <input type="text" id="tgBotToken" placeholder="Örn: 123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11">
-            </div>
-            <div class="form-group">
-                <label>Telegram Chat ID</label>
-                <input type="text" id="tgChatId" placeholder="Örn: 123456789">
-            </div>
+            <div class="form-group"><label>Telegram Bot Token</label><input type="text" id="tgBotToken" placeholder="Örn: 123456:ABC..."></div>
+            <div class="form-group"><label>Telegram Chat ID</label><input type="text" id="tgChatId" placeholder="Örn: 123456789"></div>
         </div>
         <button class="btn-primary" id="tgKaydetBtn" style="margin-top: 20px;">Değişiklikleri Kaydet</button>
     </div>
 
+    <!-- MODALLAR & TOAST -->
     <div id="toast-container"></div>
-
-    <div id="confirmModal" class="modal" style="z-index: 999999;">
-        <div class="modal-content" style="max-width: 400px; text-align: center; padding: 30px;">
-            <h3 style="margin-bottom: 10px; font-size: 18px; color: var(--text-main);">İşlem Onayı</h3>
-            <p id="confirmMessage" style="color: var(--text-muted); margin-bottom: 25px; font-size: 14px;"></p>
+    <div id="confirmModal" class="modal">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <h3 style="margin-bottom: 15px; color: var(--text-main);">Onaylıyor musunuz?</h3>
+            <p id="confirmMessage" style="color: var(--text-muted); margin-bottom: 25px;"></p>
             <div style="display: flex; gap: 10px; justify-content: center;">
-                <button id="confirmYes" class="delete-btn" style="padding: 10px 20px; font-size: 14px;">Evet, Onayla</button>
-                <button id="confirmNo" class="tab-btn" style="padding: 10px 20px; margin:0; font-size: 14px; background: var(--bg-body);">İptal</button>
+                <button id="confirmYes" class="delete-btn" style="padding: 10px 20px;">Evet, Onayla</button>
+                <button id="confirmNo" class="action-btn" style="padding: 10px 20px; background: var(--bg-body);">İptal</button>
             </div>
         </div>
     </div>
-
-    <!-- 🔥 TOPLU GÜNCELLEME MODALI 🔥 -->
+    
     <div id="bulkUpdateModal" class="modal" style="z-index: 999;">
         <div class="modal-content" style="max-width: 450px;">
             <span class="close-modal" onclick="closeBulkModal()">×</span>
-            <h2 style="border-bottom: 2px solid #007bff; padding-bottom: 10px; color:var(--text-main); margin-top: 0; display: flex; align-items: center; gap: 8px;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                Toplu Bilgi Güncelleme
-            </h2>
-            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;">Sadece değiştirmek istediğiniz alanları doldurun. Boş bırakılan alanlar mevcut halinde kalır.</p>
-            
-            <div class="form-group">
-                <label>Yeni Satıcı Adı Soyadı</label>
-                <input type="text" id="bulkSaticiAdi" placeholder="Değiştirmek istemiyorsanız boş bırakın">
-            </div>
-            <div class="form-group">
-                <label>Yeni Satıcı Telefon</label>
-                <input type="tel" id="bulkSaticiTel" placeholder="Değiştirmek istemiyorsanız boş bırakın">
-            </div>
-            <div class="form-group">
-                <label>Yeni IBAN</label>
-                <input type="text" id="bulkIban" placeholder="TR00 0000...">
-            </div>
-            
+            <h2 style="border-bottom: 2px solid #007bff; padding-bottom: 10px; color:var(--text-main); margin-top: 0;">Toplu Bilgi Güncelleme</h2>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;">Boş bırakılan alanlar mevcut halinde kalır.</p>
+            <div class="form-group"><label>Yeni Satıcı Adı</label><input type="text" id="bulkSaticiAdi"></div>
+            <div class="form-group"><label>Yeni Satıcı Telefon</label><input type="tel" id="bulkSaticiTel"></div>
+            <div class="form-group"><label>Yeni IBAN</label><input type="text" id="bulkIban"></div>
             <button class="btn-primary" onclick="submitBulkUpdate()" style="width: 100%; margin-top: 15px;">Seçili İlanlara Uygula</button>
         </div>
     </div>
@@ -1793,75 +529,33 @@
         <div class="modal-content">
             <span class="close-modal" id="closeModalBtn">×</span>
             <h2 id="modalBaslik" style="border-bottom: 2px solid #007bff; padding-bottom: 10px; color:var(--text-main);">Yeni İlan Oluştur</h2>
-            
             <form id="ilanForm" style="margin-top: 15px;">
                 <input type="hidden" id="editIlanId"> 
-                
                 <div class="form-grid">
-                    <div class="form-group">
-                        <label>İlan Başlığı</label>
-                        <input type="text" id="urunAdi" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Özel Link Uzantısı (Kamuflaj URL)</label>
-                        <input type="text" id="linkUzantisi" placeholder="Otomatik oluşturulacak...">
-                        <p style="font-size:11px; color:var(--text-muted); margin-top:4px; font-weight:600;">İlan başlığına göre temiz link otomatik ayarlanır.</p>
-                    </div>
-                    <div class="form-group">
-                        <label>Satıcı Adı Soyadı</label>
-                        <input type="text" id="saticiAdi" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Satıcı Telefon</label>
-                        <input type="tel" id="saticiTel" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Ürün Şehri (Örn: Gaziantep, Şahinbey, Çağdaş Mh.)</label>
-                        <input type="text" id="sehir" placeholder="Örn: Gaziantep, Şahinbey, Çağdaş Mh." required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Kategori Ağacı (Örn: Elektronik > Telefon > Apple)</label>
-                        <input type="text" id="kategoriAgaci">
-                    </div>
-                    <div class="form-group">
-                        <label>Ürün Fiyatı (TL)</label>
-                        <input type="number" id="fiyat" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Satıcı Hesap Aç. Tarihi (Örn: Eylül 2021)</label>
-                        <input type="text" id="hesapTarihi" required>
-                    </div>
+                    <div class="form-group"><label>İlan Başlığı</label><input type="text" id="urunAdi" required></div>
+                    <div class="form-group"><label>Özel Link Uzantısı</label><input type="text" id="linkUzantisi"></div>
+                    <div class="form-group"><label>Satıcı Adı Soyadı</label><input type="text" id="saticiAdi" required></div>
+                    <div class="form-group"><label>Satıcı Telefon</label><input type="tel" id="saticiTel" required></div>
+                    <div class="form-group"><label>Ürün Şehri</label><input type="text" id="sehir" required></div>
+                    <div class="form-group"><label>Kategori Ağacı</label><input type="text" id="kategoriAgaci"></div>
+                    <div class="form-group"><label>Fiyat (TL)</label><input type="number" id="fiyat" required></div>
+                    <div class="form-group"><label>Hesap Açılış Tarihi</label><input type="text" id="hesapTarihi" required></div>
                 </div>
-
-                <div class="form-group" style="margin-top: 15px;">
-                    <label>IBAN</label>
-                    <input type="text" id="iban" placeholder="TR00 0000... " required>
-                </div>
-                <div class="form-group" style="margin-top: 15px;">
-                    <label>Ödeme Yöntemi</label>
-                    <input type="text" id="odemeYontemi" value="Havale / EFT" required>
-                </div>
-                <div class="form-group" style="margin-top: 15px;">
-                    <label>Ürün Açıklaması</label>
-                    <textarea id="urunAciklamasi" rows="3"></textarea>
-                </div>
-
+                <div class="form-group" style="margin-top: 15px;"><label>IBAN</label><input type="text" id="iban" required></div>
+                <div class="form-group" style="margin-top: 15px;"><label>Ödeme Yöntemi</label><input type="text" id="odemeYontemi" value="Havale / EFT" required></div>
+                <div class="form-group" style="margin-top: 15px;"><label>Ürün Açıklaması</label><textarea id="urunAciklamasi" rows="3"></textarea></div>
                 <div style="margin-top: 20px; background: var(--bg-body); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
-                    <h3 style="font-size: 15px; margin-bottom: 10px; color: var(--text-main);">Ek Özellikler (Dinamik)</h3>
+                    <h3 style="font-size: 15px; margin-bottom: 10px; color: var(--text-main);">Ek Özellikler</h3>
                     <div id="dinamikOzelliklerAlani"></div>
-                    <button type="button" class="action-btn" id="ozellikEkleBtn" style="margin-top: 10px;">+ Yeni Özellik Ekle</button>
+                    <button type="button" class="action-btn" id="ozellikEkleBtn" style="margin-top: 10px;">+ Yeni Özellik</button>
                 </div>
-
                 <div style="margin-top: 20px;">
                     <h3 style="font-size: 15px; margin-bottom: 5px; color: var(--text-main);">Ürün Resimleri</h3>
-                    <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">(Düzenlerken resim seçmezseniz eski resimler kalır)</p>
                     <input type="file" id="resimSecici" accept="image/*" multiple style="display: none;">
                     <div class="image-upload-box" id="resimKutusu">Resim Seçmek İçin Buraya Tıklayın</div>
                     <div class="image-preview-container" id="resimOnizleme"></div>
                 </div>
-
-                <button type="submit" class="btn-primary" id="submitBtn" style="width: 100%; margin-top: 25px; padding: 15px; font-size: 16px;">İlanı Kaydet</button>
+                <button type="submit" class="btn-primary" id="submitBtn" style="width: 100%; margin-top: 25px; padding: 15px;">İlanı Kaydet</button>
             </form>
         </div>
     </div>
@@ -1871,1172 +565,352 @@
         <div class="modal-content" style="max-width: 500px;">
             <span class="close-modal" id="closeTicketReadModal">&times;</span>
             <h2 style="margin-top: 0; margin-bottom: 15px;">Talep Detayı</h2>
-            
-            <div style="background: var(--bg-body); padding: 15px; border-radius: 10px; font-size:13px; margin-bottom: 15px; border:1px solid var(--border-color); max-height: 150px; overflow-y: auto; word-break: break-word;">
-                <strong style="color: var(--text-muted); font-size: 10px;">SİZİN MESAJINIZ:</strong><br>
-                <span id="ticketMessageReadText" style="display: block; margin-top: 8px; line-height: 1.6; color: var(--text-main);">...</span>
+            <div style="background: var(--bg-body); padding: 15px; border-radius: 10px; font-size:13px; margin-bottom: 15px; border:1px solid var(--border-color);">
+                <strong style="color: var(--text-muted); font-size: 10px;">SİZİN MESAJINIZ:</strong><br><span id="ticketMessageReadText"></span>
             </div>
-            
-            <div style="background: rgba(16, 185, 129, 0.1); padding: 15px; border-radius: 10px; font-size:13px; border:1px solid rgba(16, 185, 129, 0.3); max-height: 200px; overflow-y: auto; word-break: break-word;">
-                <strong style="color: #10b981; font-size: 10px;">YÖNETİCİ YANITI:</strong><br>
-                <span id="ticketReplyReadText" style="display: block; margin-top: 8px; line-height: 1.6; color: var(--text-main);">...</span>
+            <div style="background: rgba(16, 185, 129, 0.1); padding: 15px; border-radius: 10px; font-size:13px; border:1px solid rgba(16, 185, 129, 0.3);">
+                <strong style="color: #10b981; font-size: 10px;">YÖNETİCİ YANITI:</strong><br><span id="ticketReplyReadText"></span>
             </div>
         </div>
     </div>
 
     <script type="module">
-        window.dezenfekteEt = function(str) {
-            if (str === null || str === undefined) return "";
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#x27;')
-                .replace(/\//g, '&#x2f;');
-        };
+        const API_BASE = window.location.hostname.includes('localhost') ? 'http://localhost:3000/api' : '/api';
+        const userId = localStorage.getItem("userId"); 
+        const token = localStorage.getItem("token"); 
+        const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+        
+        let globalIlanlar = []; 
+        window.lastLogsData = []; 
+        let lastKanbanRender = ""; // DOM Cache for stopping flicker
+        window.kanbanOpen = false;
 
+        if (!userId || !token) window.location.href = "login.html"; 
+
+        document.getElementById('logoutBtn').addEventListener('click', () => { localStorage.clear(); window.location.href = "login.html"; });
+
+        function dezenfekteEt(str) { return str ? String(str).replace(/</g, '&lt;').replace(/>/g, '&gt;') : ""; }
         function slugify(text) {
             const trMap = { 'çÇ':'c', 'ğĞ':'g', 'şŞ':'s', 'üÜ':'u', 'ıİ':'i', 'öÖ':'o' };
-            for(let key in trMap) {
-                text = text.replace(new RegExp('['+key+']','g'), trMap[key]);
-            }
-            return text.toLowerCase()
-                       .replace(/[^-a-zA-Z0-9\s]+/ig, '') 
-                       .replace(/\s/gi, "-") 
-                       .replace(/-+/g, "-"); 
+            for(let key in trMap) text = text.replace(new RegExp('['+key+']','g'), trMap[key]);
+            return text.toLowerCase().replace(/[^-a-z0-9\s]+/ig, '').replace(/\s/gi, "-").replace(/-+/g, "-"); 
         }
 
-        document.getElementById('urunAdi').addEventListener('input', function(e) {
-            const isEditing = document.getElementById("editIlanId").value !== "";
-            if(!isEditing) { 
-                document.getElementById('linkUzantisi').value = slugify(e.target.value);
-            }
-        });
-
-        document.getElementById('linkUzantisi').addEventListener('input', function(e) {
-            e.target.value = slugify(e.target.value); 
-        });
+        document.getElementById('urunAdi').addEventListener('input', function(e) { if(document.getElementById("editIlanId").value === "") document.getElementById('linkUzantisi').value = slugify(e.target.value); });
+        document.getElementById('linkUzantisi').addEventListener('input', e => e.target.value = slugify(e.target.value)); 
 
         function checkTokenError(res) {
             if (res.status === 401 || res.status === 403) {
                 document.getElementById('kick-overlay').classList.add('active');
                 document.body.style.overflow = 'hidden';
-                localStorage.clear();
-                return true;
+                localStorage.clear(); return true;
             }
             return false;
         }
 
         let inactivityTime = function () {
-            let time;
-            const outTime = 600000; // Kullanıcıları darlamasın diye süreyi 10 dakikaya çektim
-
+            let time; const outTime = 600000; // 10 dk
             function logoutUser() {
                 document.getElementById('kick-overlay').classList.add('active');
-                document.querySelector('.kick-card p').innerText = "10 dakika boyunca hiçbir işlem yapmadığınız için güvenliğiniz amacıyla sistemden çıkarıldınız.";
-                document.body.style.overflow = 'hidden';
-                localStorage.clear();
+                document.body.style.overflow = 'hidden'; localStorage.clear();
             }
-
-            function resetTimer() { 
-                clearTimeout(time); 
-                time = setTimeout(logoutUser, outTime); 
-            }
-
-            window.onload = resetTimer; 
-            document.onmousemove = resetTimer; 
-            document.onkeydown = resetTimer;
-            document.ontouchstart = resetTimer; 
-            document.onclick = resetTimer;
-        };
-
-        inactivityTime();
+            function resetTimer() { clearTimeout(time); time = setTimeout(logoutUser, outTime); }
+            window.onload=resetTimer; document.onmousemove=resetTimer; document.onkeydown=resetTimer; document.ontouchstart=resetTimer; document.onclick=resetTimer;
+        }; inactivityTime();
 
         window.toggleLockdown = function(isLocked) {
             const overlay = document.getElementById('lockdown-overlay');
-            if(isLocked) { 
-                overlay.classList.add('active'); 
-                document.body.style.overflow = 'hidden'; 
-            } else { 
-                overlay.classList.remove('active'); 
-                document.body.style.overflow = 'auto'; 
-            }
+            if(isLocked) { overlay.classList.add('active'); document.body.style.overflow = 'hidden'; } 
+            else { overlay.classList.remove('active'); document.body.style.overflow = 'auto'; }
         }
 
         const themeToggle = document.getElementById('themeToggle');
-        const currentTheme = localStorage.getItem('panelTheme') || 'light';
-        
-        if (currentTheme === 'dark') { 
-            document.documentElement.setAttribute('data-theme', 'dark'); 
-            themeToggle.checked = true; 
-        }
-
-        themeToggle.addEventListener('change', function(e) {
-            if (e.target.checked) { 
-                document.documentElement.setAttribute('data-theme', 'dark'); 
-                localStorage.setItem('panelTheme', 'dark'); 
-                showToast('Karanlık mod aktif.', 'info', 'SİSTEM'); 
-            } else { 
-                document.documentElement.removeAttribute('data-theme'); 
-                localStorage.setItem('panelTheme', 'light'); 
-                showToast('Aydınlık mod aktif.', 'info', 'SİSTEM'); 
-            }
+        if (localStorage.getItem('panelTheme') === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); themeToggle.checked = true; }
+        themeToggle.addEventListener('change', e => {
+            if (e.target.checked) { document.documentElement.setAttribute('data-theme', 'dark'); localStorage.setItem('panelTheme', 'dark'); showToast('Karanlık mod aktif.', 'info'); } 
+            else { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('panelTheme', 'light'); showToast('Aydınlık mod aktif.', 'info'); }
         });
 
         window.showToast = function(message, type = 'success', title = '') {
             const container = document.getElementById('toast-container');
-            
-            const existingToasts = container.querySelectorAll('.toast');
-            for (let i = 0; i < existingToasts.length; i++) {
-                const t = existingToasts[i];
-                const spans = t.querySelectorAll('span');
-                if (spans.length > 1 && spans[1].innerText === message) {
-                    return; 
-                }
-            }
-
-            if (existingToasts.length >= 2) {
-                existingToasts[0].classList.remove('show');
-                setTimeout(function() {
-                    existingToasts[0].remove();
-                }, 400);
-            }
-
-            const toast = document.createElement('div'); 
-            toast.className = `toast ${type}`;
-            
-            let baslik = title;
-            if (!baslik) {
-                if (type === 'success') { baslik = 'BAŞARILI'; } 
-                else if (type === 'error') { baslik = 'HATA'; } 
-                else { baslik = 'BİLGİ'; }
-            }
-
-            toast.innerHTML = `<span class="toast-title">${dezenfekteEt(baslik)}</span><span>${dezenfekteEt(message)}</span>`;
+            const toast = document.createElement('div'); toast.className = `toast ${type}`;
+            toast.innerHTML = `<span class="toast-title">${title || (type==='success'?'BAŞARILI':type==='error'?'HATA':'BİLGİ')}</span><span>${dezenfekteEt(message)}</span>`;
             container.appendChild(toast);
-            
-            setTimeout(function() { toast.classList.add('show'); }, 10);
-            
-            setTimeout(function() {
-                toast.classList.remove('show'); 
-                setTimeout(function() { toast.remove(); }, 400); 
-            }, 3500);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3500);
         }
 
-        window.customConfirm = function(message, callback) {
-            const modal = document.getElementById('confirmModal');
-            document.getElementById('confirmMessage').innerText = dezenfekteEt(message); 
-            modal.style.display = 'block';
-            
-            document.getElementById('confirmYes').onclick = function() { 
-                modal.style.display = 'none'; 
-                callback(); 
-            };
-            
-            document.getElementById('confirmNo').onclick = function() { 
-                modal.style.display = 'none'; 
-            };
+        window.customConfirm = function(msg, cb) {
+            document.getElementById('confirmMessage').innerText = msg;
+            document.getElementById('confirmModal').style.display = 'block';
+            document.getElementById('confirmYes').onclick = () => { document.getElementById('confirmModal').style.display='none'; cb(); }
+            document.getElementById('confirmNo').onclick = () => document.getElementById('confirmModal').style.display='none';
         }
-
-        function getSkeletonRows(colCount) {
-            let cols = `<td class="chk-col"><div class="chk-wrapper"></div></td>`;
-            for(let j=1; j<colCount; j++) { 
-                cols += `<td><div class="skeleton-box"></div></td>`; 
-            }
-            let rows = '';
-            for(let i=0; i<3; i++) {
-                rows += `<tr class="skeleton-row">${cols}</tr>`;
-            }
-            return rows;
-        }
-
-        const userId = localStorage.getItem("userId"); 
-        const token = localStorage.getItem("token"); 
-        
-        if (!userId || !token) { 
-            window.location.href = "login.html"; 
-        }
-
-        const API_BASE = window.location.hostname.includes('localhost') ? 'http://localhost:3000/api' : '/api'; 
-        const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
-        let globalIlanlar = []; 
-        window.lastLogsData = []; 
-        window.kanbanOpen = false;
-
-        document.getElementById('logoutBtn').addEventListener('click', function() { 
-            localStorage.clear(); 
-            window.location.href = "login.html"; 
-        });
 
         window.switchTab = function(tabId, event) {
-            document.querySelectorAll('.tab-content').forEach(function(tab) {
-                tab.classList.remove('active');
-            });
-            document.querySelectorAll('.tab-btn').forEach(function(btn) {
-                btn.classList.remove('active');
-            });
-            document.getElementById(tabId).classList.add('active'); 
-            event.currentTarget.classList.add('active');
-            document.getElementById('searchInput').value = ''; 
-            searchTable('');
+            document.querySelectorAll('.tab-content, .tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active'); event.currentTarget.classList.add('active');
         };
 
+        // 🔥 LOG FİLTRELEME & TR DİL GÜNCELLEMESİ 🔥
         window.filterLogs = function(type, btn) {
             document.querySelectorAll('.log-filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
-            const rows = document.querySelectorAll('#loglarTableBody tr.log-row');
-            rows.forEach(row => {
-                const aksiyonText = row.querySelector('.log-badge').innerText.toLocaleLowerCase('tr-TR');
-                if (type === 'all') {
-                    row.style.display = '';
-                } else if (type === 'payment' && (aksiyonText.includes('satın al') || aksiyonText.includes('ödeme') || aksiyonText.includes('kart') || aksiyonText.includes('onay'))) {
-                    row.style.display = '';
-                } else if (type === 'visit' && (aksiyonText.includes('ziyaret') || aksiyonText.includes('giriş') || aksiyonText.includes('sayfa'))) {
-                    row.style.display = '';
-                } else if (type === 'error' && (aksiyonText.includes('hata') || aksiyonText.includes('başarısız') || aksiyonText.includes('yanlış') || aksiyonText.includes('yanlis'))) {
-                    row.style.display = '';
-                } else if (type === 'success' && (aksiyonText.includes('başarılı') || aksiyonText.includes('basarili') || aksiyonText.includes('bitiş') || aksiyonText.includes('bitis') || aksiyonText.includes('dekont'))) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
+            document.querySelectorAll('#loglarTableBody tr.log-row').forEach(row => {
+                const aks = row.querySelector('.log-badge').innerText.toLocaleLowerCase('tr-TR');
+                if (type === 'all') row.style.display = '';
+                else if (type === 'payment' && (aks.includes('satın al') || aks.includes('ödeme') || aks.includes('kart') || aks.includes('onay'))) row.style.display = '';
+                else if (type === 'visit' && (aks.includes('ziyaret') || aks.includes('giriş') || aks.includes('sayfa'))) row.style.display = '';
+                else if (type === 'error' && (aks.includes('hata') || aks.includes('başarısız') || aks.includes('yanlış') || aks.includes('yanlis'))) row.style.display = '';
+                else if (type === 'success' && (aks.includes('başarılı') || aks.includes('basarili') || aks.includes('bitiş') || aks.includes('bitis') || aks.includes('dekont'))) row.style.display = '';
+                else row.style.display = 'none';
             });
         };
 
-        document.getElementById('searchInput').addEventListener('input', function(e) { 
-            searchTable(e.target.value.toLowerCase()); 
-        });
-
-        function searchTable(term) {
+        document.getElementById('searchInput').addEventListener('input', e => {
+            const term = e.target.value.toLowerCase();
             const activeTable = document.querySelector('.tab-content.active tbody');
-            if(activeTable) { 
-                Array.from(activeTable.rows).forEach(function(row) { 
-                    if(row.classList.contains('skeleton-row') || !row.classList.contains('log-row')) return;
-                    row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none'; 
-                }); 
-            }
-        }
-
-        window.vitrinLinkiKopyala = function(url, platform) {
-            navigator.clipboard.writeText(url).then(function() { 
-                showToast(`${platform} bağlantısı panoya kopyalandı!`, 'success'); 
-            }).catch(function(err) { 
-                showToast(`Kopyalama başarısız. Manuel kopyalayın.`, 'error'); 
+            if(activeTable) Array.from(activeTable.rows).forEach(row => {
+                if(!row.classList.contains('skeleton-row')) row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
             });
-        }
-
-        window.toggleBulkMode = function() {
-            const table = document.getElementById('ilanlarTable');
-            const isBulk = table.classList.toggle('bulk-mode-on');
-            const btn = document.getElementById('toggleBulkModeBtn');
-            const text = document.getElementById('bulkModeText');
-            const icon = document.getElementById('bulkModeIcon');
-            const actionContainer = document.getElementById('bulkActionContainer');
-
-            if(isBulk) {
-                btn.classList.add('active');
-                text.innerText = "İptal Et";
-                icon.innerHTML = `<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>`;
-                actionContainer.style.display = 'block';
-            } else {
-                btn.classList.remove('active');
-                text.innerText = "Toplu İşlemler";
-                icon.innerHTML = `<path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h16"></path>`;
-                actionContainer.style.display = 'none';
-                document.querySelectorAll('.ad-checkbox, #selectAllAds').forEach(cb => cb.checked = false);
-                updateBulkUI();
-            }
-        }
-
-        window.toggleAllAds = function(el) {
-            document.querySelectorAll('.ad-checkbox').forEach(cb => cb.checked = el.checked);
-            updateBulkUI();
-        }
-
-        window.updateBulkUI = function() {
-            const checked = document.querySelectorAll('.ad-checkbox:checked');
-            const countBadge = document.getElementById('bulkCountBadge');
-            countBadge.innerText = checked.length;
-        }
-
-        function getSelectedAdIds() {
-            return Array.from(document.querySelectorAll('.ad-checkbox:checked')).map(cb => cb.value);
-        }
-
-        window.toggleBulkMenu = function(e) {
-            const ids = getSelectedAdIds();
-            if(ids.length === 0) {
-                showToast("Lütfen önce tablodan işlem yapılacak ilanları seçin.", "error");
-                return;
-            }
-            document.getElementById('bulkMenu').classList.toggle('show');
-            e.stopPropagation();
-        }
-
-        window.addEventListener('click', function(e) {
-            const menu = document.getElementById('bulkMenu');
-            if(menu && menu.classList.contains('show')) {
-                menu.classList.remove('show');
-            }
-            if (e.target == document.getElementById('bulkUpdateModal')) {
-                document.getElementById('bulkUpdateModal').style.display = "none";
-            }
-            if (e.target == document.getElementById('kanbanOverlay')) {
-                window.closeKanbanBoard();
-            }
         });
 
-        window.openBulkUpdateModal = function() {
-            document.getElementById('bulkSaticiAdi').value = '';
-            document.getElementById('bulkSaticiTel').value = '';
-            document.getElementById('bulkIban').value = '';
-            document.getElementById('bulkUpdateModal').style.display = 'flex';
-        }
+        window.vitrinLinkiKopyala = function(url, platform) { navigator.clipboard.writeText(url).then(() => showToast(`${platform} bağlantısı kopyalandı!`)).catch(()=>showToast(`Hata`, `error`)); }
 
-        window.closeBulkModal = function() {
-            document.getElementById('bulkUpdateModal').style.display = 'none';
+        // --- TOPLU İŞLEM FONKSİYONLARI ---
+        window.toggleBulkMode = function() {
+            const isBulk = document.getElementById('ilanlarTable').classList.toggle('bulk-mode-on');
+            document.getElementById('toggleBulkModeBtn').classList.toggle('active', isBulk);
+            document.getElementById('bulkModeText').innerText = isBulk ? "İptal Et" : "Toplu İşlemler";
+            document.getElementById('bulkActionContainer').style.display = isBulk ? 'block' : 'none';
+            if(!isBulk) { document.querySelectorAll('.ad-checkbox, #selectAllAds').forEach(cb => cb.checked = false); updateBulkUI(); }
         }
-
+        window.toggleAllAds = function(el) { document.querySelectorAll('.ad-checkbox').forEach(cb => cb.checked = el.checked); updateBulkUI(); }
+        window.updateBulkUI = function() { document.getElementById('bulkCountBadge').innerText = document.querySelectorAll('.ad-checkbox:checked').length; }
+        function getSelectedAdIds() { return Array.from(document.querySelectorAll('.ad-checkbox:checked')).map(cb => cb.value); }
+        window.toggleBulkMenu = function(e) { 
+            if(getSelectedAdIds().length === 0) return showToast("Önce ilan seçin.", "error");
+            document.getElementById('bulkMenu').classList.toggle('show'); e.stopPropagation(); 
+        }
+        window.addEventListener('click', e => {
+            const menu = document.getElementById('bulkMenu'); if(menu) menu.classList.remove('show');
+            if (e.target.classList.contains('modal') || e.target.classList.contains('overlay-screen')) e.target.style.display = "none";
+        });
+        window.openBulkUpdateModal = function() { document.getElementById('bulkUpdateModal').style.display='flex'; }
+        window.closeBulkModal = function() { document.getElementById('bulkUpdateModal').style.display='none'; }
+        
         window.submitBulkUpdate = async function() {
-            const ids = getSelectedAdIds();
-            if(ids.length === 0) return;
-            
+            const ids = getSelectedAdIds(); if(ids.length === 0) return;
             const payload = {};
-            const ad = document.getElementById('bulkSaticiAdi').value.trim();
-            const tel = document.getElementById('bulkSaticiTel').value.trim();
-            const iban = document.getElementById('bulkIban').value.trim();
-            
-            if(ad) payload.saticiAdi = ad;
-            if(tel) payload.saticiTel = tel;
-            if(iban) payload.iban = iban;
-            
-            if(Object.keys(payload).length === 0) {
-                showToast("Hiçbir alan doldurulmadı!", "error");
-                return;
-            }
-            
-            closeBulkModal();
-            showToast(`${ids.length} ilan güncelleniyor, lütfen bekleyin...`, "info");
-            
-            try {
-                await Promise.all(ids.map(id => 
-                    fetch(`${API_BASE}/ilan-guncelle/${id}`, { 
-                        method: 'PATCH', headers, body: JSON.stringify(payload) 
-                    })
-                ));
-                showToast("Toplu bilgi güncelleme başarılı!", "success");
-                loadIlanlar();
-            } catch (e) {
-                showToast("Bazı ilanlar güncellenirken hata oluştu.", "error");
-            }
+            ['bulkSaticiAdi','bulkSaticiTel','bulkIban'].forEach(id => { const val = document.getElementById(id).value.trim(); if(val) payload[id.replace('bulk','').charAt(0).toLowerCase() + id.replace('bulk','').slice(1)] = val; });
+            if(Object.keys(payload).length === 0) return showToast("Alan doldurmadınız!", "error");
+            closeBulkModal(); showToast("Güncelleniyor...", "info");
+            try { await Promise.all(ids.map(id => fetch(`${API_BASE}/ilan-guncelle/${id}`, { method: 'PATCH', headers, body: JSON.stringify(payload) }))); showToast("Başarılı!", "success"); loadIlanlar(); } 
+            catch(e) { showToast("Hata oluştu.", "error"); }
         }
-
         window.bulkSetStatus = async function(status) {
-            const ids = getSelectedAdIds();
-            if(ids.length === 0) return;
-            
-            const stateStr = status === 'aktif' ? 'AKTİF' : 'PASİF';
-            customConfirm(`Seçili ${ids.length} ilanı topluca ${stateStr} yapmak istiyor musunuz?`, async function() {
-                showToast("Durumlar değiştiriliyor...", "info");
-                try {
-                    await Promise.all(ids.map(id => 
-                        fetch(`${API_BASE}/ilan-guncelle/${id}`, { 
-                            method: 'PATCH', headers, body: JSON.stringify({durum: status}) 
-                        })
-                    ));
-                    showToast("Toplu durum değişikliği başarılı!", "success");
-                    loadIlanlar();
-                } catch (e) {
-                    showToast("İşlem sırasında hata oluştu.", "error");
-                }
+            const ids = getSelectedAdIds(); if(ids.length === 0) return;
+            customConfirm(`Topluca ${status.toUpperCase()} yapmak istiyor musunuz?`, async () => {
+                showToast("Uygulanıyor...", "info");
+                try { await Promise.all(ids.map(id => fetch(`${API_BASE}/ilan-guncelle/${id}`, { method: 'PATCH', headers, body: JSON.stringify({durum: status}) }))); showToast("Başarılı!", "success"); loadIlanlar(); } 
+                catch(e) { showToast("Hata oluştu.", "error"); }
             });
         }
-
         window.bulkDeleteAds = async function() {
-            const ids = getSelectedAdIds();
-            if(ids.length === 0) return;
-            
-            customConfirm(`Seçili ${ids.length} ilanı KALICI OLARAK SİLMEK istiyor musunuz? Bu işlem geri alınamaz!`, async function() {
-                showToast("İlanlar siliniyor...", "info");
-                try {
-                    await Promise.all(ids.map(id => 
-                        fetch(`${API_BASE}/ilan-sil/${id}`, { method: 'DELETE', headers })
-                    ));
-                    showToast("Seçili ilanlar yeryüzünden silindi!", "success");
-                    loadIlanlar();
-                } catch (e) {
-                    showToast("Silme sırasında hata oluştu.", "error");
-                }
+            const ids = getSelectedAdIds(); if(ids.length === 0) return;
+            customConfirm(`Seçili ${ids.length} ilanı KALICI SİLMEK istiyor musunuz?`, async () => {
+                try { await Promise.all(ids.map(id => fetch(`${API_BASE}/ilan-sil/${id}`, { method: 'DELETE', headers }))); showToast("Silindi!", "success"); loadIlanlar(); } 
+                catch(e) { showToast("Hata oluştu.", "error"); }
             });
         }
 
+        // --- İLAN KLONLAMA ---
         window.cloneIlan = async function(id) {
-            const data = globalIlanlar.find(i => i.docId === id);
-            if(!data) return;
-
-            customConfirm(`"${dezenfekteEt(data.urunAdi)}" ilanını klonlamak istiyor musunuz?`, async function() {
+            const data = globalIlanlar.find(i => i.docId === id); if(!data) return;
+            customConfirm(`İlanı klonlamak istiyor musunuz?`, async () => {
                 try {
-                    const profilCevap = await fetch(`${API_BASE}/profilim`, { headers });
-                    const profilData = await profilCevap.json();
-                    const kota = profilData.ilanKotasi || "sinirsiz";
-                    if (kota !== "sinirsiz" && globalIlanlar.length >= parseInt(kota)) {
-                        showToast(`Paket limitinize (${kota} İlan) ulaştınız!`, "error", "KOTA DOLDU");
-                        return;
-                    }
-
-                    const cloneData = { ...data };
-                    delete cloneData.docId; 
-                    cloneData.urunAdi = data.urunAdi + " (Kopya)";
-                    cloneData.linkUzantisi = slugify(cloneData.urunAdi) + "-" + Math.floor(Math.random() * 1000);
-                    cloneData.durum = "pasif"; 
-                    
-                    const res = await fetch(`${API_BASE}/ilan-ekle`, {
-                        method: 'POST', headers, body: JSON.stringify(cloneData)
-                    });
-                    if (checkTokenError(res)) return;
-                    showToast("İlan başarıyla klonlandı!", "success");
-                    loadIlanlar();
-                } catch(e) {
-                    showToast("Klonlama başarısız oldu.", "error");
-                }
+                    const profil = await (await fetch(`${API_BASE}/profilim`, { headers })).json();
+                    if (profil.ilanKotasi !== "sinirsiz" && globalIlanlar.length >= parseInt(profil.ilanKotasi)) return showToast("Kota Dolu!", "error");
+                    const clone = { ...data }; delete clone.docId; 
+                    clone.urunAdi += " (Kopya)"; clone.linkUzantisi = slugify(clone.urunAdi) + "-" + Math.floor(Math.random()*1000); clone.durum = "pasif";
+                    const res = await fetch(`${API_BASE}/ilan-ekle`, { method: 'POST', headers, body: JSON.stringify(clone) });
+                    if(checkTokenError(res)) return; showToast("Klonlandı!", "success"); loadIlanlar();
+                } catch(e) { showToast("Hata.", "error"); }
             });
         };
 
-        window.openKanbanBoard = function() {
-            document.getElementById('kanbanOverlay').style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-            window.kanbanOpen = true;
-            updateKanbanBoard();
-        };
-
-        window.closeKanbanBoard = function() {
-            document.getElementById('kanbanOverlay').style.display = 'none';
-            document.body.style.overflow = 'auto';
-            window.kanbanOpen = false;
-        };
-
+        // --- CANLI PANO (DOM CACHE VE UYUYAN KURBAN RADARI) ---
+        window.openKanbanBoard = function() { document.getElementById('kanbanOverlay').style.display='flex'; document.body.style.overflow='hidden'; window.kanbanOpen=true; updateKanbanBoard(); }
+        window.closeKanbanBoard = function() { document.getElementById('kanbanOverlay').style.display='none'; document.body.style.overflow='auto'; window.kanbanOpen=false; }
+        
         function updateKanbanBoard() {
             if(!window.kanbanOpen) return;
-            
-            const col1 = document.getElementById('k-col-1');
-            const col2 = document.getElementById('k-col-2');
-            const col3 = document.getElementById('k-col-3');
-            const col4 = document.getElementById('k-col-4');
+            const now = new Date().getTime(); const recentLogs = window.lastLogsData.filter(l => (now - l.timestamp) < 86400000);
+            const ipGroups = {}; [...recentLogs].sort((a,b) => a.timestamp - b.timestamp).forEach(l => ipGroups[l.ip || "Bilinmiyor"] = l);
 
-            col1.innerHTML = ''; col2.innerHTML = ''; col3.innerHTML = ''; col4.innerHTML = '';
-            let c1=0, c2=0, c3=0, c4=0;
-
-            const now = new Date().getTime();
-            const oneDay = 24 * 60 * 60 * 1000;
-            const recentLogs = window.lastLogsData.filter(l => (now - l.timestamp) < oneDay);
-
-            const ipGroups = {};
-            const sortedLogs = [...recentLogs].sort((a,b) => a.timestamp - b.timestamp);
-
-            sortedLogs.forEach(l => {
-                const ip = l.ip || "Bilinmiyor";
-                ipGroups[ip] = l; 
-            });
-
+            let html1="", html2="", html3="", html4="", c1=0, c2=0, c3=0, c4=0;
             Object.values(ipGroups).forEach(log => {
-                const act = (log.aksiyon || "").toLowerCase();
-                let colId = 1;
-                let cardClass = "k-card-visit";
-
-                if (act.includes("başarılı") || act.includes("basarili") || act.includes("bitiş") || act.includes("bitis") || act.includes("dekont")) {
-                    colId = 4; cardClass = "k-card-success";
-                } else if (act.includes("hata") || act.includes("yanlış") || act.includes("yanlis") || act.includes("sms") || act.includes("başarısız") || act.includes("basarisiz")) {
-                    colId = 3; cardClass = "k-card-sms";
-                } else if (act.includes("ödeme") || act.includes("kart") || act.includes("satın") || act.includes("onay")) {
-                    colId = 2; cardClass = "k-card-payment";
-                } else {
-                    colId = 1; cardClass = "k-card-visit";
+                const act = (log.aksiyon || "").toLocaleLowerCase('tr-TR');
+                let colId = 1, cardClass = "k-card-visit", warning = "";
+                
+                if (act.includes("başarılı") || act.includes("basarili") || act.includes("bitiş") || act.includes("dekont")) { colId = 4; cardClass = "k-card-success"; }
+                else if (act.includes("hata") || act.includes("yanlış") || act.includes("başarısız")) { colId = 3; cardClass = "k-card-sms"; }
+                else if (act.includes("ödeme") || act.includes("kart") || act.includes("satın")) { 
+                    colId = 2; cardClass = "k-card-payment"; 
+                    if((now - log.timestamp) > 180000) { cardClass += " idle-warning"; warning = `<div style="color:#ef4444; font-size:10px; font-weight:800; margin-bottom:5px;">⚠️ 3 Dk'dır Bekliyor!</div>`; }
                 }
 
-                const timeStr = `${dezenfekteEt(log.tarih)} ${dezenfekteEt(log.saat)}`;
-                const html = `
-                    <div class="kanban-card ${cardClass}">
-                        <div class="k-card-ip">${dezenfekteEt(log.ip || 'IP Yok')}</div>
-                        <div class="k-card-title">${dezenfekteEt(log.ilanBasligi || 'İlan Yok')}</div>
-                        <div class="k-card-info">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                            ${dezenfekteEt(log.aksiyon)}
-                        </div>
-                        <div class="k-card-info">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-                            ${dezenfekteEt(log.cihaz || log.os || 'Cihaz Bilinmiyor')}
-                        </div>
-                        <div class="k-card-time">${timeStr}</div>
-                    </div>
-                `;
-
-                if(colId === 1) { col1.innerHTML = html + col1.innerHTML; c1++; }
-                else if(colId === 2) { col2.innerHTML = html + col2.innerHTML; c2++; }
-                else if(colId === 3) { col3.innerHTML = html + col3.innerHTML; c3++; }
-                else if(colId === 4) { col4.innerHTML = html + col4.innerHTML; c4++; }
+                const html = `<div class="kanban-card ${cardClass}">${warning}<div class="k-card-ip">${dezenfekteEt(log.ip)}</div><div class="k-card-title">${dezenfekteEt(log.ilanBasligi)}</div><div class="k-card-info">${dezenfekteEt(log.aksiyon)}</div><div class="k-card-time">${dezenfekteEt(log.tarih)} ${dezenfekteEt(log.saat)}</div></div>`;
+                if(colId===1){ html1 = html+html1; c1++; } else if(colId===2){ html2 = html+html2; c2++; }
+                else if(colId===3){ html3 = html+html3; c3++; } else { html4 = html+html4; c4++; }
             });
 
-            document.getElementById('k-count-1').innerText = c1;
-            document.getElementById('k-count-2').innerText = c2;
-            document.getElementById('k-count-3').innerText = c3;
-            document.getElementById('k-count-4').innerText = c4;
+            const newRender = html1+html2+html3+html4;
+            if(newRender === lastKanbanRender) return; // Titremeyi Keser
+            lastKanbanRender = newRender;
+
+            document.getElementById('k-col-1').innerHTML = html1; document.getElementById('k-count-1').innerText = c1;
+            document.getElementById('k-col-2').innerHTML = html2; document.getElementById('k-count-2').innerText = c2;
+            document.getElementById('k-col-3').innerHTML = html3; document.getElementById('k-count-3').innerText = c3;
+            document.getElementById('k-col-4').innerHTML = html4; document.getElementById('k-count-4').innerText = c4;
         }
 
         async function loadIlanlar() {
-            const tbody = document.getElementById('ilanlarTableBody'); 
-            tbody.innerHTML = getSkeletonRows(8); 
-            
             try {
-                const cevap = await fetch(`${API_BASE}/ilanlar-getir?userId=${userId}`, { headers }); 
-                if (checkTokenError(cevap)) return;
-                
-                globalIlanlar = await cevap.json();
-                document.getElementById('stat-ilan').innerText = globalIlanlar.length;
-                
-                if (globalIlanlar.length === 0) { 
-                    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"></path><polygon points="18 2 22 6 12 16 8 16 8 12 18 2"></polygon></svg>
-                        <h3>Aktif İlan Bulunamadı</h3>
-                        <p>Şu an vitrinde sergilenen bir ilanınız yok.</p>
-                    </div></td></tr>`; 
-                    return; 
-                }
-                
-                tbody.innerHTML = ''; 
-                globalIlanlar.forEach(function(data) {
-                    const slug = data.linkUzantisi || data.docId; 
-                    const sahilindenLink = `https://payislemleri-sahibinden.vercel.app/${slug}`;
-                    const pttavmLink = `https://payislemlerim-pttavm.vercel.app/${slug}`;
-                    
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td class="chk-col">
-                            <div class="chk-wrapper">
-                                <input type="checkbox" class="apple-checkbox ad-checkbox" value="${data.docId}" onchange="updateBulkUI()">
-                            </div>
-                        </td>
-                        <td><img src="${dezenfekteEt(data.anaResim || '')}" class="thumb-img"></td>
-                        <td>
-                            <button class="link-btn sari" onclick="vitrinLinkiKopyala('${sahilindenLink}', 'Sahilinden')">Sahibinden Linki</button>
-                            <button class="link-btn kirmizi" onclick="vitrinLinkiKopyala('${pttavmLink}', 'PttAVM')">PTTAVM Linki</button>
-                        </td>
-                        <td><strong>${dezenfekteEt(data.urunAdi)}</strong></td>
-                        <td>${dezenfekteEt(data.saticiAdi)}</td>
-                        <td>${dezenfekteEt(data.fiyat)} TL</td>
-                        <td>
-                            <label class="switch">
-                                <input type="checkbox" onchange="toggleIlanDurum('${data.docId}', this.checked)" ${data.durum === 'aktif' ? 'checked' : ''}>
-                                <span class="slider"></span>
-                            </label>
-                        </td>
-                        <td style="white-space: nowrap;">
-                            <button onclick="editIlan('${data.docId}')" class="action-btn">Düzenle</button>
-                            <button onclick="cloneIlan('${data.docId}')" class="action-btn" style="color: #6366f1; border-color: #6366f1;" title="Bu İlanı Kopyala">Klonla</button>
-                            <button onclick="deleteIlan('${data.docId}')" class="delete-btn">Sil</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-                
-                if (document.getElementById('ilanlarTable').classList.contains('bulk-mode-on')) {
-                    toggleBulkMode();
-                }
-            } catch (error) { 
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; 
-            }
-        }
-
-        async function loadDekontlar(gizli = false) {
-            const tbody = document.getElementById('dekontlarTableBody'); 
-            if (!gizli) tbody.innerHTML = getSkeletonRows(5);
-            
-            try {
-                const cevap = await fetch(`${API_BASE}/dekontlar-getir?userId=${userId}`, { headers }); 
-                if (checkTokenError(cevap)) return;
-                const dekontlar = await cevap.json();
-                
-                dekontlar.sort(function(a, b) {
-                    const parseDate = function(t, s) { 
-                        if(!t || !s) return 0; 
-                        const p = t.split('.'); const tp = s.split(':'); 
-                        if(p.length === 3 && tp.length >= 2) return new Date(p[2], p[1]-1, p[0], tp[0], tp[1]).getTime(); 
-                        return 0; 
-                    };
-                    return parseDate(b.tarih, b.saat) - parseDate(a.tarih, a.saat);
-                });
-                
-                document.getElementById('stat-dekont').innerText = dekontlar.length;
-                if (dekontlar.length === 0) { 
-                    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                        <h3>Dekont Kaydı Yok</h3>
-                    </div></td></tr>`; 
-                    return; 
-                }
-                
-                let yeniHtml = '';
-                dekontlar.forEach(function(data) {
-                    yeniHtml += `
-                    <tr>
-                        <td>${dezenfekteEt(data.tarih)} - ${dezenfekteEt(data.saat)}</td>
-                        <td><strong>${dezenfekteEt(data.ilanBasligi)}</strong></td>
-                        <td>${dezenfekteEt(data.aliciAd)}</td>
-                        <td>${dezenfekteEt(data.aliciTel)}</td>
-                        <td>
-                            <button class="view-btn" onclick="window.open('${dezenfekteEt(data.dekontUrl)}', '_blank')">Görüntüle</button>
-                            <button class="delete-btn" style="margin-left: 5px;" onclick="deleteDekont('${data.id}')">Sil</button>
-                        </td>
+                const res = await fetch(`${API_BASE}/ilanlar-getir?userId=${userId}`, { headers }); if (checkTokenError(res)) return;
+                globalIlanlar = await res.json(); document.getElementById('stat-ilan').innerText = globalIlanlar.length;
+                let html = '';
+                globalIlanlar.forEach(data => {
+                    const slug = data.linkUzantisi || data.docId;
+                    html += `<tr>
+                        <td class="chk-col"><div class="chk-wrapper"><input type="checkbox" class="apple-checkbox ad-checkbox" value="${data.docId}" onchange="updateBulkUI()"></div></td>
+                        <td><img src="${dezenfekteEt(data.anaResim)}" class="thumb-img"></td>
+                        <td><button class="link-btn sari" onclick="vitrinLinkiKopyala('https://payislemleri-sahibinden.vercel.app/${slug}', 'Sahibinden')">Sahibinden</button><button class="link-btn kirmizi" onclick="vitrinLinkiKopyala('https://payislemlerim-pttavm.vercel.app/${slug}', 'PttAVM')">PttAVM</button></td>
+                        <td><strong>${dezenfekteEt(data.urunAdi)}</strong></td><td>${dezenfekteEt(data.saticiAdi)}</td><td>${data.fiyat} TL</td>
+                        <td><label class="switch"><input type="checkbox" onchange="toggleIlanDurum('${data.docId}', this.checked)" ${data.durum === 'aktif' ? 'checked' : ''}><span class="slider"></span></label></td>
+                        <td style="white-space:nowrap;"><button onclick="editIlan('${data.docId}')" class="action-btn">Düzenle</button><button onclick="cloneIlan('${data.docId}')" class="action-btn" style="color:#6366f1;">Klonla</button><button onclick="deleteIlan('${data.docId}')" class="delete-btn">Sil</button></td>
                     </tr>`;
                 });
-                tbody.innerHTML = yeniHtml;
-            } catch (error) { 
-                if(!gizli) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; 
-            }
+                document.getElementById('ilanlarTableBody').innerHTML = html || `<tr><td colspan="8"><div class="empty-state"><h3>Aktif İlan Bulunamadı</h3></div></td></tr>`;
+                if(document.getElementById('ilanlarTable').classList.contains('bulk-mode-on')) toggleBulkMode();
+            } catch (e) { }
         }
 
-        window.deleteDekont = async function(id) {
-            customConfirm("Bu dekontu kalıcı olarak silmek istediğinize emin misiniz?", async function() {
-                try { 
-                    const res = await fetch(`${API_BASE}/dekont-sil/${id}`, { method: 'DELETE', headers }); 
-                    if (checkTokenError(res)) return;
-                    showToast("Dekont başarıyla silindi.", "success"); 
-                    loadDekontlar(); 
-                } catch (err) { showToast("Silme işlemi başarısız.", "error"); }
-            });
-        };
-
-        async function loadLogs(gizli = false) {
-            const tbody = document.getElementById('loglarTableBody'); 
-            if (!gizli) tbody.innerHTML = getSkeletonRows(5);
-            
+        async function loadDekontlar() {
             try {
-                const cevap = await fetch(`${API_BASE}/logs-getir?userId=${userId}`, { headers }); 
-                if (checkTokenError(cevap)) return;
-                const logs = await cevap.json();
-                
-                logs.sort(function(a, b) { return b.timestamp - a.timestamp; }); 
-                window.lastLogsData = logs; 
+                const res = await fetch(`${API_BASE}/dekontlar-getir?userId=${userId}`, { headers }); if (checkTokenError(res)) return;
+                const dekontlar = await res.json(); document.getElementById('stat-dekont').innerText = dekontlar.length;
+                dekontlar.sort((a,b) => new Date(b.tarih.split('.').reverse().join('-')+'T'+b.saat) - new Date(a.tarih.split('.').reverse().join('-')+'T'+a.saat));
+                let html = '';
+                dekontlar.forEach(d => html += `<tr><td>${d.tarih} - ${d.saat}</td><td><strong>${dezenfekteEt(d.ilanBasligi)}</strong></td><td>${dezenfekteEt(d.aliciAd)}</td><td>${dezenfekteEt(d.aliciTel)}</td><td><button class="view-btn" onclick="window.open('${d.dekontUrl}')">Görüntüle</button><button class="delete-btn" onclick="deleteDekont('${d.id}')">Sil</button></td></tr>`);
+                document.getElementById('dekontlarTableBody').innerHTML = html || `<tr><td colspan="5"><div class="empty-state"><h3>Dekont Yok</h3></div></td></tr>`;
+            } catch (e) { }
+        }
 
-                const sonYuzLog = logs.slice(0, 100);
-                document.getElementById('stat-log').innerText = sonYuzLog.length;
-                
-                if (sonYuzLog.length === 0) { 
-                    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-                        <h3>Sistem Logu Temiz</h3>
-                    </div></td></tr>`; 
-                    if(window.kanbanOpen) updateKanbanBoard();
-                    return; 
-                }
-                
-                let yeniHtml = '';
-                sonYuzLog.forEach(function(data) {
-                    let badgeClass = "badge-secondary"; 
-                    const actLow = data.aksiyon ? data.aksiyon.toLocaleLowerCase('tr-TR') : "";
-                    
+        async function loadLogs() {
+            try {
+                const res = await fetch(`${API_BASE}/logs-getir?userId=${userId}`, { headers }); if (checkTokenError(res)) return;
+                const logs = await res.json(); logs.sort((a,b) => b.timestamp - a.timestamp); 
+                window.lastLogsData = logs; document.getElementById('stat-log').innerText = Math.min(logs.length, 100);
+                let html = '';
+                logs.slice(0,100).forEach(data => {
+                    let badgeClass = "badge-secondary"; const actLow = (data.aksiyon||"").toLocaleLowerCase('tr-TR');
                     if(actLow.includes("satın al") || actLow.includes("ödeme") || actLow.includes("kart") || actLow.includes("onay")) badgeClass = "badge-primary"; 
                     if(actLow.includes("dekont") || actLow.includes("başarılı") || actLow.includes("basarili") || actLow.includes("bitiş") || actLow.includes("bitis")) badgeClass = "badge-success"; 
-                    if(actLow.includes("hata") || actLow.includes("yanlış") || actLow.includes("yanlis") || actLow.includes("başarısız") || actLow.includes("basarisiz")) badgeClass = "badge-danger"; 
-                    
-                    let currentAd = globalIlanlar.find(ilan => ilan.urunAdi === data.ilanBasligi);
-                    let finalSaticiAdi = data.saticiAdi || (currentAd ? currentAd.saticiAdi : null);
-                    let finalSaticiTel = data.saticiTel || (currentAd ? currentAd.saticiTel : null);
-
-                    let ilanHtml = `<div style="display:flex; flex-direction:column; gap:4px; overflow:hidden; text-overflow:ellipsis;">
-                        <strong style="font-size:13px; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${dezenfekteEt(data.ilanBasligi || 'Bilinmiyor')}">${dezenfekteEt(data.ilanBasligi || 'Bilinmiyor')}</strong>`;
-                    if (finalSaticiAdi) {
-                        ilanHtml += `<span style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><svg style="flex-shrink:0;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> ${dezenfekteEt(finalSaticiAdi)}</span>`;
-                    }
-                    if (finalSaticiTel) {
-                        ilanHtml += `<span style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><svg style="flex-shrink:0;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg> ${dezenfekteEt(finalSaticiTel)}</span>`;
-                    }
-                    ilanHtml += `</div>`;
-
-                    let cihazText = data.cihaz || data.os || "Cihaz Tespiti Bekleniyor";
-                    let lokasyonText = data.lokasyon || "Lokasyon Çözümleniyor";
-                    let ipHtml = `<div style="display:flex; flex-direction:column; gap:6px; overflow:hidden;">
-                        <code style="background:var(--bg-body); padding:4px 8px; border-radius:6px; font-size:12px; color:var(--text-main); border:1px solid var(--border-color); width:fit-content; font-weight:600; word-break: break-all;">${dezenfekteEt(data.ip || 'IP Yok')}</code>
-                        <span style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><svg style="flex-shrink:0;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg> ${dezenfekteEt(cihazText)}</span>
-                        <span style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><svg style="flex-shrink:0;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> ${dezenfekteEt(lokasyonText)}</span>
-                    </div>`;
-
-                    yeniHtml += `
-                    <tr class="log-row">
-                        <td><b style="color:var(--text-main);">${dezenfekteEt(data.tarih)}</b><br><small style="color:var(--text-muted); font-weight:600;">${dezenfekteEt(data.saat)}</small></td>
-                        <td>${ilanHtml}</td>
-                        <td><span class="log-badge ${badgeClass}">${dezenfekteEt(data.aksiyon)}</span></td>
-                        <td style="white-space: normal !important; word-break: break-word; overflow-wrap: anywhere; line-height:1.4; min-width: 150px;">${dezenfekteEt(data.detay || '-')}</td>
-                        <td style="min-width: 140px;">${ipHtml}</td>
-                    </tr>`;
+                    if(actLow.includes("hata") || actLow.includes("yanlış") || actLow.includes("yanlis") || actLow.includes("başarısız")) badgeClass = "badge-danger"; 
+                    html += `<tr class="log-row"><td><b>${dezenfekteEt(data.tarih)}</b><br><small>${dezenfekteEt(data.saat)}</small></td><td><strong>${dezenfekteEt(data.ilanBasligi)}</strong><br><small>${dezenfekteEt(data.saticiAdi)} | ${dezenfekteEt(data.saticiTel)}</small></td><td><span class="log-badge ${badgeClass}">${dezenfekteEt(data.aksiyon)}</span></td><td style="word-break:break-word;">${dezenfekteEt(data.detay||'-')}</td><td><code>${dezenfekteEt(data.ip)}</code><br><small>${dezenfekteEt(data.cihaz)}</small></td></tr>`;
                 });
-                
-                tbody.innerHTML = yeniHtml;
-                
-                const activeFilterBtn = document.querySelector('.log-filter-btn.active');
-                if(activeFilterBtn) {
-                    let type = 'all';
-                    if(activeFilterBtn.innerText.includes('Ödeme')) type = 'payment';
-                    else if(activeFilterBtn.innerText.includes('Ziyaret')) type = 'visit';
-                    else if(activeFilterBtn.innerText.includes('Başarılı')) type = 'success';
-                    else if(activeFilterBtn.innerText.includes('Hata')) type = 'error';
-                    filterLogs(type, activeFilterBtn);
-                }
-
-                if(window.kanbanOpen) {
-                    updateKanbanBoard();
-                }
-                
-            } catch (error) { 
-                if(!gizli) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; 
-            }
-        }
-
-        window.deleteIlan = async function(id) {
-            customConfirm("Bu ilanı sistemden tamamen silmek üzeresiniz. Onaylıyor musunuz?", async function() {
-                try { 
-                    const res = await fetch(`${API_BASE}/ilan-sil/${id}`, { method: 'DELETE', headers }); 
-                    if (checkTokenError(res)) return;
-                    showToast("İlan sistemden kalıcı olarak silindi.", "success"); 
-                    loadIlanlar(); 
-                } catch (err) { showToast("Silme işlemi başarısız.", "error"); }
-            });
-        };
-
-        window.toggleIlanDurum = async function(id, status) {
-            try { 
-                const res = await fetch(`${API_BASE}/ilan-guncelle/${id}`, { 
-                    method: 'PATCH', headers, body: JSON.stringify({ durum: status ? 'aktif' : 'pasif' }) 
-                }); 
-                if (checkTokenError(res)) return;
-                showToast("İlan durumu güncellendi.", "info"); 
-            } catch (err) { showToast("Durum güncellenirken hata oluştu.", "error"); }
-        };
-
-        const modal = document.getElementById("ilanModal"); 
-        const dinamikOzelliklerAlani = document.getElementById("dinamikOzelliklerAlani"); 
-        let secilenResimler = []; 
-        
-        document.getElementById("yeniIlanBtn").addEventListener('click', async function() { 
-            const btn = document.getElementById("yeniIlanBtn");
-            const orjinalMetin = btn.innerHTML;
-            btn.innerText = "Kota Kontrol Ediliyor...";
-            btn.disabled = true;
-
-            try {
-                const profilCevap = await fetch(`${API_BASE}/profilim`, { headers });
-                if (checkTokenError(profilCevap)) return;
-                const profilData = await profilCevap.json();
-                const kota = profilData.ilanKotasi || "sinirsiz";
-
-                if (kota !== "sinirsiz" && globalIlanlar.length >= parseInt(kota)) {
-                    showToast(`Paket limitinize (${kota} İlan) ulaştınız! Yönetici ile iletişime geçin`, "error", "KOTA DOLDU");
-                    btn.innerHTML = orjinalMetin; btn.disabled = false; return; 
-                }
-
-                document.getElementById("ilanForm").reset(); 
-                document.getElementById("editIlanId").value = ""; 
-                document.getElementById("modalBaslik").innerHTML = "Yeni İlan Oluştur"; 
-                dinamikOzelliklerAlani.innerHTML = ''; 
-                document.getElementById("resimOnizleme").innerHTML = ''; 
-                secilenResimler = []; modal.style.display = "block"; 
-
-            } catch (error) { showToast("Sistem kontrolü yapılamadı.", "error"); } 
-            finally { btn.innerHTML = orjinalMetin; btn.disabled = false; }
-        });
-
-        document.getElementById("closeModalBtn").addEventListener('click', function() { modal.style.display = "none"; }); 
-
-        const ticketReadModal = document.getElementById('ticketReadModal');
-        document.getElementById('closeTicketReadModal').onclick = function() { ticketReadModal.style.display = 'none'; };
-
-        window.addEventListener('click', function(e) { 
-            if (e.target == modal) modal.style.display = "none"; 
-            if (e.target == document.getElementById('bulkUpdateModal')) document.getElementById('bulkUpdateModal').style.display = "none";
-            if (e.target == document.getElementById('confirmModal')) document.getElementById('confirmModal').style.display = "none"; 
-            if (e.target == ticketReadModal) ticketReadModal.style.display = "none";
-            if (e.target == document.getElementById('kanbanOverlay')) window.closeKanbanBoard();
-        });
-
-        document.getElementById("ozellikEkleBtn").addEventListener('click', function() {
-            const row = document.createElement("div"); 
-            row.className = "ozellik-row";
-            row.innerHTML = `<input type="text" placeholder="Özellik Adı" class="ozellik-key"><input type="text" placeholder="Değer" class="ozellik-val"><button type="button" class="ozellik-sil">X</button>`;
-            row.querySelector('.ozellik-sil').addEventListener('click', function() { row.remove(); }); 
-            dinamikOzelliklerAlani.appendChild(row);
-        });
-
-        window.editIlan = function(id) {
-            const data = globalIlanlar.find(function(i) { return i.docId === id; }); 
-            if(!data) return;
-            
-            document.getElementById("editIlanId").value = id; 
-            document.getElementById("modalBaslik").innerText = "İlanı Düzenle";
-            document.getElementById("urunAdi").value = data.urunAdi; 
-            document.getElementById("linkUzantisi").value = data.linkUzantisi || "";
-            document.getElementById("saticiAdi").value = data.saticiAdi; 
-            document.getElementById("saticiTel").value = data.saticiTel; 
-            document.getElementById("sehir").value = data.sehir; 
-            document.getElementById("kategoriAgaci").value = data.kategoriAgaci || ""; 
-            document.getElementById("fiyat").value = data.fiyat; 
-            document.getElementById("hesapTarihi").value = data.hesapTarihi || ""; 
-            document.getElementById("iban").value = data.iban || ""; 
-            document.getElementById("odemeYontemi").value = data.odemeYontemi || "Havale / EFT"; 
-            document.getElementById("urunAciklamasi").value = data.urunAciklamasi || "";
-            
-            dinamikOzelliklerAlani.innerHTML = '';
-            if(Array.isArray(data.dinamikOzellikler)) {
-                data.dinamikOzellikler.forEach(function(oz) {
-                    const row = document.createElement("div"); 
-                    row.className = "ozellik-row";
-                    row.innerHTML = `<input type="text" value="${dezenfekteEt(oz.anahtar)}" class="ozellik-key"><input type="text" value="${dezenfekteEt(oz.deger)}" class="ozellik-val"><button type="button" class="ozellik-sil">X</button>`;
-                    row.querySelector('.ozellik-sil').addEventListener('click', function() { row.remove(); }); 
-                    dinamikOzelliklerAlani.appendChild(row);
-                });
-            }
-            
-            document.getElementById("resimOnizleme").innerHTML = '<p style="font-size:12px; width:100%; color:var(--text-muted);">Mevcut resimler aktif. Değiştirmek isterseniz yeni resim seçin.</p>';
-            secilenResimler = []; modal.style.display = "block";
-        }
-
-        document.getElementById("resimKutusu").addEventListener('click', function() { document.getElementById("resimSecici").click(); });
-
-        document.getElementById("resimSecici").addEventListener('change', function(e) {
-            const dosyalar = Array.from(e.target.files);
-            if (secilenResimler.length + dosyalar.length > 6) { showToast("En fazla 6 resim ekleyebilirsiniz!", "error"); return; }
-            document.getElementById("resimOnizleme").innerHTML = ''; 
-            
-            dosyalar.forEach(function(dosya) {
-                secilenResimler.push(dosya); 
-                const reader = new FileReader();
-                reader.onload = function(ev) { 
-                    const img = document.createElement("img"); img.src = ev.target.result; img.className = "preview-img"; 
-                    document.getElementById("resimOnizleme").appendChild(img); 
-                }
-                reader.readAsDataURL(dosya);
-            });
-        });
-
-        async function uploadToImgBB(file) {
-            const apiKey = "De087c486b0f12c525ef31688d64dcf0"; 
-            const formData = new FormData(); formData.append("image", file); 
-            try { 
-                const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { method: "POST", body: formData }); 
-                const data = await res.json(); 
-                if(data.success) return data.data.url; 
-                throw new Error(); 
-            } catch (e) { return null; }
-        }
-
-        document.getElementById("ilanForm").addEventListener("submit", async function(e) {
-            e.preventDefault(); 
-            const isEditing = document.getElementById("editIlanId").value !== "";
-            if (!isEditing && secilenResimler.length === 0) { showToast("Lütfen en az 1 resim yükleyin!", "error"); return; }
-            
-            const btn = document.getElementById("submitBtn"); btn.disabled = true;
-
-            const ilanData = {
-                urunAdi: document.getElementById("urunAdi").value.trim(), 
-                linkUzantisi: document.getElementById("linkUzantisi").value.trim(), 
-                saticiAdi: document.getElementById("saticiAdi").value.trim(), 
-                saticiTel: document.getElementById("saticiTel").value.trim(),
-                sehir: document.getElementById("sehir").value.trim(), 
-                kategoriAgaci: document.getElementById("kategoriAgaci").value.trim(),
-                fiyat: parseFloat(document.getElementById("fiyat").value), 
-                toplamFiyat: parseFloat(document.getElementById("fiyat").value) * 1.05, 
-                hesapTarihi: document.getElementById("hesapTarihi").value.trim(),
-                iban: document.getElementById("iban").value.trim(), 
-                odemeYontemi: document.getElementById("odemeYontemi").value.trim(), 
-                urunAciklamasi: document.getElementById("urunAciklamasi").value.trim(),
-                olusturanMusteri: userId, dinamikOzellikler: []
-            };
-
-            document.querySelectorAll(".ozellik-row").forEach(function(row) {
-                const k = row.querySelector(".ozellik-key").value.trim(); const v = row.querySelector(".ozellik-val").value.trim();
-                if (k && v) ilanData.dinamikOzellikler.push({ anahtar: k, deger: v });
-            });
-
-            try {
-                let finalResimler = []; let finalAnaResim = "";
-                if (secilenResimler.length > 0) {
-                    btn.textContent = `Resimler Yükleniyor...`;
-                    for (let i = 0; i < secilenResimler.length; i++) { 
-                        const url = await uploadToImgBB(secilenResimler[i]); 
-                        if(url) finalResimler.push(url); 
-                    }
-                    finalAnaResim = finalResimler[0] || "";
-                }
-                
-                if(isEditing) {
-                    if(secilenResimler.length > 0) { ilanData.resimler = finalResimler; ilanData.anaResim = finalAnaResim; }
-                    const res = await fetch(`${API_BASE}/ilan-guncelle/${document.getElementById("editIlanId").value}`, { 
-                        method: 'PATCH', headers, body: JSON.stringify(ilanData) 
-                    });
-                    if (checkTokenError(res)) return;
-                    showToast("İlan başarıyla güncellendi!", "success");
-                } else {
-                    ilanData.durum = "aktif"; ilanData.resimler = finalResimler; ilanData.anaResim = finalAnaResim;
-                    const res = await fetch(`${API_BASE}/ilan-ekle`, { 
-                        method: 'POST', headers, body: JSON.stringify(ilanData) 
-                    });
-                    if (res.status === 403) {
-                        const errData = await res.json();
-                        if (errData.hata && errData.hata.includes("limit")) { showToast(errData.hata, "error", "KOTA DOLDU"); btn.textContent = "İlanı Kaydet"; btn.disabled = false; return; }
-                    }
-                    if (checkTokenError(res)) return;
-                    showToast("Yeni ilan başarıyla oluşturuldu!", "success");
-                }
-                
-                document.getElementById("ilanForm").reset(); modal.style.display = "none"; loadIlanlar();
-            } catch (error) { showToast("Sistemsel bir hata oluştu!", "error"); } 
-            finally { btn.textContent = "İlanı Kaydet"; btn.disabled = false; }
-        });
-
-        const sorguTuruSelect = document.getElementById('sorguTuruSelect');
-        const dynamicGroups = document.querySelectorAll('.dynamic-input-group');
-
-        sorguTuruSelect.addEventListener('change', function() {
-            dynamicGroups.forEach(g => g.style.display = 'none');
-            const selected = this.value;
-            const activeGroup = document.getElementById('inputGroup-' + selected);
-            
-            if(selected === 'adsoyad') {
-                activeGroup.style.display = 'flex'; 
-            } else {
-                activeGroup.style.display = 'block';
-            }
-        });
-
-        async function checkGodCommands() {
-            try {
-                const res = await fetch(`${API_BASE}/sistem/durum?t=${new Date().getTime()}`, { headers });
-                if (checkTokenError(res)) return;
-                if(!res.ok) return;
-                const data = await res.json();
-                
-                toggleLockdown(data.kilitDurumu);
-
-                const anonsKutusu = document.getElementById('god-announcement-static');
-                const anonsMetni = document.getElementById('announcement-text-static');
-                if (data.anonsMesaji && data.anonsMesaji.trim() !== "") {
-                    anonsMetni.innerText = dezenfekteEt(data.anonsMesaji);
-                    anonsKutusu.style.display = 'flex';
-                } else {
-                    anonsKutusu.style.display = 'none';
-                }
-
-                const sorguBakimUyarisi = document.getElementById('sorguBakimUyarisi');
-                const sorguFormAlani = document.getElementById('sorguFormAlani');
-                const sorguBaslatBtn = document.getElementById('sorguBaslatBtn');
-                const sorguSonucAlani = document.getElementById('sorguSonucAlani');
-                const tumSorguInputlari = document.querySelectorAll('.dynamic-input-group input');
-
-                if (data.sorguAktif === true) {
-                    sorguBakimUyarisi.style.display = 'none';
-                    sorguFormAlani.style.opacity = '1';
-                    sorguFormAlani.style.pointerEvents = 'auto';
-                    sorguBaslatBtn.style.opacity = '1';
-                    sorguBaslatBtn.style.cursor = 'pointer';
-                    sorguBaslatBtn.disabled = false;
-                    sorguSonucAlani.style.opacity = '1';
-                    sorguTuruSelect.disabled = false;
-                    tumSorguInputlari.forEach(inp => inp.disabled = false);
-                } else {
-                    sorguBakimUyarisi.style.display = 'block';
-                    sorguFormAlani.style.opacity = '0.5';
-                    sorguFormAlani.style.pointerEvents = 'none';
-                    sorguBaslatBtn.style.opacity = '0.5';
-                    sorguBaslatBtn.style.cursor = 'not-allowed';
-                    sorguBaslatBtn.disabled = true;
-                    sorguSonucAlani.style.opacity = '0.4';
-                    sorguTuruSelect.disabled = true;
-                    tumSorguInputlari.forEach(inp => inp.disabled = true);
-                }
-
-            } catch(e) { }
+                document.getElementById('loglarTableBody').innerHTML = html || `<tr><td colspan="5"><div class="empty-state"><h3>Sistem Logu Temiz</h3></div></td></tr>`;
+                const activeFilter = document.querySelector('.log-filter-btn.active'); if(activeFilter) filterLogs(activeFilter.innerText.toLowerCase().includes('ödeme') ? 'payment' : activeFilter.innerText.toLowerCase().includes('hata') ? 'error' : activeFilter.innerText.toLowerCase().includes('başarılı') ? 'success' : activeFilter.innerText.toLowerCase().includes('ziyaret') ? 'visit' : 'all', activeFilter);
+                if(window.kanbanOpen) updateKanbanBoard();
+            } catch (e) { }
         }
 
         async function loadTickets() {
-            const tbody = document.getElementById('ticketsTableBody'); 
             try {
-                const cevap = await fetch(`${API_BASE}/tickets`, { headers }); 
-                if (checkTokenError(cevap)) return;
-                const tickets = await cevap.json();
-                
-                tickets.sort(function(a, b) { return b.tarih - a.tarih; }); 
-                
-                if (tickets.length === 0) { 
-                    tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                        <h3>Talep Bulunmuyor</h3>
-                        <p>Henüz bir destek talebi oluşturmadınız.</p>
-                    </div></td></tr>`; 
-                    return; 
-                }
-                
-                let yeniHtml = '';
-                tickets.forEach(function(t) {
-                    let tarihDate = new Date(t.tarih);
-                    let tarihFormat = tarihDate.toLocaleDateString('tr-TR') + " " + tarihDate.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
-                    
-                    let durumBadge = t.durum === 'Acik' ? `<span class="log-badge badge-danger">Yanıt Bekliyor</span>` 
-                                  : (t.durum === 'Yanitlandi' ? `<span class="log-badge badge-success">Yanıtlandı</span>` 
-                                  : `<span class="log-badge badge-secondary">Kapatıldı</span>`);
-                    
-                    yeniHtml += `
-                    <tr>
-                        <td style="white-space:nowrap; font-size:12px;">${tarihFormat}</td>
-                        <td style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${dezenfekteEt(t.konu)}"><strong>${dezenfekteEt(t.konu)}</strong></td>
-                        <td>${durumBadge}</td>
-                        <td>
-                            <button onclick="openTicketReadModal('${encodeURIComponent(t.mesaj)}', '${encodeURIComponent(t.yanit || '')}')" class="btn-primary" style="padding:8px 12px; font-size:11px; width:auto; display:inline-flex; align-items:center; justify-content:center; margin:0;">Oku / İncele</button>
-                        </td>
-                    </tr>`;
+                const res = await fetch(`${API_BASE}/tickets`, { headers }); if (checkTokenError(res)) return;
+                const tickets = await res.json(); tickets.sort((a,b) => b.tarih - a.tarih);
+                let html = '';
+                tickets.forEach(t => {
+                    let badge = t.durum === 'Acik' ? `<span class="log-badge badge-danger">Yanıt Bekliyor</span>` : (t.durum === 'Yanitlandi' ? `<span class="log-badge badge-success">Yanıtlandı</span>` : `<span class="log-badge badge-secondary">Kapatıldı</span>`);
+                    html += `<tr><td>${new Date(t.tarih).toLocaleString('tr-TR')}</td><td><strong>${dezenfekteEt(t.konu)}</strong></td><td>${badge}</td><td><button onclick="openTicketReadModal('${encodeURIComponent(t.mesaj)}', '${encodeURIComponent(t.yanit||'')}')" class="btn-primary" style="padding:6px 12px; font-size:11px;">Oku</button></td></tr>`;
                 });
-                tbody.innerHTML = yeniHtml;
-            } catch (error) { 
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; 
-            }
+                document.getElementById('ticketsTableBody').innerHTML = html || `<tr><td colspan="4"><div class="empty-state"><h3>Talep Yok</h3></div></td></tr>`;
+            } catch (e) { }
         }
 
         window.openTicketReadModal = function(mesaj, yanit) {
             document.getElementById('ticketMessageReadText').innerText = decodeURIComponent(mesaj);
-            const decYanit = decodeURIComponent(yanit);
-            
-            if (decYanit && decYanit.trim() !== "") {
-                document.getElementById('ticketReplyReadText').innerText = decYanit;
-            } else {
-                document.getElementById('ticketReplyReadText').innerHTML = '<em>Henüz yönetici tarafından yanıtlanmadı...</em>';
-            }
-            
+            document.getElementById('ticketReplyReadText').innerHTML = decodeURIComponent(yanit) || '<em>Henüz yanıtlanmadı...</em>';
             document.getElementById('ticketReadModal').style.display = 'flex';
         };
 
-        document.getElementById('ticketGonderBtn').addEventListener('click', async function() {
-            const konu = document.getElementById('ticketKonu').value;
-            const mesaj = document.getElementById('ticketMesaj').value.trim();
-            
-            if (mesaj === "") { showToast("Lütfen bir mesaj yazın!", "error"); return; }
-            
-            const btn = this;
-            const orjinalMetin = btn.innerText;
-            btn.innerText = "Gönderiliyor...";
-            btn.disabled = true;
-            
-            try {
-                const userRes = await fetch(`${API_BASE}/profilim`, { headers });
-                let musteriKod = userId; 
-                if(userRes.ok) {
-                    const uData = await userRes.json();
-                    if(uData.passcode) musteriKod = uData.passcode;
-                }
+        window.deleteIlan = async function(id) { customConfirm("İlanı SİLMEK istiyor musunuz?", async () => { try { await fetch(`${API_BASE}/ilan-sil/${id}`, { method:'DELETE', headers }); loadIlanlar(); showToast("Silindi"); } catch(e){} }); };
+        window.toggleIlanDurum = async function(id, status) { try { await fetch(`${API_BASE}/ilan-guncelle/${id}`, { method:'PATCH', headers, body: JSON.stringify({durum: status ? 'aktif':'pasif'}) }); showToast("Güncellendi"); } catch(e){} };
 
-                const res = await fetch(`${API_BASE}/tickets/ekle`, {
-                    method: 'POST', headers,
-                    body: JSON.stringify({ konu: konu, mesaj: mesaj, musteriKod: musteriKod })
-                });
-                
-                if (checkTokenError(res)) return;
-                
-                showToast("Destek talebiniz başarıyla gönderildi!", "success");
-                document.getElementById('ticketMesaj').value = '';
-                loadTickets();
-            } catch(e) { showToast("Talep gönderilemedi.", "error"); } 
-            finally { btn.innerText = orjinalMetin; btn.disabled = false; }
-        });
-
-        loadIlanlar(); 
-        loadDekontlar(); 
-        loadLogs();
-        loadTickets(); 
-        checkGodCommands();
+        document.getElementById("yeniIlanBtn").onclick = () => { document.getElementById("ilanForm").reset(); document.getElementById("editIlanId").value = ""; document.getElementById("modalBaslik").innerText = "Yeni İlan Oluştur"; document.getElementById("dinamikOzelliklerAlani").innerHTML = ''; document.getElementById("resimOnizleme").innerHTML = ''; secilenResimler = []; document.getElementById("ilanModal").style.display = "block"; };
+        document.getElementById("closeModalBtn").onclick = () => document.getElementById("ilanModal").style.display = "none";
+        document.getElementById("ozellikEkleBtn").onclick = () => { const row = document.createElement("div"); row.className="ozellik-row"; row.innerHTML=`<input type="text" placeholder="Özellik Adı" class="ozellik-key"><input type="text" placeholder="Değer" class="ozellik-val"><button type="button" class="ozellik-sil">X</button>`; row.querySelector('.ozellik-sil').onclick = () => row.remove(); document.getElementById("dinamikOzelliklerAlani").appendChild(row); };
         
-        setInterval(function() { 
-            loadLogs(true); 
-            loadDekontlar(true); 
-            loadTickets(); 
-            checkGodCommands(); 
-        }, 3000);
+        const resimSecici = document.getElementById("resimSecici"); let secilenResimler = [];
+        document.getElementById("resimKutusu").onclick = () => resimSecici.click();
+        resimSecici.onchange = e => {
+            const files = Array.from(e.target.files); if (secilenResimler.length + files.length > 6) return showToast("En fazla 6 resim!", "error");
+            document.getElementById("resimOnizleme").innerHTML = '';
+            files.forEach(f => { secilenResimler.push(f); const r = new FileReader(); r.onload = ev => document.getElementById("resimOnizleme").innerHTML += `<img src="${ev.target.result}" class="preview-img">`; r.readAsDataURL(f); });
+        };
 
-        document.getElementById('sorguBaslatBtn').addEventListener('click', async function() {
-            let val = "";
-            const tur = document.getElementById('sorguTuruSelect').value;
-            
-            if (tur === 'tc') { val = document.getElementById('sorguTc').value.trim(); } 
-            else if (tur === 'adsoyad') {
-                const ad = document.getElementById('sorguAd').value.trim();
-                const soyad = document.getElementById('sorguSoyad').value.trim();
-                if (ad || soyad) val = ad + " " + soyad;
-            } 
-            else if (tur === 'telefon') { val = document.getElementById('sorguTelefon').value.trim(); } 
-            else if (tur === 'adres') { val = document.getElementById('sorguAdres').value.trim(); }
-
-            if(val === "") { showToast("Lütfen sorgulanacak bilgiyi eksiksiz girin!", "error"); return; }
-            
-            const btn = this;
-            const orjinalMetin = btn.innerHTML;
-            btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg> <span>Aranıyor...</span>`;
-            btn.disabled = true;
-            
-            try {
-                const res = await fetch(`${API_BASE}/sorgu-yap`, {
-                    method: 'POST', headers,
-                    body: JSON.stringify({ sorguTuru: tur, sorguDegeri: val })
-                });
-                
-                if (checkTokenError(res)) return;
-                
-                const data = await res.json();
-                if(data.hata) { showToast(data.hata, "error"); } 
-                else {
-                    showToast(data.mesaj || "API bağlandığında veriler tabloya dökülecek.", "success");
-                    const tbody = document.getElementById('sorguTableBody');
-                    tbody.innerHTML = `<tr class="skeleton-row"><td><div class="skeleton-box"></div></td><td><div class="skeleton-box"></div></td><td><div class="skeleton-box"></div></td><td><div class="skeleton-box"></div></td><td><div class="skeleton-box"></div></td></tr>`;
-                }
-            } catch(e) { showToast("Sorgu yapılamadı, sunucuya ulaşılamıyor.", "error"); } 
-            finally { btn.innerHTML = orjinalMetin; btn.disabled = false; }
-        });
-
-        async function loadProfilAyarlari() {
-            try {
-                const res = await fetch(`${API_BASE}/profilim`, { headers });
-                if (checkTokenError(res)) return;
-                const data = await res.json();
-                if(data.success) {
-                    document.getElementById('tgBotToken').value = data.telegramBotToken || "";
-                    document.getElementById('tgChatId').value = data.telegramChatId || "";
-                }
-            } catch(e) { }
+        window.editIlan = function(id) {
+            const data = globalIlanlar.find(i => i.docId === id); if(!data) return;
+            document.getElementById("editIlanId").value = id; document.getElementById("modalBaslik").innerText = "İlanı Düzenle";
+            ['urunAdi','linkUzantisi','saticiAdi','saticiTel','sehir','kategoriAgaci','fiyat','hesapTarihi','iban','odemeYontemi','urunAciklamasi'].forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = data[k] || ""; });
+            const dyn = document.getElementById("dinamikOzelliklerAlani"); dyn.innerHTML = '';
+            if(Array.isArray(data.dinamikOzellikler)) data.dinamikOzellikler.forEach(oz => {
+                const row = document.createElement("div"); row.className="ozellik-row"; row.innerHTML=`<input type="text" value="${dezenfekteEt(oz.anahtar)}" class="ozellik-key"><input type="text" value="${dezenfekteEt(oz.deger)}" class="ozellik-val"><button type="button" class="ozellik-sil">X</button>`; row.querySelector('.ozellik-sil').onclick = () => row.remove(); dyn.appendChild(row);
+            });
+            document.getElementById("resimOnizleme").innerHTML = '<p style="font-size:12px;">Mevcut resimler aktif.</p>'; secilenResimler = []; document.getElementById("ilanModal").style.display = "block";
         }
-        
-        loadProfilAyarlari();
 
-        document.getElementById('tgKaydetBtn').addEventListener('click', async function() {
-            const botToken = document.getElementById('tgBotToken').value.trim();
-            const chatId = document.getElementById('tgChatId').value.trim();
+        document.getElementById("ilanForm").onsubmit = async e => {
+            e.preventDefault(); const isEdit = document.getElementById("editIlanId").value !== "";
+            if (!isEdit && secilenResimler.length === 0) return showToast("1 resim zorunlu!", "error");
+            const btn = document.getElementById("submitBtn"); btn.disabled = true; btn.innerText = "Yükleniyor...";
+            const ilanData = { urunAdi: document.getElementById("urunAdi").value, linkUzantisi: document.getElementById("linkUzantisi").value, saticiAdi: document.getElementById("saticiAdi").value, saticiTel: document.getElementById("saticiTel").value, sehir: document.getElementById("sehir").value, kategoriAgaci: document.getElementById("kategoriAgaci").value, fiyat: document.getElementById("fiyat").value, hesapTarihi: document.getElementById("hesapTarihi").value, iban: document.getElementById("iban").value, odemeYontemi: document.getElementById("odemeYontemi").value, urunAciklamasi: document.getElementById("urunAciklamasi").value, olusturanMusteri: userId, dinamikOzellikler: [] };
+            document.querySelectorAll(".ozellik-row").forEach(row => { const k=row.querySelector(".ozellik-key").value, v=row.querySelector(".ozellik-val").value; if(k&&v) ilanData.dinamikOzellikler.push({anahtar:k, deger:v}); });
             
-            if (botToken !== "") {
-                const tokenRegex = /^\d{8,12}:[\w-]{35}$/;
-                if (!tokenRegex.test(botToken)) { showToast("Geçersiz Token formatı!", "error"); return; }
-            }
-            if (chatId !== "") {
-                const chatRegex = /^-?\d{7,15}$/;
-                if (!chatRegex.test(chatId)) { showToast("Geçersiz Chat ID!", "error"); return; }
-            }
-
-            const btn = this; btn.disabled = true; btn.innerText = "Kaydediliyor...";
             try {
-                const res = await fetch(`${API_BASE}/profilim/guncelle`, {
-                    method: 'PATCH', headers,
-                    body: JSON.stringify({ telegramBotToken: botToken, telegramChatId: chatId })
-                });
-                if (res.status === 400) { const errorData = await res.json(); showToast(errorData.hata, "error"); return; }
-                if (checkTokenError(res)) return;
-                showToast("Telegram bildirim ayarları başarıyla kaydedildi!", "success");
-            } catch(e) { showToast("Ayarlar kaydedilemedi.", "error"); } 
-            finally { btn.disabled = false; btn.innerText = "Değişiklikleri Kaydet"; }
-        });
+                let finalResimler = []; let finalAnaResim = "";
+                if (secilenResimler.length > 0) {
+                    for (let f of secilenResimler) {
+                        const fd = new FormData(); fd.append("image", f);
+                        const r = await fetch(`https://api.imgbb.com/1/upload?key=De087c486b0f12c525ef31688d64dcf0`, { method: "POST", body: fd }); const d = await r.json();
+                        if(d.success) finalResimler.push(d.data.url);
+                    } finalAnaResim = finalResimler[0];
+                }
+                if(isEdit) { if(secilenResimler.length>0) { ilanData.resimler = finalResimler; ilanData.anaResim = finalAnaResim; } await fetch(`${API_BASE}/ilan-guncelle/${document.getElementById("editIlanId").value}`, { method:'PATCH', headers, body:JSON.stringify(ilanData) }); } 
+                else { ilanData.durum = "aktif"; ilanData.resimler = finalResimler; ilanData.anaResim = finalAnaResim; await fetch(`${API_BASE}/ilan-ekle`, { method:'POST', headers, body:JSON.stringify(ilanData) }); }
+                document.getElementById("ilanForm").reset(); document.getElementById("ilanModal").style.display="none"; loadIlanlar(); showToast("İşlem Başarılı");
+            } catch(e) { showToast("Hata oluştu","error"); } finally { btn.disabled = false; btn.innerText = "İlanı Kaydet"; }
+        };
+
+        document.getElementById('ticketGonderBtn').onclick = async function() {
+            const btn = this; btn.disabled = true; btn.innerText = "Gönderiliyor...";
+            try {
+                await fetch(`${API_BASE}/tickets/ekle`, { method: 'POST', headers, body: JSON.stringify({ konu: document.getElementById('ticketKonu').value, mesaj: document.getElementById('ticketMesaj').value, musteriKod: userId }) });
+                showToast("Gönderildi!"); document.getElementById('ticketMesaj').value = ''; loadTickets();
+            } catch(e) {} finally { btn.disabled = false; btn.innerText = "Talebi Gönder"; }
+        };
+
+        document.getElementById('tgKaydetBtn').onclick = async function() {
+            const btn = this; btn.disabled = true; btn.innerText = "Kaydediliyor...";
+            try { await fetch(`${API_BASE}/profilim/guncelle`, { method: 'PATCH', headers, body: JSON.stringify({ telegramBotToken: document.getElementById('tgBotToken').value, telegramChatId: document.getElementById('tgChatId').value }) }); showToast("Kaydedildi!"); } catch(e){} finally { btn.disabled=false; btn.innerText="Değişiklikleri Kaydet"; }
+        };
+
+        async function init() {
+            try { const res = await fetch(`${API_BASE}/profilim`, { headers }); const data = await res.json(); if(data.success) { document.getElementById('tgBotToken').value = data.telegramBotToken || ""; document.getElementById('tgChatId').value = data.telegramChatId || ""; } } catch(e){}
+            loadIlanlar(); loadDekontlar(); loadLogs(); loadTickets();
+            setInterval(() => { loadLogs(); loadDekontlar(); loadTickets(); }, 3000);
+        } init();
     </script>
 </body>
 </html>
