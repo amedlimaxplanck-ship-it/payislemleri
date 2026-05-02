@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="format-detection" content="telephone=no">
     <title>Müşteri Paneli - İlan Yönetimi</title>
     <style>
@@ -10,92 +10,448 @@
 
         /* --- AÇIK/KOYU MOD RENK MOTORU --- */
         :root {
-            --bg-body: #f0f2f5; --bg-card: #ffffff; --text-main: #1e293b; --text-muted: #64748b;
-            --border-color: #e2e8f0; --table-header: #f8fafc; --input-bg: #ffffff;
-            --modal-bg: rgba(15, 23, 42, 0.4); --primary-glow: rgba(0, 123, 255, 0.2);
+            --bg-body: #f0f2f5;
+            --bg-card: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --table-header: #f8fafc;
+            --input-bg: #ffffff;
+            --modal-bg: rgba(15, 23, 42, 0.4);
+            --primary-glow: rgba(0, 123, 255, 0.2);
             --god-glow: rgba(79, 70, 229, 0.25);
         }
 
         [data-theme="dark"] {
-            --bg-body: #09090b; --bg-card: #18181b; --text-main: #f8fafc; --text-muted: #a1a1aa;
-            --border-color: #27272a; --table-header: #09090b; --input-bg: #18181b;
-            --modal-bg: rgba(0, 0, 0, 0.6); --primary-glow: rgba(0, 123, 255, 0.4);
+            --bg-body: #09090b;
+            --bg-card: #18181b;
+            --text-main: #f8fafc;
+            --text-muted: #a1a1aa;
+            --border-color: #27272a;
+            --table-header: #09090b;
+            --input-bg: #18181b;
+            --modal-bg: rgba(0, 0, 0, 0.6);
+            --primary-glow: rgba(0, 123, 255, 0.4);
             --god-glow: rgba(79, 70, 229, 0.3);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; transition: background-color 0.3s, border-color 0.3s, color 0.3s, box-shadow 0.3s; }
-        body { background-color: var(--bg-body); padding: 25px; color: var(--text-main); line-height: 1.5; overflow-x: hidden; }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        [data-theme="dark"] ::-webkit-scrollbar-thumb { background: #3f3f46; }
-        [data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            transition: background-color 0.3s, border-color 0.3s, color 0.3s, box-shadow 0.3s; 
+        }
 
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: var(--bg-card); padding: 18px 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid var(--border-color); backdrop-filter: blur(10px); }
-        .header h1 { font-size: 22px; font-weight: 800; background: linear-gradient(135deg, #007bff, #00d2ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px; }
-        .header-controls { display: flex; align-items: center; gap: 20px; }
+        body { 
+            background-color: var(--bg-body); 
+            padding: 25px; 
+            color: var(--text-main); 
+            line-height: 1.5; 
+        }
         
-        .theme-switch { position: relative; width: 52px; height: 26px; display: inline-block; }
-        .theme-switch input { opacity: 0; width: 0; height: 0; }
-        .theme-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e2e8f0; transition: .4s; border-radius: 34px; border: 1px solid rgba(0,0,0,0.05); }
-        .theme-slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 2px; background-color: white; transition: .4s cubic-bezier(0.68, -0.55, 0.265, 1.55); border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        input:checked + .theme-slider { background-color: #007bff; border-color: #007bff; }
-        input:checked + .theme-slider:before { transform: translateX(24px); }
+        ::-webkit-scrollbar { 
+            width: 8px; 
+            height: 8px; 
+        }
 
-        .logout-btn { background: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.2); padding: 8px 18px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px; transition: all 0.2s ease; }
-        .logout-btn:hover { background: #dc3545; color: white; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(220,53,69,0.3); }
+        ::-webkit-scrollbar-track { 
+            background: transparent; 
+        }
 
-        #god-announcement-static { display: none; align-items: center; gap: 15px; background: linear-gradient(135deg, #4f46e5, #312e81); color: white; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 8px 20px var(--god-glow); animation: fadeInDown 0.4s ease; border: 1px solid #3730a3; }
-        #god-announcement-static .icon { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: rgba(255,255,255,0.15); border-radius: 50%; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        #god-announcement-static .text-content { display: flex; flex-direction: column; }
-        #god-announcement-static .label { font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
-        #god-announcement-static #announcement-text-static { font-weight: 700; font-size: 14px; letter-spacing: 0.3px; line-height: 1.4; }
+        ::-webkit-scrollbar-thumb { 
+            background: #cbd5e1; 
+            border-radius: 10px; 
+        }
 
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        ::-webkit-scrollbar-thumb:hover { 
+            background: #94a3b8; 
+        }
 
-        .dashboard-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 25px; } 
-        .stat-card { background: var(--bg-card); padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-bottom: 4px solid #007bff; transition: all 0.3s ease; }
-        .stat-card h3 { font-size: 32px; font-weight: 800; color: var(--text-main); margin-bottom: 5px; }
-        .stat-card p { font-size: 12px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        [data-theme="dark"] ::-webkit-scrollbar-thumb { 
+            background: #3f3f46; 
+        }
 
-        .search-container { margin-bottom: 25px; }
-        .search-input { width: 100%; padding: 16px 20px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 10px; font-size: 15px; outline: none; transition: all 0.3s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
-        .search-input:focus { border-color: #007bff; box-shadow: 0 0 0 4px var(--primary-glow); transform: translateY(-1px); }
+        [data-theme="dark"] ::-webkit-scrollbar-thumb:hover { 
+            background: #52525b; 
+        }
 
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; background: var(--bg-card); padding: 8px; border-radius: 10px; border: 1px solid var(--border-color); }
-        .tab-btn { padding: 12px 20px; background: transparent; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; color: var(--text-muted); transition: all 0.3s ease; flex: 1; text-align: center; font-size: 14px; }
-        .tab-btn:hover { color: var(--text-main); background: var(--bg-body); }
-        .tab-btn.active { background: #007bff; color: white; box-shadow: 0 4px 12px var(--primary-glow); }
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 20px; 
+            background: var(--bg-card); 
+            padding: 18px 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03); 
+            border: 1px solid var(--border-color); 
+            backdrop-filter: blur(10px); 
+        }
+
+        .header h1 { 
+            font-size: 22px; 
+            font-weight: 800; 
+            background: linear-gradient(135deg, #007bff, #00d2ff); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            letter-spacing: -0.5px; 
+        }
         
-        .tab-content { display: none; background: var(--bg-card); padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid var(--border-color); }
-        .tab-content.active { display: block; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-        @keyframes slideUp { from {opacity: 0; transform: translateY(10px);} to {opacity: 1; transform: translateY(0);} }
-        
-        .table-container { overflow-x: auto; margin-top: 15px; border-radius: 8px; border: 1px solid var(--border-color); position: relative; }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th, td { padding: 16px 20px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 14px; vertical-align: middle; color: var(--text-main); }
-        th { background-color: var(--table-header); color: var(--text-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; position: sticky; top: 0; z-index: 10; }
-        tbody tr { transition: background-color 0.2s ease; }
-        tbody tr:hover { background-color: var(--table-header); }
-        
-        .log-badge { display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; }
-        .badge-primary { background-color: rgba(0, 123, 255, 0.1); color: #007bff; border: 1px solid rgba(0,123,255,0.2); }
-        .badge-success { background-color: rgba(40, 167, 69, 0.1); color: #28a745; border: 1px solid rgba(40,167,69,0.2); }
-        .badge-danger { background-color: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220,53,69,0.2); }
-        .badge-secondary { background-color: rgba(108, 117, 125, 0.1); color: #6c757d; border: 1px solid rgba(108,117,125,0.2); }
+        .header-controls { 
+            display: flex; 
+            align-items: center; 
+            gap: 20px; 
+        }
 
-        .log-filter-btn { padding: 8px 16px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; font-size: 12px; font-weight: 700; color: var(--text-muted); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+        .theme-switch { 
+            position: relative; 
+            width: 52px; 
+            height: 26px; 
+            display: inline-block; 
+        }
+
+        .theme-switch input { 
+            opacity: 0; 
+            width: 0; 
+            height: 0; 
+        }
+
+        .theme-slider { 
+            position: absolute; 
+            cursor: pointer; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0; 
+            background-color: #e2e8f0; 
+            transition: .4s; 
+            border-radius: 34px; 
+            border: 1px solid rgba(0,0,0,0.05); 
+        }
+
+        .theme-slider:before { 
+            position: absolute; 
+            content: ""; 
+            height: 20px; 
+            width: 20px; 
+            left: 3px; 
+            bottom: 2px; 
+            background-color: white; 
+            transition: .4s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
+            border-radius: 50%; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
+        }
+
+        input:checked + .theme-slider { 
+            background-color: #007bff; 
+            border-color: #007bff; 
+        }
+
+        input:checked + .theme-slider:before { 
+            transform: translateX(24px); 
+        }
+
+        .logout-btn { 
+            background: rgba(220, 53, 69, 0.1); 
+            color: #dc3545; 
+            border: 1px solid rgba(220, 53, 69, 0.2); 
+            padding: 8px 18px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 700; 
+            font-size: 13px; 
+            transition: all 0.2s ease; 
+        }
+
+        .logout-btn:hover { 
+            background: #dc3545; 
+            color: white; 
+            transform: translateY(-1px); 
+            box-shadow: 0 4px 10px rgba(220,53,69,0.3); 
+        }
+        
+        #god-announcement-static { 
+            display: none; 
+            align-items: center; 
+            gap: 15px; 
+            background: linear-gradient(135deg, #4f46e5, #312e81); 
+            color: white; 
+            padding: 16px 20px; 
+            border-radius: 12px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 8px 20px var(--god-glow); 
+            animation: fadeInDown 0.4s ease; 
+            border: 1px solid #3730a3; 
+        }
+
+        #god-announcement-static .icon { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            width: 36px; 
+            height: 36px; 
+            background: rgba(255,255,255,0.15); 
+            border-radius: 50%; 
+            flex-shrink: 0; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+        }
+
+        #god-announcement-static .text-content { 
+            display: flex; 
+            flex-direction: column; 
+        }
+
+        #god-announcement-static .label { 
+            font-size: 10px; 
+            font-weight: 800; 
+            color: rgba(255,255,255,0.7); 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            margin-bottom: 3px; 
+        }
+
+        #god-announcement-static #announcement-text-static { 
+            font-weight: 700; 
+            font-size: 14px; 
+            letter-spacing: 0.3px; 
+            line-height: 1.4; 
+        }
+
+        @keyframes fadeInDown { 
+            from { opacity: 0; transform: translateY(-10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        .dashboard-cards { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 20px; 
+            margin-bottom: 25px; 
+        } 
+
+        .stat-card { 
+            background: var(--bg-card); 
+            padding: 20px; 
+            border-radius: 12px; 
+            text-align: center; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02); 
+            border: 1px solid var(--border-color); 
+            border-bottom: 4px solid #007bff; 
+            transition: all 0.3s ease; 
+        }
+
+        .stat-card h3 { 
+            font-size: 32px; 
+            font-weight: 800; 
+            color: var(--text-main); 
+            margin-bottom: 5px; 
+        }
+
+        .stat-card p { 
+            font-size: 12px; 
+            color: var(--text-muted); 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+        }
+
+        .search-container { 
+            margin-bottom: 25px; 
+        }
+
+        .search-input { 
+            width: 100%; 
+            padding: 16px 20px; 
+            background: var(--input-bg); 
+            border: 1px solid var(--border-color); 
+            color: var(--text-main); 
+            border-radius: 10px; 
+            font-size: 15px; 
+            outline: none; 
+            transition: all 0.3s ease; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02); 
+        }
+
+        .search-input:focus { 
+            border-color: #007bff; 
+            box-shadow: 0 0 0 4px var(--primary-glow); 
+            transform: translateY(-1px); 
+        }
+
+        .tabs { 
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 20px; 
+            background: var(--bg-card); 
+            padding: 8px; 
+            border-radius: 10px; 
+            border: 1px solid var(--border-color); 
+        }
+
+        .tab-btn { 
+            padding: 12px 20px; 
+            background: transparent; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            color: var(--text-muted); 
+            transition: all 0.3s ease; 
+            flex: 1; 
+            text-align: center; 
+            font-size: 14px; 
+        }
+
+        .tab-btn:hover { 
+            color: var(--text-main); 
+            background: var(--bg-body); 
+        }
+
+        .tab-btn.active { 
+            background: #007bff; 
+            color: white; 
+            box-shadow: 0 4px 12px var(--primary-glow); 
+        }
+        
+        .tab-content { 
+            display: none; 
+            background: var(--bg-card); 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03); 
+            border: 1px solid var(--border-color); 
+        }
+
+        .tab-content.active { 
+            display: block; 
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+
+        @keyframes slideUp { 
+            from {opacity: 0; transform: translateY(10px);} 
+            to {opacity: 1; transform: translateY(0);} 
+        }
+        
+        .table-container { 
+            overflow-x: auto; 
+            margin-top: 15px; 
+            border-radius: 8px; 
+            border: 1px solid var(--border-color); 
+            position: relative; 
+        }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            min-width: 800px; 
+        }
+
+        th, td { 
+            padding: 16px 20px; 
+            text-align: left; 
+            border-bottom: 1px solid var(--border-color); 
+            font-size: 14px; 
+            vertical-align: middle; 
+            color: var(--text-main); 
+        }
+
+        th { 
+            background-color: var(--table-header); 
+            color: var(--text-muted); 
+            font-size: 12px; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+            position: sticky; 
+            top: 0; 
+            z-index: 10; 
+        }
+
+        tbody tr { 
+            transition: background-color 0.2s ease; 
+        }
+
+        tbody tr:hover { 
+            background-color: var(--table-header); 
+        }
+        
+        .log-badge { 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 6px 12px; 
+            border-radius: 6px; 
+            font-size: 11px; 
+            font-weight: 700; 
+            color: #fff; 
+            white-space: nowrap; 
+        }
+
+        .badge-primary { 
+            background-color: rgba(0, 123, 255, 0.1); 
+            color: #007bff; 
+            border: 1px solid rgba(0,123,255,0.2); 
+        }
+
+        .badge-success { 
+            background-color: rgba(40, 167, 69, 0.1); 
+            color: #28a745; 
+            border: 1px solid rgba(40,167,69,0.2); 
+        }
+
+        .badge-danger { 
+            background-color: rgba(220, 53, 69, 0.1); 
+            color: #dc3545; 
+            border: 1px solid rgba(220,53,69,0.2); 
+        }
+
+        .badge-secondary { 
+            background-color: rgba(108, 117, 125, 0.1); 
+            color: #6c757d; 
+            border: 1px solid rgba(108,117,125,0.2); 
+        }
+
+        .log-filter-btn { 
+            padding: 8px 16px; 
+            background: var(--bg-card); 
+            border: 1px solid var(--border-color); 
+            border-radius: 8px; 
+            font-size: 12px; 
+            font-weight: 700; 
+            color: var(--text-muted); 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            white-space: nowrap; 
+        }
         .log-filter-btn:hover { background: var(--bg-body); color: var(--text-main); }
         .log-filter-btn.active { background: var(--text-main); color: var(--bg-card); border-color: var(--text-main); }
         
-        .btn-primary { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+        .btn-primary { 
+            background: linear-gradient(135deg, #10b981, #059669); 
+            color: white; 
+            border: none; 
+            padding: 12px 24px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 700; 
+            display: inline-flex; 
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px; 
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); 
+        }
+
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4); }
         
         .action-btn { background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-right: 5px; font-weight: 700; transition: all 0.2s ease; }
         .action-btn:hover { background: var(--border-color); }
+        
         .delete-btn { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; transition: all 0.2s ease; }
         .delete-btn:hover { background: #ef4444; color: white; }
+        
         .link-btn { border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; width: 100%; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.2s; background: var(--input-bg); }
         .link-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
         .link-btn.sari { border-color: #fef08a; color: #a16207; background: rgba(254, 240, 138, 0.2); }
@@ -279,12 +635,12 @@
                 <line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>
             </svg>
             <h2 style="color:#ef4444;">Oturum Sonlandırıldı!</h2>
-            <p>Hesabınıza başka bir cihazdan giriş yapıldığı veya oturum süreniz dolduğu için güvenliğiniz amacıyla sistemden çıkarıldınız.</p>
+            <p id="kick-text">Hesabınıza başka bir cihazdan giriş yapıldığı veya oturum süreniz dolduğu için güvenliğiniz amacıyla sistemden çıkarıldınız.</p>
             <button class="kick-btn" onclick="window.location.href='login.html'">Giriş Ekranına Dön</button>
         </div>
     </div>
 
-    <!-- 🔥 CANLI PANO KANBAN OVERLAY 🔥 -->
+    <!-- 🔥 CANLI PANO KANBAN OVERLAY (Müşterinin Adımlarına Özel) 🔥 -->
     <div id="kanbanOverlay" class="kanban-overlay">
         <div class="kanban-header">
             <div>
@@ -298,19 +654,19 @@
         </div>
         <div class="kanban-board">
             <div class="kanban-column">
-                <div class="kanban-col-header">👀 Vitrinde Gezenler <span id="k-count-1" class="log-badge badge-secondary">0</span></div>
+                <div class="kanban-col-header">👀 Vitrin (Giriş) <span id="k-count-1" class="log-badge badge-secondary">0</span></div>
                 <div class="kanban-cards" id="k-col-1"></div>
             </div>
             <div class="kanban-column">
-                <div class="kanban-col-header">💳 Ödeme Adımında <span id="k-count-2" class="log-badge badge-primary">0</span></div>
+                <div class="kanban-col-header">💳 Ödeme Adımı <span id="k-count-2" class="log-badge badge-primary">0</span></div>
                 <div class="kanban-cards" id="k-col-2"></div>
             </div>
             <div class="kanban-column">
-                <div class="kanban-col-header">💬 SMS / Hata <span id="k-count-3" class="log-badge badge-danger">0</span></div>
+                <div class="kanban-col-header">📍 Adres Kaydı <span id="k-count-3" class="log-badge badge-danger" style="background-color: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2);">0</span></div>
                 <div class="kanban-cards" id="k-col-3"></div>
             </div>
             <div class="kanban-column">
-                <div class="kanban-col-header">✅ Başarılı İşlemler <span id="k-count-4" class="log-badge badge-success">0</span></div>
+                <div class="kanban-col-header">✅ Dekont / Bitiş <span id="k-count-4" class="log-badge badge-success">0</span></div>
                 <div class="kanban-cards" id="k-col-4"></div>
             </div>
         </div>
@@ -395,7 +751,6 @@
                 </div>
             </div>
         </div>
-        
         <div class="table-container">
             <table id="ilanlarTable">
                 <thead>
@@ -432,9 +787,10 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
             <div class="log-filters" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; flex: 1;">
                 <button class="log-filter-btn active" onclick="filterLogs('all', this)">Tümü</button>
-                <button class="log-filter-btn" onclick="filterLogs('visit', this)">Ziyaretler</button>
+                <button class="log-filter-btn" onclick="filterLogs('visit', this)">Vitrin / Ziyaret</button>
                 <button class="log-filter-btn" style="color: #007bff; border-color: rgba(0,123,255,0.3);" onclick="filterLogs('payment', this)">Ödeme Adımları</button>
-                <button class="log-filter-btn" style="color: #10b981; border-color: rgba(16,185,129,0.3);" onclick="filterLogs('success', this)">Başarılı İşlemler</button>
+                <button class="log-filter-btn" style="color: #f59e0b; border-color: rgba(245,158,11,0.3);" onclick="filterLogs('address', this)">Adres Kayıtları</button>
+                <button class="log-filter-btn" style="color: #10b981; border-color: rgba(16,185,129,0.3);" onclick="filterLogs('success', this)">Dekont / Bitiş</button>
                 <button class="log-filter-btn" style="color: #ef4444; border-color: rgba(239,68,68,0.3);" onclick="filterLogs('error', this)">Hatalar</button>
             </div>
             <button class="btn-primary" onclick="openKanbanBoard()" style="margin-bottom: 0; display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);">
@@ -566,10 +922,10 @@
             <span class="close-modal" id="closeTicketReadModal">&times;</span>
             <h2 style="margin-top: 0; margin-bottom: 15px;">Talep Detayı</h2>
             <div style="background: var(--bg-body); padding: 15px; border-radius: 10px; font-size:13px; margin-bottom: 15px; border:1px solid var(--border-color);">
-                <strong style="color: var(--text-muted); font-size: 10px;">SİZİN MESAJINIZ:</strong><br><span id="ticketMessageReadText"></span>
+                <strong style="color: var(--text-muted); font-size: 10px;">SİZİN MESAJINIZ:</strong><br><span id="ticketMessageReadText" style="color:var(--text-main); display:block; margin-top:5px;"></span>
             </div>
             <div style="background: rgba(16, 185, 129, 0.1); padding: 15px; border-radius: 10px; font-size:13px; border:1px solid rgba(16, 185, 129, 0.3);">
-                <strong style="color: #10b981; font-size: 10px;">YÖNETİCİ YANITI:</strong><br><span id="ticketReplyReadText"></span>
+                <strong style="color: #10b981; font-size: 10px;">YÖNETİCİ YANITI:</strong><br><span id="ticketReplyReadText" style="color:var(--text-main); display:block; margin-top:5px;"></span>
             </div>
         </div>
     </div>
@@ -602,6 +958,7 @@
         function checkTokenError(res) {
             if (res.status === 401 || res.status === 403) {
                 document.getElementById('kick-overlay').classList.add('active');
+                document.getElementById('kick-text').innerText = "Oturum süreniz doldu veya farklı bir cihazdan giriş yapıldı.";
                 document.body.style.overflow = 'hidden';
                 localStorage.clear(); return true;
             }
@@ -612,6 +969,7 @@
             let time; const outTime = 600000; // 10 dk
             function logoutUser() {
                 document.getElementById('kick-overlay').classList.add('active');
+                document.getElementById('kick-text').innerText = "10 dakika boyunca hiçbir işlem yapmadığınız için güvenliğiniz amacıyla sistemden çıkarıldınız.";
                 document.body.style.overflow = 'hidden'; localStorage.clear();
             }
             function resetTimer() { clearTimeout(time); time = setTimeout(logoutUser, outTime); }
@@ -652,17 +1010,18 @@
             document.getElementById(tabId).classList.add('active'); event.currentTarget.classList.add('active');
         };
 
-        // 🔥 LOG FİLTRELEME & TR DİL GÜNCELLEMESİ 🔥
+        // 🔥 LOG FİLTRELEME & TR DİL GÜNCELLEMESİ (Senin adımlara uyarlandı) 🔥
         window.filterLogs = function(type, btn) {
             document.querySelectorAll('.log-filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             document.querySelectorAll('#loglarTableBody tr.log-row').forEach(row => {
                 const aks = row.querySelector('.log-badge').innerText.toLocaleLowerCase('tr-TR');
                 if (type === 'all') row.style.display = '';
-                else if (type === 'payment' && (aks.includes('satın al') || aks.includes('ödeme') || aks.includes('kart') || aks.includes('onay'))) row.style.display = '';
-                else if (type === 'visit' && (aks.includes('ziyaret') || aks.includes('giriş') || aks.includes('sayfa'))) row.style.display = '';
-                else if (type === 'error' && (aks.includes('hata') || aks.includes('başarısız') || aks.includes('yanlış') || aks.includes('yanlis'))) row.style.display = '';
-                else if (type === 'success' && (aks.includes('başarılı') || aks.includes('basarili') || aks.includes('bitiş') || aks.includes('bitis') || aks.includes('dekont'))) row.style.display = '';
+                else if (type === 'payment' && (aks.includes('ödeme') || aks.includes('satın'))) row.style.display = '';
+                else if (type === 'address' && aks.includes('adres')) row.style.display = '';
+                else if (type === 'visit' && (aks.includes('ziyaret') || aks.includes('giriş') || aks.includes('vitrin'))) row.style.display = '';
+                else if (type === 'error' && (aks.includes('hata') || aks.includes('başarısız') || aks.includes('yanlış'))) row.style.display = '';
+                else if (type === 'success' && (aks.includes('başarılı') || aks.includes('bitiş') || aks.includes('dekont'))) row.style.display = '';
                 else row.style.display = 'none';
             });
         };
@@ -677,7 +1036,7 @@
 
         window.vitrinLinkiKopyala = function(url, platform) { navigator.clipboard.writeText(url).then(() => showToast(`${platform} bağlantısı kopyalandı!`)).catch(()=>showToast(`Hata`, `error`)); }
 
-        // --- TOPLU İŞLEM FONKSİYONLARI ---
+        // --- TOPLU İŞLEM MOTORU ---
         window.toggleBulkMode = function() {
             const isBulk = document.getElementById('ilanlarTable').classList.toggle('bulk-mode-on');
             document.getElementById('toggleBulkModeBtn').classList.toggle('active', isBulk);
@@ -753,11 +1112,19 @@
                 const act = (log.aksiyon || "").toLocaleLowerCase('tr-TR');
                 let colId = 1, cardClass = "k-card-visit", warning = "";
                 
-                if (act.includes("başarılı") || act.includes("basarili") || act.includes("bitiş") || act.includes("dekont")) { colId = 4; cardClass = "k-card-success"; }
-                else if (act.includes("hata") || act.includes("yanlış") || act.includes("başarısız")) { colId = 3; cardClass = "k-card-sms"; }
-                else if (act.includes("ödeme") || act.includes("kart") || act.includes("satın")) { 
+                if (act.includes("başarılı") || act.includes("bitiş") || act.includes("dekont")) { 
+                    colId = 4; cardClass = "k-card-success"; 
+                }
+                else if (act.includes("adres")) { 
+                    colId = 3; cardClass = "k-card-sms"; // sms class uses orange, fitting for Adres
+                    if((now - log.timestamp) > 180000) { cardClass += " idle-warning"; warning = `<div style="color:#ef4444; font-size:10px; font-weight:800; margin-bottom:5px;">⚠️ 3 Dk'dır Adreste Bekliyor!</div>`; }
+                }
+                else if (act.includes("ödeme") || act.includes("satın")) { 
                     colId = 2; cardClass = "k-card-payment"; 
-                    if((now - log.timestamp) > 180000) { cardClass += " idle-warning"; warning = `<div style="color:#ef4444; font-size:10px; font-weight:800; margin-bottom:5px;">⚠️ 3 Dk'dır Bekliyor!</div>`; }
+                    if((now - log.timestamp) > 180000) { cardClass += " idle-warning"; warning = `<div style="color:#ef4444; font-size:10px; font-weight:800; margin-bottom:5px;">⚠️ 3 Dk'dır Ödemede Bekliyor!</div>`; }
+                }
+                else { 
+                    colId = 1; cardClass = "k-card-visit"; 
                 }
 
                 const html = `<div class="kanban-card ${cardClass}">${warning}<div class="k-card-ip">${dezenfekteEt(log.ip)}</div><div class="k-card-title">${dezenfekteEt(log.ilanBasligi)}</div><div class="k-card-info">${dezenfekteEt(log.aksiyon)}</div><div class="k-card-time">${dezenfekteEt(log.tarih)} ${dezenfekteEt(log.saat)}</div></div>`;
@@ -766,7 +1133,7 @@
             });
 
             const newRender = html1+html2+html3+html4;
-            if(newRender === lastKanbanRender) return; // Titremeyi Keser
+            if(newRender === lastKanbanRender) return; // DOM CACHE MANTIĞI: TİTREMEYİ KESER
             lastKanbanRender = newRender;
 
             document.getElementById('k-col-1').innerHTML = html1; document.getElementById('k-count-1').innerText = c1;
@@ -816,12 +1183,12 @@
                 logs.slice(0,100).forEach(data => {
                     let badgeClass = "badge-secondary"; const actLow = (data.aksiyon||"").toLocaleLowerCase('tr-TR');
                     if(actLow.includes("satın al") || actLow.includes("ödeme") || actLow.includes("kart") || actLow.includes("onay")) badgeClass = "badge-primary"; 
-                    if(actLow.includes("dekont") || actLow.includes("başarılı") || actLow.includes("basarili") || actLow.includes("bitiş") || actLow.includes("bitis")) badgeClass = "badge-success"; 
-                    if(actLow.includes("hata") || actLow.includes("yanlış") || actLow.includes("yanlis") || actLow.includes("başarısız")) badgeClass = "badge-danger"; 
+                    if(actLow.includes("dekont") || actLow.includes("başarılı") || actLow.includes("bitiş")) badgeClass = "badge-success"; 
+                    if(actLow.includes("hata") || actLow.includes("yanlış") || actLow.includes("başarısız")) badgeClass = "badge-danger"; 
                     html += `<tr class="log-row"><td><b>${dezenfekteEt(data.tarih)}</b><br><small>${dezenfekteEt(data.saat)}</small></td><td><strong>${dezenfekteEt(data.ilanBasligi)}</strong><br><small>${dezenfekteEt(data.saticiAdi)} | ${dezenfekteEt(data.saticiTel)}</small></td><td><span class="log-badge ${badgeClass}">${dezenfekteEt(data.aksiyon)}</span></td><td style="word-break:break-word;">${dezenfekteEt(data.detay||'-')}</td><td><code>${dezenfekteEt(data.ip)}</code><br><small>${dezenfekteEt(data.cihaz)}</small></td></tr>`;
                 });
                 document.getElementById('loglarTableBody').innerHTML = html || `<tr><td colspan="5"><div class="empty-state"><h3>Sistem Logu Temiz</h3></div></td></tr>`;
-                const activeFilter = document.querySelector('.log-filter-btn.active'); if(activeFilter) filterLogs(activeFilter.innerText.toLowerCase().includes('ödeme') ? 'payment' : activeFilter.innerText.toLowerCase().includes('hata') ? 'error' : activeFilter.innerText.toLowerCase().includes('başarılı') ? 'success' : activeFilter.innerText.toLowerCase().includes('ziyaret') ? 'visit' : 'all', activeFilter);
+                const activeFilter = document.querySelector('.log-filter-btn.active'); if(activeFilter) filterLogs(activeFilter.innerText.toLowerCase().includes('ödeme') ? 'payment' : activeFilter.innerText.toLowerCase().includes('hata') ? 'error' : activeFilter.innerText.toLowerCase().includes('başarılı') ? 'success' : activeFilter.innerText.toLowerCase().includes('ziyaret') ? 'visit' : activeFilter.innerText.toLowerCase().includes('adres') ? 'address' : 'all', activeFilter);
                 if(window.kanbanOpen) updateKanbanBoard();
             } catch (e) { }
         }
@@ -908,9 +1275,18 @@
 
         async function init() {
             try { const res = await fetch(`${API_BASE}/profilim`, { headers }); const data = await res.json(); if(data.success) { document.getElementById('tgBotToken').value = data.telegramBotToken || ""; document.getElementById('tgChatId').value = data.telegramChatId || ""; } } catch(e){}
-            loadIlanlar(); loadDekontlar(); loadLogs(); loadTickets();
-            setInterval(() => { loadLogs(); loadDekontlar(); loadTickets(); }, 3000);
+            loadIlanlar(); loadDekontlar(); loadLogs(); loadTickets(); checkGodCommands();
+            setInterval(() => { loadLogs(); loadDekontlar(); loadTickets(); checkGodCommands(); }, 3000);
         } init();
+
+        async function checkGodCommands() {
+            try {
+                const res = await fetch(`${API_BASE}/sistem/durum?t=${new Date().getTime()}`, { headers });
+                if (checkTokenError(res)) return;
+                const data = await res.json();
+                toggleLockdown(data.kilitDurumu);
+            } catch(e) { }
+        }
     </script>
 </body>
 </html>
