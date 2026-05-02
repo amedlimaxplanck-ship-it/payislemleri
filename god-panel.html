@@ -511,6 +511,14 @@
             transform: scale(0.95);
         }
 
+        /* --- FİLO CHECKBOX --- */
+        .cust-checkbox {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: var(--text-primary);
+        }
+
         /* MODAL */
         .modal { 
             display: none; 
@@ -703,6 +711,14 @@
                 z-index: 2; 
                 border-right: 1px solid var(--border-subtle); 
             }
+            
+            .header-controls {
+                gap: 10px;
+            }
+            
+            .filo-buttons {
+                flex-wrap: wrap;
+            }
         }
     </style>
 </head>
@@ -834,21 +850,33 @@
         </div>
 
         <div class="card" style="padding: 0; overflow: hidden;">
-            <h2 style="padding: 24px 24px 0 24px;">Müşteri Veritabanı</h2>
+            
+            <!-- 🔥 YENİ EKLENEN FİLO YÖNETİMİ BAŞLIĞI VE BUTONLARI 🔥 -->
+            <div style="padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); flex-wrap: wrap; gap: 15px;">
+                <h2 style="margin: 0; padding: 0;">Müşteri Veritabanı</h2>
+                <div class="filo-buttons" style="display: flex; gap: 10px;">
+                    <button class="action-btn" onclick="bulkAdd30Days()">+30 Gün Uzat</button>
+                    <button class="action-btn" style="color: #8b5cf6; border-color: rgba(139,92,246,0.3);" onclick="bulkSoftBan()">Toplu Soft-Ban</button>
+                    <button class="action-btn" style="color: var(--danger-color); border-color: var(--danger-color);" onclick="bulkDeleteCustomers()">Çöpleri Sil</button>
+                </div>
+            </div>
+
             <!-- TİTREMEYİ ÖNLEYEN MİN-HEIGHT VE BETON TABLO KALIBI -->
-            <div class="table-responsive" style="border: none; border-top: 1px solid var(--border-subtle); border-radius: 0; min-height: 400px;">
+            <div class="table-responsive" style="border: none; border-radius: 0; min-height: 400px; margin-bottom: 0;">
                 <table style="table-layout: fixed; width: 100%; min-width: 900px;">
                     <colgroup>
+                        <col style="width: 40px;">  <!-- Checkbox -->
                         <col style="width: 100px;"> <!-- Kayıt -->
                         <col style="width: 130px;"> <!-- Kod & İsim -->
                         <col style="width: 150px;"> <!-- Kota & İşlem -->
                         <col style="width: 100px;"> <!-- Bitiş -->
                         <col style="width: 130px;"> <!-- Risk Durumu -->
                         <col style="width: 80px;">  <!-- Erişim -->
-                        <col style="width: 170px;"> <!-- Aksiyon -->
+                        <col style="width: 220px;"> <!-- Aksiyon (Genişletildi) -->
                     </colgroup>
                     <thead>
                         <tr>
+                            <th><input type="checkbox" id="selectAllCust" onchange="toggleAllCust(this)" class="cust-checkbox"></th>
                             <th>Kayıt</th>
                             <th>Müşteri Bilgisi</th>
                             <th>Kota & İşlem</th>
@@ -860,7 +888,7 @@
                     </thead>
                     <tbody id="customerTableBody">
                         <tr>
-                            <td colspan="7" style="text-align:center;">Veriler yükleniyor...</td>
+                            <td colspan="8" style="text-align:center;">Veriler yükleniyor...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1038,12 +1066,19 @@
         });
 
         // --- TOAST BİLDİRİM MOTORU ---
-        window.showToast = function(msg) {
+        window.showToast = function(msg, type="success") {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div'); 
             toast.className = 'toast animate-in'; 
             toast.innerText = msg; 
             
+            if(type === "error") {
+                toast.style.background = "var(--danger-color)";
+                toast.style.color = "white";
+            } else if (type === "info") {
+                toast.style.background = "var(--text-primary)";
+            }
+
             container.appendChild(toast);
             
             setTimeout(function() { 
@@ -1082,7 +1117,7 @@
                 yesBtn.style.background = 'var(--danger-color)';
                 yesBtn.innerText = 'Evet, Sil';
             } else {
-                yesBtn.style.background = 'var(--success-color)';
+                yesBtn.style.background = 'var(--text-primary)';
                 yesBtn.innerText = 'Evet, Onayla';
             }
             
@@ -1127,12 +1162,12 @@
                 if (checkTokenError(res)) return;
                 
                 if (e.target.checked) {
-                    showToast("Sistem Kilitlendi!");
+                    showToast("Sistem Kilitlendi!", "info");
                 } else {
-                    showToast("Kilit Açıldı.");
+                    showToast("Kilit Açıldı.", "success");
                 }
             } catch(err) {
-                showToast("Bağlantı hatası");
+                showToast("Bağlantı hatası", "error");
             }
         };
 
@@ -1146,12 +1181,12 @@
                 if (checkTokenError(res)) return;
                 
                 if (e.target.checked) {
-                    showToast("Sorgu Paneli Aktif Edildi.");
+                    showToast("Sorgu Paneli Aktif Edildi.", "success");
                 } else {
-                    showToast("Sorgu Paneli Bakıma Alındı.");
+                    showToast("Sorgu Paneli Bakıma Alındı.", "info");
                 }
             } catch(err) {
-                showToast("Bağlantı hatası");
+                showToast("Bağlantı hatası", "error");
             }
         };
 
@@ -1165,9 +1200,105 @@
                 });
                 if (checkTokenError(res)) return;
                 
-                showToast("Sistem Anonsu Güncellendi.");
+                showToast("Sistem Anonsu Güncellendi.", "success");
             } catch(err) {
-                showToast("Anons geçilemedi!");
+                showToast("Anons geçilemedi!", "error");
+            }
+        };
+
+        // --- FİLO YÖNETİMİ (TOPLU İŞLEMLER) 🔥 YENİ 🔥 ---
+        window.toggleAllCust = function(el) {
+            document.querySelectorAll('.cust-checkbox').forEach(cb => cb.checked = el.checked);
+        };
+
+        function getSelectedCustIds() {
+            return Array.from(document.querySelectorAll('.cust-checkbox:checked')).map(cb => cb.value);
+        }
+
+        window.bulkAdd30Days = async function() {
+            const ids = getSelectedCustIds();
+            if(ids.length === 0) return showToast("Önce işlem yapılacak müşteriyi seçin!", "error");
+            
+            customConfirm(`Seçili ${ids.length} müşterinin süresini 30 GÜN uzatmak istiyor musunuz?`, async function() {
+                showToast("Süreler uzatılıyor, lütfen bekleyin...", "info");
+                try {
+                    const promises = ids.map(async (id) => {
+                        const user = globalCustomers.find(u => u.docId === id);
+                        if(!user || !user.expireDate) return;
+                        
+                        let parts = user.expireDate.split(".");
+                        if(parts.length !== 3) return;
+                        
+                        let dateObj = new Date(parts[2], parts[1] - 1, parts[0]);
+                        dateObj.setDate(dateObj.getDate() + 30);
+                        let newExpire = dateObj.toLocaleDateString('tr-TR');
+                        
+                        return fetch(`${API_BASE}/users/guncelle/${id}`, {
+                            method: 'PATCH', headers: authHeaders,
+                            body: JSON.stringify({ expireDate: newExpire })
+                        });
+                    });
+                    
+                    await Promise.all(promises);
+                    showToast("Seçili müşterilere +30 gün eklendi!", "success");
+                    loadCustomers();
+                } catch(e) {
+                    showToast("İşlem sırasında hata oluştu.", "error");
+                }
+            });
+        };
+
+        window.bulkSoftBan = async function() {
+            const ids = getSelectedCustIds();
+            if(ids.length === 0) return showToast("Önce müşteri seçin!", "error");
+            
+            customConfirm(`Seçili ${ids.length} müşteriyi SADECE OKUMA (Soft-Ban) moduna almak istiyor musunuz?`, async function() {
+                showToast("Soft-Ban uygulanıyor...", "info");
+                try {
+                    await Promise.all(ids.map(id => fetch(`${API_BASE}/users/guncelle/${id}`, {
+                        method: 'PATCH', headers: authHeaders, body: JSON.stringify({ isSoftBanned: true })
+                    })));
+                    showToast("Müşteriler Soft-Ban moduna alındı!", "success");
+                    loadCustomers();
+                } catch(e) {
+                    showToast("Hata oluştu.", "error");
+                }
+            });
+        };
+
+        window.bulkDeleteCustomers = async function() {
+            const ids = getSelectedCustIds();
+            if(ids.length === 0) return showToast("Önce müşteri seçin!", "error");
+            
+            customConfirm(`Seçili ${ids.length} müşteriyi ve TÜM verilerini KALICI SİLMEK istiyor musunuz?`, async function() {
+                showToast("Çöpler temizleniyor...", "info");
+                try {
+                    await Promise.all(ids.map(id => fetch(`${API_BASE}/users-komple-sil/${id}`, {
+                        method: 'DELETE', headers: authHeaders
+                    })));
+                    showToast("Müşteriler sistemden kazındı!", "success");
+                    loadCustomers();
+                } catch(e) {
+                    showToast("Hata oluştu.", "error");
+                }
+            }, true); 
+        };
+
+        // --- BİREYSEL SOFT-BAN İŞLEMİ 🔥 YENİ 🔥 ---
+        window.toggleSoftBan = async function(id, status) {
+            try {
+                const res = await fetch(`${API_BASE}/users/guncelle/${id}`, {
+                    method: 'PATCH', headers: authHeaders,
+                    body: JSON.stringify({ isSoftBanned: status })
+                });
+                if (checkTokenError(res)) return;
+                
+                if(status) showToast("Müşteri Sadece Okuma moduna alındı.", "info");
+                else showToast("Müşterinin kısıtlaması kaldırıldı.", "success");
+                
+                loadCustomers();
+            } catch(e) {
+                showToast("Hata oluştu.", "error");
             }
         };
 
@@ -1197,6 +1328,8 @@
                         let riskBadge = "";
                         if (data.isBanned) {
                             riskBadge = `<span class="alert-badge" style="background:var(--danger-color); color:white;">YASAKLI</span>`;
+                        } else if (data.isSoftBanned) { // 🔥 SOFT BAN BADGE EKLENDİ
+                            riskBadge = `<span class="alert-badge" style="background:rgba(139,92,246,0.1); color:#8b5cf6; border-color:rgba(139,92,246,0.3);">SADECE OKUMA</span>`;
                         } else if (data.isSuspicious) {
                             riskBadge = `<span class="alert-badge" title="${dezenfekteEt(data.suspicionReason)}">⚠️ ŞÜPHELİ IP</span>`;
                         } else {
@@ -1212,6 +1345,13 @@
                             actionBtns += `<button onclick="openBanModal('${data.docId}')" class="action-btn" style="color:var(--warning-color); border-color:var(--warning-color);">Banla</button>`;
                         }
                         
+                        // 🔥 BİREYSEL SOFT BAN BUTONU EKLENDİ 🔥
+                        if (data.isSoftBanned) {
+                            actionBtns += `<button onclick="toggleSoftBan('${data.docId}', false)" class="action-btn" style="color:var(--success-color); border-color:var(--success-color);">Kısıt Çöz</button>`;
+                        } else {
+                            actionBtns += `<button onclick="toggleSoftBan('${data.docId}', true)" class="action-btn" style="color:#8b5cf6; border-color:rgba(139,92,246,0.3);">Soft-Ban</button>`;
+                        }
+
                         actionBtns += `<button onclick="deleteCustomer('${data.docId}')" class="action-btn" style="color:var(--danger-color); border-color:var(--danger-color);">Sil</button></div>`;
 
                         const tr = document.createElement('tr');
@@ -1219,10 +1359,12 @@
                             tr.style.opacity = '0.6';
                         }
                         
-                        // 🔥 İSİM VE ERİŞİM KODU BİRLİKTE 🔥
                         let musteriAdGosterim = data.isim ? data.isim : 'İsimsiz Müşteri';
 
                         tr.innerHTML = `
+                            <td>
+                                <input type="checkbox" class="cust-checkbox" value="${data.docId}">
+                            </td>
                             <td style="color:var(--text-secondary); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                                 ${dezenfekteEt(data.createdDateStr || '-')}
                             </td>
@@ -1254,7 +1396,7 @@
                 document.getElementById('statActive').innerText = active;
                 
             } catch (e) {
-                document.getElementById('customerTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--danger-color);">Bağlantı hatası.</td></tr>';
+                document.getElementById('customerTableBody').innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--danger-color);">Bağlantı hatası.</td></tr>';
             }
         }
 
@@ -1265,7 +1407,7 @@
                 if (resLogs.ok) {
                     const logs = await resLogs.json();
                     const count = logs.filter(function(l) {
-                        return l.aksiyon && (l.aksiyon.includes("BAŞARILI") || l.aksiyon.includes("Dekont"));
+                        return l.aksiyon && (l.aksiyon.includes("BAŞARILI") || l.aksiyon.includes("Dekont") || l.aksiyon.includes("Bitiş"));
                     }).length;
                     document.getElementById(`succ-${id}`).innerHTML = `<span class="success-badge">${count} İŞLEM</span>`;
                 }
@@ -1316,7 +1458,7 @@
                 showToast("Kullanıcı Yasaklandı!");
                 loadCustomers();
             } catch(e) {
-                showToast("Banlama başarısız oldu.");
+                showToast("Banlama başarısız oldu.", "error");
             }
         };
 
@@ -1329,12 +1471,12 @@
                     });
                     if (checkTokenError(res)) return;
                     
-                    showToast("Yasak Başarıyla Kaldırıldı.");
+                    showToast("Yasak Başarıyla Kaldırıldı.", "success");
                     loadCustomers();
                 } catch(e) {
-                    showToast("İşlem başarısız.");
+                    showToast("İşlem başarısız.", "error");
                 }
-            }, false); // false = Yeşil Onay Butonu
+            }, false); 
         };
 
         window.deleteCustomer = async function(id) {
@@ -1355,7 +1497,7 @@
                 } catch (err) {
                     showToast("Sunucuya bağlanılamadı.", "error");
                 }
-            }, true); // true = Kırmızı Sil Butonu
+            }, true); 
         };
 
         window.toggleStatus = async function(id, status) {
@@ -1366,11 +1508,11 @@
                 });
                 if (checkTokenError(res)) return;
                 
-                if (status) { showToast("Müşteri aktif edildi."); } 
-                else { showToast("Müşteri pasife çekildi."); }
+                if (status) { showToast("Müşteri aktif edildi.", "success"); } 
+                else { showToast("Müşteri pasife çekildi.", "info"); }
                 loadCustomers();
             } catch (e) {
-                showToast("Güncelleme başarısız!");
+                showToast("Güncelleme başarısız!", "error");
             }
         };
 
@@ -1382,7 +1524,7 @@
 
         document.getElementById('addCustomerBtn').onclick = async function() {
             const passcode = document.getElementById('newPasscode').value.trim();
-            const musteriIsim = document.getElementById('newCustomerName').value.trim() || "İsimsiz Müşteri"; // 🔥 YENİ
+            const musteriIsim = document.getElementById('newCustomerName').value.trim() || "İsimsiz Müşteri"; 
             const durationMonths = parseInt(document.getElementById('subDuration').value);
             const btn = document.getElementById('addCustomerBtn');
             
@@ -1391,23 +1533,24 @@
             
             if (kotaSecimi === "ozel") {
                 const ozelDeger = document.getElementById('ozelKotaDegeri').value.trim();
-                if (!ozelDeger || parseInt(ozelDeger) < 1) { showToast("Lütfen özel kota girin."); return; }
+                if (!ozelDeger || parseInt(ozelDeger) < 1) { showToast("Lütfen özel kota girin.", "error"); return; }
                 finalKota = ozelDeger;
             }
             
-            if(!passcode) { showToast("Erişim kodu zorunludur."); return; }
+            if(!passcode) { showToast("Erişim kodu zorunludur.", "error"); return; }
 
             const today = new Date();
             const expireDateObj = new Date(today.setMonth(today.getMonth() + durationMonths));
             
             const musteriVerisi = {
                 passcode: passcode, 
-                isim: musteriIsim, // 🔥 YENİ
+                isim: musteriIsim,
                 role: "customer", 
                 expireDate: expireDateObj.toLocaleDateString('tr-TR'),
                 createdDateStr: new Date().toLocaleDateString('tr-TR'), 
                 banMessage: "Abonelik süreniz dolmuş veya askıya alınmıştır.",
-                ilanKotasi: finalKota 
+                ilanKotasi: finalKota,
+                isSoftBanned: false // 🔥 YENİ
             };
 
             try {
@@ -1419,14 +1562,14 @@
                 
                 if(res.ok) {
                     document.getElementById('newPasscode').value = ''; 
-                    document.getElementById('newCustomerName').value = ''; // 🔥 YENİ
+                    document.getElementById('newCustomerName').value = ''; 
                     document.getElementById('ilanKotasiSelect').value = 'sinirsiz';
                     document.getElementById('ozelKotaKutusu').style.display = 'none';
                     document.getElementById('ozelKotaDegeri').value = '';
-                    showToast("Yeni müşteri eklendi."); 
+                    showToast("Yeni müşteri eklendi.", "success"); 
                     loadCustomers();
                 }
-            } catch (e) { showToast("Bağlantı hatası."); } 
+            } catch (e) { showToast("Bağlantı hatası.", "error"); } 
             finally { btn.textContent = "KAYDET"; btn.disabled = false; }
         };
 
@@ -1455,7 +1598,7 @@
             if(!user) return;
             
             document.getElementById('editUserId').value = id;
-            document.getElementById('editCustomerName').value = user.isim || ""; // 🔥 YENİ
+            document.getElementById('editCustomerName').value = user.isim || ""; 
             document.getElementById('editPasscode').value = user.passcode;
             document.getElementById('editExpireDate').value = parseDateString(user.expireDate);
             document.getElementById('editBanMessage').value = user.banMessage || "Abonelik süreniz dolmuştur.";
@@ -1466,13 +1609,13 @@
 
         document.getElementById('saveEditBtn').onclick = async function() {
             const id = document.getElementById('editUserId').value;
-            const newIsim = document.getElementById('editCustomerName').value.trim() || "İsimsiz Müşteri"; // 🔥 YENİ
+            const newIsim = document.getElementById('editCustomerName').value.trim() || "İsimsiz Müşteri"; 
             const newDateVal = document.getElementById('editExpireDate').value;
             const newBanMsg = document.getElementById('editBanMessage').value.trim();
             const newKota = document.getElementById('editIlanKotasi').value.trim(); 
             const btn = document.getElementById('saveEditBtn');
 
-            if(!newDateVal) { showToast("Tarih seçin."); return; }
+            if(!newDateVal) { showToast("Tarih seçin.", "error"); return; }
             const dateObj = new Date(newDateVal);
             const formattedDate = dateObj.toLocaleDateString('tr-TR');
 
@@ -1485,9 +1628,9 @@
                 if (checkTokenError(res)) return;
                 
                 editModal.style.display = "none"; 
-                showToast("Ayarlar güncellendi."); 
+                showToast("Ayarlar güncellendi.", "success"); 
                 loadCustomers();
-            } catch (error) { showToast("Hata oluştu."); } 
+            } catch (error) { showToast("Hata oluştu.", "error"); } 
             finally { btn.textContent = "GÜNCELLE"; btn.disabled = false; }
         };
 
@@ -1526,7 +1669,6 @@
                         tr.style.opacity = '0.5';
                     }
                     
-                    // 🔥 TICKET TABLOSUNDA İSİM EŞLEŞTİRME VE TAŞMA ÖNLEMİ 🔥
                     let cst = globalCustomers.find(c => c.docId === t.musteriKod || c.passcode === t.musteriKod);
                     let mName = cst ? (cst.isim || "İsimsiz") : "Bilinmiyor";
                     let mPass = cst ? cst.passcode : (t.musteriKod || "Bilinmiyor");
@@ -1564,10 +1706,10 @@
                     });
                     if (checkTokenError(res)) return;
                     
-                    showToast("Destek Talebi Silindi.");
+                    showToast("Destek Talebi Silindi.", "success");
                     loadTickets();
                 } catch(e) {
-                    showToast("Silme işlemi başarısız.");
+                    showToast("Silme işlemi başarısız.", "error");
                 }
             }, true); 
         };
@@ -1600,17 +1742,16 @@
                 if (checkTokenError(res)) return;
                 
                 ticketModal.style.display = 'none';
-                showToast("Talep başarıyla yanıtlandı.");
+                showToast("Talep başarıyla yanıtlandı.", "success");
                 loadTickets();
             } catch(e) {
-                showToast("Yanıt gönderilemedi.");
+                showToast("Yanıt gönderilemedi.", "error");
             }
         };
 
         // --- BAŞLANGIÇ YÜKLEMELERİ ---
         loadSystemStatus();
         loadCustomers();
-        // Load tickets after customers so we can map the names correctly
         setTimeout(loadTickets, 500); 
         
         ticketTimer = setInterval(function() {
