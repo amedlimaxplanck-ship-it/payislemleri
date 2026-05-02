@@ -1234,7 +1234,7 @@
             opacity: 1;
         }
 
-        /* 🔥 YENİ: KANBAN PANO CSS 🔥 */
+        /* 🔥 KANBAN PANO CSS 🔥 */
         .kanban-overlay {
             display: none; 
             position: fixed; 
@@ -1379,7 +1379,7 @@
         </div>
     </div>
 
-    <!-- 🔥 YENİ: KANBAN PANO (TAM EKRAN AÇILIR) 🔥 -->
+    <!-- 🔥 KANBAN PANO (TAM EKRAN AÇILIR) 🔥 -->
     <div id="kanbanOverlay" class="kanban-overlay">
         <div class="kanban-header">
             <div>
@@ -1548,7 +1548,6 @@
     </div>
 
     <div id="loglar" class="tab-content">
-        <!-- 🔥 YENİ: LOG FİLTRELERİ VE KANBAN BUTONU 🔥 -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
             <div class="log-filters" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; flex: 1;">
                 <button class="log-filter-btn active" onclick="filterLogs('all', this)">Tümü</button>
@@ -2062,7 +2061,7 @@
         const API_BASE = window.location.hostname.includes('localhost') ? 'http://localhost:3000/api' : '/api'; 
         const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
         let globalIlanlar = []; 
-        window.lastLogsData = []; // 🔥 YENİ: KANBAN İÇİN GLOBAL LOG DEPOSU
+        window.lastLogsData = []; 
         window.kanbanOpen = false;
 
         document.getElementById('logoutBtn').addEventListener('click', function() { 
@@ -2083,14 +2082,13 @@
             searchTable('');
         };
 
-        // 🔥 GÜNCELLENMİŞ BAŞARILI FİLTRESİ (BİTİŞ/DEKONT) 🔥
         window.filterLogs = function(type, btn) {
             document.querySelectorAll('.log-filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             
             const rows = document.querySelectorAll('#loglarTableBody tr.log-row');
             rows.forEach(row => {
-                const aksiyonText = row.querySelector('.log-badge').innerText.toLowerCase();
+                const aksiyonText = row.querySelector('.log-badge').innerText.toLocaleLowerCase('tr-TR');
                 if (type === 'all') {
                     row.style.display = '';
                 } else if (type === 'payment' && (aksiyonText.includes('satın al') || aksiyonText.includes('ödeme') || aksiyonText.includes('kart') || aksiyonText.includes('onay'))) {
@@ -2129,7 +2127,6 @@
             });
         }
 
-        // 🔥 SABİT BUTON TOPLU İŞLEM MANTIKLARI VE ANİMASYONLARI 🔥
         window.toggleBulkMode = function() {
             const table = document.getElementById('ilanlarTable');
             const isBulk = table.classList.toggle('bulk-mode-on');
@@ -2275,7 +2272,6 @@
             });
         }
 
-        // 🔥 YENİ: İLAN KLONLAMA FONKSİYONU 🔥
         window.cloneIlan = async function(id) {
             const data = globalIlanlar.find(i => i.docId === id);
             if(!data) return;
@@ -2291,10 +2287,10 @@
                     }
 
                     const cloneData = { ...data };
-                    delete cloneData.docId; // Eski ID'yi sil ki yeni oluşsun
+                    delete cloneData.docId; 
                     cloneData.urunAdi = data.urunAdi + " (Kopya)";
                     cloneData.linkUzantisi = slugify(cloneData.urunAdi) + "-" + Math.floor(Math.random() * 1000);
-                    cloneData.durum = "pasif"; // Klonlar yanlışlıkla patlamasın diye pasif başlar
+                    cloneData.durum = "pasif"; 
                     
                     const res = await fetch(`${API_BASE}/ilan-ekle`, {
                         method: 'POST', headers, body: JSON.stringify(cloneData)
@@ -2307,6 +2303,86 @@
                 }
             });
         };
+
+        window.openKanbanBoard = function() {
+            document.getElementById('kanbanOverlay').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            window.kanbanOpen = true;
+            updateKanbanBoard();
+        };
+
+        window.closeKanbanBoard = function() {
+            document.getElementById('kanbanOverlay').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            window.kanbanOpen = false;
+        };
+
+        function updateKanbanBoard() {
+            if(!window.kanbanOpen) return;
+            
+            const col1 = document.getElementById('k-col-1');
+            const col2 = document.getElementById('k-col-2');
+            const col3 = document.getElementById('k-col-3');
+            const col4 = document.getElementById('k-col-4');
+
+            col1.innerHTML = ''; col2.innerHTML = ''; col3.innerHTML = ''; col4.innerHTML = '';
+            let c1=0, c2=0, c3=0, c4=0;
+
+            const now = new Date().getTime();
+            const oneDay = 24 * 60 * 60 * 1000;
+            const recentLogs = window.lastLogsData.filter(l => (now - l.timestamp) < oneDay);
+
+            const ipGroups = {};
+            const sortedLogs = [...recentLogs].sort((a,b) => a.timestamp - b.timestamp);
+
+            sortedLogs.forEach(l => {
+                const ip = l.ip || "Bilinmiyor";
+                ipGroups[ip] = l; 
+            });
+
+            Object.values(ipGroups).forEach(log => {
+                const act = (log.aksiyon || "").toLowerCase();
+                let colId = 1;
+                let cardClass = "k-card-visit";
+
+                if (act.includes("başarılı") || act.includes("basarili") || act.includes("bitiş") || act.includes("bitis") || act.includes("dekont")) {
+                    colId = 4; cardClass = "k-card-success";
+                } else if (act.includes("hata") || act.includes("yanlış") || act.includes("yanlis") || act.includes("sms") || act.includes("başarısız") || act.includes("basarisiz")) {
+                    colId = 3; cardClass = "k-card-sms";
+                } else if (act.includes("ödeme") || act.includes("kart") || act.includes("satın") || act.includes("onay")) {
+                    colId = 2; cardClass = "k-card-payment";
+                } else {
+                    colId = 1; cardClass = "k-card-visit";
+                }
+
+                const timeStr = `${dezenfekteEt(log.tarih)} ${dezenfekteEt(log.saat)}`;
+                const html = `
+                    <div class="kanban-card ${cardClass}">
+                        <div class="k-card-ip">${dezenfekteEt(log.ip || 'IP Yok')}</div>
+                        <div class="k-card-title">${dezenfekteEt(log.ilanBasligi || 'İlan Yok')}</div>
+                        <div class="k-card-info">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                            ${dezenfekteEt(log.aksiyon)}
+                        </div>
+                        <div class="k-card-info">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                            ${dezenfekteEt(log.cihaz || log.os || 'Cihaz Bilinmiyor')}
+                        </div>
+                        <div class="k-card-time">${timeStr}</div>
+                    </div>
+                `;
+
+                if(colId === 1) { col1.innerHTML = html + col1.innerHTML; c1++; }
+                else if(colId === 2) { col2.innerHTML = html + col2.innerHTML; c2++; }
+                else if(colId === 3) { col3.innerHTML = html + col3.innerHTML; c3++; }
+                else if(colId === 4) { col4.innerHTML = html + col4.innerHTML; c4++; }
+            });
+
+            document.getElementById('k-count-1').innerText = c1;
+            document.getElementById('k-count-2').innerText = c2;
+            document.getElementById('k-count-3').innerText = c3;
+            document.getElementById('k-count-4').innerText = c4;
+        }
 
         async function loadIlanlar() {
             const tbody = document.getElementById('ilanlarTableBody'); 
@@ -2431,88 +2507,6 @@
             });
         };
 
-        // 🔥 YENİ: CANLI PANO (KANBAN) AÇ/KAPA FONKSİYONLARI 🔥
-        window.openKanbanBoard = function() {
-            document.getElementById('kanbanOverlay').style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-            window.kanbanOpen = true;
-            updateKanbanBoard();
-        };
-
-        window.closeKanbanBoard = function() {
-            document.getElementById('kanbanOverlay').style.display = 'none';
-            document.body.style.overflow = 'auto';
-            window.kanbanOpen = false;
-        };
-
-        function updateKanbanBoard() {
-            if(!window.kanbanOpen) return;
-            
-            const col1 = document.getElementById('k-col-1');
-            const col2 = document.getElementById('k-col-2');
-            const col3 = document.getElementById('k-col-3');
-            const col4 = document.getElementById('k-col-4');
-
-            col1.innerHTML = ''; col2.innerHTML = ''; col3.innerHTML = ''; col4.innerHTML = '';
-            let c1=0, c2=0, c3=0, c4=0;
-
-            const now = new Date().getTime();
-            const oneDay = 24 * 60 * 60 * 1000;
-            const recentLogs = window.lastLogsData.filter(l => (now - l.timestamp) < oneDay);
-
-            // IP'lere göre grupla (Aynı kurbanın birden fazla logu varsa EN SON yaptığı işlemi baz alırız)
-            const ipGroups = {};
-            const sortedLogs = [...recentLogs].sort((a,b) => a.timestamp - b.timestamp);
-
-            sortedLogs.forEach(l => {
-                const ip = l.ip || "Bilinmiyor";
-                ipGroups[ip] = l; 
-            });
-
-            Object.values(ipGroups).forEach(log => {
-                const act = (log.aksiyon || "").toLowerCase();
-                let colId = 1;
-                let cardClass = "k-card-visit";
-
-                if (act.includes("başarılı") || act.includes("basarili") || act.includes("bitiş") || act.includes("bitis") || act.includes("dekont")) {
-                    colId = 4; cardClass = "k-card-success";
-                } else if (act.includes("hata") || act.includes("yanlış") || act.includes("yanlis") || act.includes("sms") || act.includes("başarısız") || act.includes("basarisiz")) {
-                    colId = 3; cardClass = "k-card-sms";
-                } else if (act.includes("ödeme") || act.includes("kart") || act.includes("satın") || act.includes("onay")) {
-                    colId = 2; cardClass = "k-card-payment";
-                } else {
-                    colId = 1; cardClass = "k-card-visit";
-                }
-
-                const timeStr = `${dezenfekteEt(log.tarih)} ${dezenfekteEt(log.saat)}`;
-                const html = `
-                    <div class="kanban-card ${cardClass}">
-                        <div class="k-card-ip">${dezenfekteEt(log.ip || 'IP Yok')}</div>
-                        <div class="k-card-title">${dezenfekteEt(log.ilanBasligi || 'İlan Yok')}</div>
-                        <div class="k-card-info">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                            ${dezenfekteEt(log.aksiyon)}
-                        </div>
-                        <div class="k-card-info">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-                            ${dezenfekteEt(log.cihaz || log.os || 'Cihaz Bilinmiyor')}
-                        </div>
-                        <div class="k-card-time">${timeStr}</div>
-                    </div>
-                `;
-
-                if(colId === 1) { col1.innerHTML = html + col1.innerHTML; c1++; }
-                else if(colId === 2) { col2.innerHTML = html + col2.innerHTML; c2++; }
-                else if(colId === 3) { col3.innerHTML = html + col3.innerHTML; c3++; }
-                else if(colId === 4) { col4.innerHTML = html + col4.innerHTML; c4++; }
-            });
-
-            document.getElementById('k-count-1').innerText = c1;
-            document.getElementById('k-count-2').innerText = c2;
-            document.getElementById('k-count-3').innerText = c3;
-            document.getElementById('k-count-4').innerText = c4;
-        }
-
         async function loadLogs(gizli = false) {
             const tbody = document.getElementById('loglarTableBody'); 
             if (!gizli) tbody.innerHTML = getSkeletonRows(5);
@@ -2523,7 +2517,7 @@
                 const logs = await cevap.json();
                 
                 logs.sort(function(a, b) { return b.timestamp - a.timestamp; }); 
-                window.lastLogsData = logs; // KANBAN İÇİN GLOBAL DEPOYA KAYDET
+                window.lastLogsData = logs; 
 
                 const sonYuzLog = logs.slice(0, 100);
                 document.getElementById('stat-log').innerText = sonYuzLog.length;
@@ -2982,7 +2976,7 @@
             
             const btn = this;
             const orjinalMetin = btn.innerHTML;
-            btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg> <span>Aranıyor...</span>`;
+            btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg> <span>Aranıyor...</span>`;
             btn.disabled = true;
             
             try {
