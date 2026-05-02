@@ -413,7 +413,6 @@
             border: 1px solid rgba(108,117,125,0.2); 
         }
 
-        /* YENİ LOG FİLTRE BUTONLARI */
         .log-filter-btn {
             padding: 8px 16px;
             background: var(--bg-card);
@@ -1080,14 +1079,73 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* 🔥 YENİ: SABİT TOPLU İŞLEM MENÜSÜ CSS 🔥 */
+        /* 🔥 YENİ: SABİT TOPLU İŞLEM MENÜSÜ & ANİMASYON CSS 🔥 */
         .apple-checkbox { 
             width: 18px; 
             height: 18px; 
             cursor: pointer; 
-            accent-color: #007bff; 
+            accent-color: #4f46e5; 
             margin: 0 auto; 
             display: block; 
+        }
+
+        .bulk-mode-btn {
+            background: linear-gradient(135deg, #6366f1, #4f46e5); 
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .bulk-mode-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+        }
+
+        .bulk-mode-btn.active {
+            background: var(--bg-body);
+            color: var(--text-main);
+            box-shadow: none;
+            border: 1px solid var(--border-color);
+        }
+
+        .bulk-mode-btn.active:hover {
+            transform: none;
+            background: var(--border-color);
+        }
+
+        .bulk-action-btn {
+            height: 100%; 
+            padding: 0 20px; 
+            border-radius: 8px; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 8px; 
+            font-size: 14px; 
+            font-weight: 700;
+            background: var(--bg-card); 
+            border: 1px solid var(--text-main); 
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .bulk-action-btn:hover {
+            background: var(--text-main);
+            color: var(--bg-card);
+        }
+
+        .bulk-action-btn:hover span {
+            background: var(--bg-card) !important;
+            color: var(--text-main) !important;
         }
 
         .bulk-dropdown {
@@ -1136,6 +1194,40 @@
         
         .bulk-dropdown-item.danger:hover { 
             background: rgba(239,68,68,0.05); 
+        }
+
+        /* YUMUŞAK KAYMA ANİMASYONU (TABLO SÜTUNU) */
+        .chk-col {
+            width: 0;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            border-right: none;
+        }
+
+        .bulk-mode-on .chk-col {
+            width: 50px;
+            padding-left: 15px !important;
+            padding-right: 15px !important;
+            opacity: 1;
+        }
+
+        .chk-wrapper {
+            width: 0;
+            overflow: hidden;
+            transform: translateX(-15px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .bulk-mode-on .chk-wrapper {
+            width: 20px;
+            transform: translateX(0);
+            opacity: 1;
         }
 
         /* --- MOBİL UYUMLULUK DÜZENLEMESİ --- */
@@ -1379,18 +1471,23 @@
 
     <div id="ilanlar" class="tab-content active">
         
-        <!-- 🔥 YENİ: SABİT BUTONLAR VE DROPDOWN 🔥 -->
+        <!-- 🔥 YENİ: SABİT BUTONLAR VE DROPDOWN (TAMAMEN SVG İKONLU VE ANİMASYONLU) 🔥 -->
         <div style="display: flex; gap: 15px; margin-bottom: 20px; align-items: stretch; flex-wrap: wrap;">
-            <button class="btn-primary" id="yeniIlanBtn" style="margin-bottom: 0; width: auto; display: flex; align-items: center; gap: 8px;">
+            <button class="btn-primary" id="yeniIlanBtn" style="margin-bottom: 0; width: auto;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Yeni İlan Oluştur
             </button>
             
-            <div style="position: relative;">
-                <button class="action-btn" onclick="toggleBulkMenu(event)" style="height: 100%; padding: 0 20px; border-radius: 8px; display: flex; align-items: center; gap: 8px; font-size: 14px; background: var(--bg-card); border-color: var(--border-color);">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
-                    Toplu İşlemler
-                    <span id="bulkCountBadge" style="background: #007bff; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 5px; font-weight: 800;">0</span>
+            <button id="toggleBulkModeBtn" class="bulk-mode-btn" onclick="toggleBulkMode()">
+                <svg id="bulkModeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h16"></path></svg>
+                <span id="bulkModeText">Toplu İşlemler</span>
+            </button>
+
+            <div id="bulkActionContainer" style="position: relative; display: none;">
+                <button class="bulk-action-btn" onclick="toggleBulkMenu(event)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+                    Eylemler
+                    <span id="bulkCountBadge" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 5px; font-weight: 800; transition: all 0.2s;">0</span>
                 </button>
 
                 <div id="bulkMenu" class="bulk-dropdown">
@@ -1415,10 +1512,10 @@
         </div>
         
         <div class="table-container">
-            <table>
+            <table id="ilanlarTable">
                 <thead>
                     <tr>
-                        <th style="width: 40px; text-align: center;"><input type="checkbox" id="selectAllAds" class="apple-checkbox" onchange="toggleAllAds(this)"></th>
+                        <th class="chk-col"><div class="chk-wrapper"><input type="checkbox" id="selectAllAds" class="apple-checkbox" onchange="toggleAllAds(this)"></div></th>
                         <th>Görsel</th>
                         <th>Alıcıya Atılacak Linkler</th>
                         <th>Başlık</th>
@@ -1941,12 +2038,12 @@
         }
 
         function getSkeletonRows(colCount) {
+            let cols = `<td class="chk-col"><div class="chk-wrapper"></div></td>`;
+            for(let j=1; j<colCount; j++) { 
+                cols += `<td><div class="skeleton-box"></div></td>`; 
+            }
             let rows = '';
             for(let i=0; i<3; i++) {
-                let cols = '';
-                for(let j=0; j<colCount; j++) { 
-                    cols += `<td><div class="skeleton-box"></div></td>`; 
-                }
                 rows += `<tr class="skeleton-row">${cols}</tr>`;
             }
             return rows;
@@ -2026,7 +2123,30 @@
             });
         }
 
-        // 🔥 SABİT BUTON TOPLU İŞLEM MANTIKLARI 🔥
+        // 🔥 SABİT BUTON TOPLU İŞLEM MANTIKLARI VE ANİMASYONLARI 🔥
+        window.toggleBulkMode = function() {
+            const table = document.getElementById('ilanlarTable');
+            const isBulk = table.classList.toggle('bulk-mode-on');
+            const btn = document.getElementById('toggleBulkModeBtn');
+            const text = document.getElementById('bulkModeText');
+            const icon = document.getElementById('bulkModeIcon');
+            const actionContainer = document.getElementById('bulkActionContainer');
+
+            if(isBulk) {
+                btn.classList.add('active');
+                text.innerText = "İptal Et";
+                icon.innerHTML = `<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>`;
+                actionContainer.style.display = 'block';
+            } else {
+                btn.classList.remove('active');
+                text.innerText = "Toplu İşlemler";
+                icon.innerHTML = `<path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h16"></path>`;
+                actionContainer.style.display = 'none';
+                document.querySelectorAll('.ad-checkbox, #selectAllAds').forEach(cb => cb.checked = false);
+                updateBulkUI();
+            }
+        }
+
         window.toggleAllAds = function(el) {
             document.querySelectorAll('.ad-checkbox').forEach(cb => cb.checked = el.checked);
             updateBulkUI();
@@ -2056,6 +2176,9 @@
             const menu = document.getElementById('bulkMenu');
             if(menu && menu.classList.contains('show')) {
                 menu.classList.remove('show');
+            }
+            if (e.target == document.getElementById('bulkUpdateModal')) {
+                document.getElementById('bulkUpdateModal').style.display = "none";
             }
         });
 
@@ -2171,8 +2294,10 @@
                     
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td style="text-align: center;">
-                            <input type="checkbox" class="apple-checkbox ad-checkbox" value="${data.docId}" onchange="updateBulkUI()">
+                        <td class="chk-col">
+                            <div class="chk-wrapper">
+                                <input type="checkbox" class="apple-checkbox ad-checkbox" value="${data.docId}" onchange="updateBulkUI()">
+                            </div>
                         </td>
                         <td><img src="${dezenfekteEt(data.anaResim || '')}" class="thumb-img"></td>
                         <td>
@@ -2196,8 +2321,10 @@
                     tbody.appendChild(tr);
                 });
                 
-                document.getElementById('selectAllAds').checked = false;
-                updateBulkUI();
+                // Yeniden yüklenince modül sıfırlansın
+                if (document.getElementById('ilanlarTable').classList.contains('bulk-mode-on')) {
+                    toggleBulkMode();
+                }
             } catch (error) { 
                 tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; 
             }
