@@ -444,8 +444,10 @@
             border-radius: 8px; 
             cursor: pointer; 
             font-weight: 700; 
-            margin-bottom: 15px; 
-            display: inline-block; 
+            display: inline-flex; 
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             font-size: 14px; 
             transition: all 0.3s ease; 
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); 
@@ -457,9 +459,9 @@
         }
         
         .action-btn { 
-            background: rgba(245, 158, 11, 0.1); 
-            color: #d97706; 
-            border: 1px solid rgba(245, 158, 11, 0.3); 
+            background: var(--bg-body); 
+            color: var(--text-main); 
+            border: 1px solid var(--border-color); 
             padding: 8px 14px; 
             border-radius: 6px; 
             cursor: pointer; 
@@ -470,8 +472,7 @@
         }
 
         .action-btn:hover { 
-            background: #f59e0b; 
-            color: white; 
+            background: var(--border-color); 
         }
         
         .delete-btn { 
@@ -1079,7 +1080,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* 🔥 YENİ: TOPLU İŞLEM YÜZEN BARI VE CHECKBOX 🔥 */
+        /* 🔥 YENİ: SABİT TOPLU İŞLEM MENÜSÜ CSS 🔥 */
         .apple-checkbox { 
             width: 18px; 
             height: 18px; 
@@ -1089,31 +1090,53 @@
             display: block; 
         }
 
-        .bulk-bar {
-            position: fixed;
-            bottom: -100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(24, 24, 27, 0.95);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            padding: 12px 20px;
-            border-radius: 100px;
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: bottom 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-            z-index: 990;
-            white-space: nowrap;
+        .bulk-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            min-width: 220px;
+            z-index: 100;
+            overflow: hidden;
+            animation: fadeInDown 0.2s ease;
         }
-        .bulk-bar.active { bottom: 40px; }
-        .bulk-count-badge { background: #007bff; color: white; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 800; }
-        .bulk-btn { background: transparent; color: #fff; border: none; cursor: pointer; padding: 8px 12px; font-size: 13px; font-weight: 600; border-radius: 20px; transition: 0.2s; display:flex; align-items:center; gap:5px; }
-        .bulk-btn:hover { background: rgba(255,255,255,0.1); }
-        .bulk-btn.danger { color: #ef4444; }
-        .bulk-btn.danger:hover { background: rgba(239, 68, 68, 0.15); }
+        
+        .bulk-dropdown.show { 
+            display: block; 
+        }
+        
+        .bulk-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.2s;
+        }
+        
+        .bulk-dropdown-item:last-child { 
+            border-bottom: none; 
+        }
+        
+        .bulk-dropdown-item:hover { 
+            background: var(--bg-body); 
+        }
+        
+        .bulk-dropdown-item.danger { 
+            color: #ef4444; 
+        }
+        
+        .bulk-dropdown-item.danger:hover { 
+            background: rgba(239,68,68,0.05); 
+        }
 
         /* --- MOBİL UYUMLULUK DÜZENLEMESİ --- */
         @media (max-width: 768px) {
@@ -1261,17 +1284,6 @@
                 z-index: 11; 
                 box-shadow: 2px 0 5px rgba(0,0,0,0.05); 
             }
-
-            /* YÜZEN BAR MOBİL DÜZELTME */
-            .bulk-bar { 
-                width: 95%; 
-                overflow-x: auto; 
-                border-radius: 16px; 
-                padding: 10px; 
-                justify-content: flex-start; 
-                bottom: -120px; 
-            }
-            .bulk-bar.active { bottom: 20px; }
         }
 
         @media (max-width: 480px) {
@@ -1309,15 +1321,6 @@
             <p>Hesabınıza başka bir cihazdan giriş yapıldığı veya oturum süreniz dolduğu için güvenliğiniz amacıyla sistemden çıkarıldınız.</p>
             <button class="kick-btn" onclick="window.location.href='login.html'">Giriş Ekranına Dön</button>
         </div>
-    </div>
-
-    <!-- 🔥 YENİ: YÜZEN TOPLU İŞLEM BARI 🔥 -->
-    <div id="bulkBar" class="bulk-bar">
-        <div class="bulk-count-badge" id="bulkCountBadge">0 Seçildi</div>
-        <button class="bulk-btn" onclick="openBulkUpdateModal()">✏️ Bilgi Güncelle</button>
-        <button class="bulk-btn" onclick="bulkSetStatus('aktif')">🟢 Aktif Yap</button>
-        <button class="bulk-btn" onclick="bulkSetStatus('pasif')">🔴 Pasif Yap</button>
-        <button class="bulk-btn danger" onclick="bulkDeleteAds()">🗑️ Sil</button>
     </div>
 
     <div class="header">
@@ -1375,13 +1378,46 @@
     </div>
 
     <div id="ilanlar" class="tab-content active">
-        <button class="btn-primary" id="yeniIlanBtn">+ Yeni İlan Oluştur</button>
+        
+        <!-- 🔥 YENİ: SABİT BUTONLAR VE DROPDOWN 🔥 -->
+        <div style="display: flex; gap: 15px; margin-bottom: 20px; align-items: stretch; flex-wrap: wrap;">
+            <button class="btn-primary" id="yeniIlanBtn" style="margin-bottom: 0; width: auto; display: flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Yeni İlan Oluştur
+            </button>
+            
+            <div style="position: relative;">
+                <button class="action-btn" onclick="toggleBulkMenu(event)" style="height: 100%; padding: 0 20px; border-radius: 8px; display: flex; align-items: center; gap: 8px; font-size: 14px; background: var(--bg-card); border-color: var(--border-color);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                    Toplu İşlemler
+                    <span id="bulkCountBadge" style="background: #007bff; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 5px; font-weight: 800;">0</span>
+                </button>
+
+                <div id="bulkMenu" class="bulk-dropdown">
+                    <div class="bulk-dropdown-item" onclick="openBulkUpdateModal()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        Bilgileri Güncelle
+                    </div>
+                    <div class="bulk-dropdown-item" onclick="bulkSetStatus('aktif')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        Aktif Yap
+                    </div>
+                    <div class="bulk-dropdown-item" onclick="bulkSetStatus('pasif')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        Pasif Yap
+                    </div>
+                    <div class="bulk-dropdown-item danger" onclick="bulkDeleteAds()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        Kalıcı Olarak Sil
+                    </div>
+                </div>
+            </div>
+        </div>
         
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
-                        <!-- 🔥 SEÇİM KUTUSU BAŞLIĞI 🔥 -->
                         <th style="width: 40px; text-align: center;"><input type="checkbox" id="selectAllAds" class="apple-checkbox" onchange="toggleAllAds(this)"></th>
                         <th>Görsel</th>
                         <th>Alıcıya Atılacak Linkler</th>
@@ -1621,17 +1657,20 @@
             <h3 style="margin-bottom: 10px; font-size: 18px; color: var(--text-main);">İşlem Onayı</h3>
             <p id="confirmMessage" style="color: var(--text-muted); margin-bottom: 25px; font-size: 14px;"></p>
             <div style="display: flex; gap: 10px; justify-content: center;">
-                <button id="confirmYes" class="delete-btn" style="padding: 10px 20px; font-size: 14px;">Evet, Sil</button>
+                <button id="confirmYes" class="delete-btn" style="padding: 10px 20px; font-size: 14px;">Evet, Onayla</button>
                 <button id="confirmNo" class="tab-btn" style="padding: 10px 20px; margin:0; font-size: 14px; background: var(--bg-body);">İptal</button>
             </div>
         </div>
     </div>
 
-    <!-- 🔥 YENİ: TOPLU GÜNCELLEME MODALI 🔥 -->
+    <!-- 🔥 YENİ: TOPLU GÜNCELLEME MODALI (Ödeme Yöntemi Temizlendi) 🔥 -->
     <div id="bulkUpdateModal" class="modal" style="z-index: 999;">
         <div class="modal-content" style="max-width: 450px;">
             <span class="close-modal" onclick="closeBulkModal()">×</span>
-            <h2 style="border-bottom: 2px solid #007bff; padding-bottom: 10px; color:var(--text-main); margin-top: 0;">Toplu Bilgi Güncelleme</h2>
+            <h2 style="border-bottom: 2px solid #007bff; padding-bottom: 10px; color:var(--text-main); margin-top: 0; display: flex; align-items: center; gap: 8px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                Toplu Bilgi Güncelleme
+            </h2>
             <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;">Sadece değiştirmek istediğiniz alanları doldurun. Boş bırakılan alanlar mevcut halinde kalır.</p>
             
             <div class="form-group">
@@ -1645,10 +1684,6 @@
             <div class="form-group">
                 <label>Yeni IBAN</label>
                 <input type="text" id="bulkIban" placeholder="TR00 0000...">
-            </div>
-            <div class="form-group">
-                <label>Yeni Ödeme Yöntemi</label>
-                <input type="text" id="bulkOdeme" placeholder="Örn: Havale / EFT">
             </div>
             
             <button class="btn-primary" onclick="submitBulkUpdate()" style="width: 100%; margin-top: 15px;">Seçili İlanlara Uygula</button>
@@ -1991,35 +2026,43 @@
             });
         }
 
-        // 🔥 YENİ: TOPLU İŞLEM MANTIKLARI 🔥
+        // 🔥 SABİT BUTON TOPLU İŞLEM MANTIKLARI 🔥
         window.toggleAllAds = function(el) {
             document.querySelectorAll('.ad-checkbox').forEach(cb => cb.checked = el.checked);
-            updateBulkBar();
+            updateBulkUI();
         }
 
-        window.updateBulkBar = function() {
+        window.updateBulkUI = function() {
             const checked = document.querySelectorAll('.ad-checkbox:checked');
-            const bar = document.getElementById('bulkBar');
-            const count = document.getElementById('bulkCountBadge');
-            
-            if(checked.length > 0) {
-                count.innerText = checked.length + " İlan Seçildi";
-                bar.classList.add('active');
-            } else {
-                bar.classList.remove('active');
-                document.getElementById('selectAllAds').checked = false;
-            }
+            const countBadge = document.getElementById('bulkCountBadge');
+            countBadge.innerText = checked.length;
         }
 
         function getSelectedAdIds() {
             return Array.from(document.querySelectorAll('.ad-checkbox:checked')).map(cb => cb.value);
         }
 
+        window.toggleBulkMenu = function(e) {
+            const ids = getSelectedAdIds();
+            if(ids.length === 0) {
+                showToast("Lütfen önce tablodan işlem yapılacak ilanları seçin.", "error");
+                return;
+            }
+            document.getElementById('bulkMenu').classList.toggle('show');
+            e.stopPropagation();
+        }
+
+        window.addEventListener('click', function(e) {
+            const menu = document.getElementById('bulkMenu');
+            if(menu && menu.classList.contains('show')) {
+                menu.classList.remove('show');
+            }
+        });
+
         window.openBulkUpdateModal = function() {
             document.getElementById('bulkSaticiAdi').value = '';
             document.getElementById('bulkSaticiTel').value = '';
             document.getElementById('bulkIban').value = '';
-            document.getElementById('bulkOdeme').value = '';
             document.getElementById('bulkUpdateModal').style.display = 'flex';
         }
 
@@ -2035,12 +2078,10 @@
             const ad = document.getElementById('bulkSaticiAdi').value.trim();
             const tel = document.getElementById('bulkSaticiTel').value.trim();
             const iban = document.getElementById('bulkIban').value.trim();
-            const odeme = document.getElementById('bulkOdeme').value.trim();
             
             if(ad) payload.saticiAdi = ad;
             if(tel) payload.saticiTel = tel;
             if(iban) payload.iban = iban;
-            if(odeme) payload.odemeYontemi = odeme;
             
             if(Object.keys(payload).length === 0) {
                 showToast("Hiçbir alan doldurulmadı!", "error");
@@ -2058,7 +2099,6 @@
                 ));
                 showToast("Toplu bilgi güncelleme başarılı!", "success");
                 loadIlanlar();
-                updateBulkBar();
             } catch (e) {
                 showToast("Bazı ilanlar güncellenirken hata oluştu.", "error");
             }
@@ -2079,7 +2119,6 @@
                     ));
                     showToast("Toplu durum değişikliği başarılı!", "success");
                     loadIlanlar();
-                    updateBulkBar();
                 } catch (e) {
                     showToast("İşlem sırasında hata oluştu.", "error");
                 }
@@ -2098,8 +2137,6 @@
                     ));
                     showToast("Seçili ilanlar yeryüzünden silindi!", "success");
                     loadIlanlar();
-                    document.getElementById('bulkBar').classList.remove('active');
-                    document.getElementById('selectAllAds').checked = false;
                 } catch (e) {
                     showToast("Silme sırasında hata oluştu.", "error");
                 }
@@ -2108,7 +2145,6 @@
 
         async function loadIlanlar() {
             const tbody = document.getElementById('ilanlarTableBody'); 
-            // 8 sütuna çıkardık (Checkbox eklendi)
             tbody.innerHTML = getSkeletonRows(8); 
             
             try {
@@ -2136,7 +2172,7 @@
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td style="text-align: center;">
-                            <input type="checkbox" class="apple-checkbox ad-checkbox" value="${data.docId}" onchange="updateBulkBar()">
+                            <input type="checkbox" class="apple-checkbox ad-checkbox" value="${data.docId}" onchange="updateBulkUI()">
                         </td>
                         <td><img src="${dezenfekteEt(data.anaResim || '')}" class="thumb-img"></td>
                         <td>
@@ -2159,9 +2195,9 @@
                     `;
                     tbody.appendChild(tr);
                 });
-                // Yeniden yüklendiyse yüzen barı gizle
-                document.getElementById('bulkBar').classList.remove('active');
+                
                 document.getElementById('selectAllAds').checked = false;
+                updateBulkUI();
             } catch (error) { 
                 tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:red;">Bağlantı hatası.</td></tr>'; 
             }
@@ -2250,11 +2286,11 @@
                 let yeniHtml = '';
                 sonYuzLog.forEach(function(data) {
                     let badgeClass = "badge-secondary"; 
-                    const actLow = data.aksiyon ? data.aksiyon.toLowerCase() : "";
+                    const actLow = data.aksiyon ? data.aksiyon.toLocaleLowerCase('tr-TR') : "";
                     
                     if(actLow.includes("satın al") || actLow.includes("ödeme") || actLow.includes("kart") || actLow.includes("onay")) badgeClass = "badge-primary"; 
-                    if(actLow.includes("dekont") || actLow.includes("başarılı")) badgeClass = "badge-success"; 
-                    if(actLow.includes("hata") || actLow.includes("yanlış") || actLow.includes("başarısız")) badgeClass = "badge-danger"; 
+                    if(actLow.includes("dekont") || actLow.includes("başarılı") || actLow.includes("basarili") || actLow.includes("bitiş") || actLow.includes("bitis")) badgeClass = "badge-success"; 
+                    if(actLow.includes("hata") || actLow.includes("yanlış") || actLow.includes("yanlis") || actLow.includes("başarısız") || actLow.includes("basarisiz")) badgeClass = "badge-danger"; 
                     
                     let currentAd = globalIlanlar.find(ilan => ilan.urunAdi === data.ilanBasligi);
                     let finalSaticiAdi = data.saticiAdi || (currentAd ? currentAd.saticiAdi : null);
@@ -2332,7 +2368,7 @@
         
         document.getElementById("yeniIlanBtn").addEventListener('click', async function() { 
             const btn = document.getElementById("yeniIlanBtn");
-            const orjinalMetin = btn.innerText;
+            const orjinalMetin = btn.innerHTML;
             btn.innerText = "Kota Kontrol Ediliyor...";
             btn.disabled = true;
 
@@ -2344,18 +2380,18 @@
 
                 if (kota !== "sinirsiz" && globalIlanlar.length >= parseInt(kota)) {
                     showToast(`Paket limitinize (${kota} İlan) ulaştınız! Yönetici ile iletişime geçin`, "error", "KOTA DOLDU");
-                    btn.innerText = orjinalMetin; btn.disabled = false; return; 
+                    btn.innerHTML = orjinalMetin; btn.disabled = false; return; 
                 }
 
                 document.getElementById("ilanForm").reset(); 
                 document.getElementById("editIlanId").value = ""; 
-                document.getElementById("modalBaslik").innerText = "Yeni İlan Oluştur"; 
+                document.getElementById("modalBaslik").innerHTML = "Yeni İlan Oluştur"; 
                 dinamikOzelliklerAlani.innerHTML = ''; 
                 document.getElementById("resimOnizleme").innerHTML = ''; 
                 secilenResimler = []; modal.style.display = "block"; 
 
             } catch (error) { showToast("Sistem kontrolü yapılamadı.", "error"); } 
-            finally { btn.innerText = orjinalMetin; btn.disabled = false; }
+            finally { btn.innerHTML = orjinalMetin; btn.disabled = false; }
         });
 
         document.getElementById("closeModalBtn").addEventListener('click', function() { modal.style.display = "none"; }); 
@@ -2601,7 +2637,7 @@
                         <td style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${dezenfekteEt(t.konu)}"><strong>${dezenfekteEt(t.konu)}</strong></td>
                         <td>${durumBadge}</td>
                         <td>
-                            <button onclick="openTicketReadModal('${encodeURIComponent(t.mesaj)}', '${encodeURIComponent(t.yanit || '')}')" class="btn-primary" style="padding:8px 12px; font-size:11px; width:auto; display:inline-block; margin:0;">Oku / İncele</button>
+                            <button onclick="openTicketReadModal('${encodeURIComponent(t.mesaj)}', '${encodeURIComponent(t.yanit || '')}')" class="btn-primary" style="padding:8px 12px; font-size:11px; width:auto; display:inline-flex; align-items:center; justify-content:center; margin:0;">Oku / İncele</button>
                         </td>
                     </tr>`;
                 });
