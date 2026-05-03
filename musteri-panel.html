@@ -1704,7 +1704,7 @@
                 <button class="log-filter-btn" style="color: #ef4444; border-color: rgba(239,68,68,0.3);" onclick="filterLogs('error', this)">Hatalar</button>
             </div>
             
-            <button class="btn-primary" onclick="openKanbanBoard()" style="margin-bottom: 0; display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);">
+            <button id="canliPanoBtn" class="btn-primary" onclick="openKanbanBoard()" style="margin-bottom: 0; display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>
                 Canlı Pano
             </button>
@@ -2567,6 +2567,10 @@
                 else if(colId === 4) { html4 += html; c4++; }
             });
 
+            const newRender = html1 + html2 + html3 + html4;
+            if(newRender === lastKanbanRender) return; 
+            lastKanbanRender = newRender;
+
             document.getElementById('k-col-1').innerHTML = html1; document.getElementById('k-count-1').innerText = c1;
             document.getElementById('k-col-2').innerHTML = html2; document.getElementById('k-count-2').innerText = c2;
             document.getElementById('k-col-3').innerHTML = html3; document.getElementById('k-count-3').innerText = c3;
@@ -2580,10 +2584,14 @@
                     const profilData = await profilCevap.json();
                     if(profilData.isSoftBanned === true) {
                         window.isSoftBanned = true;
+                        
                         document.getElementById('softBanBanner').style.display = 'block';
                         document.getElementById('yeniIlanBtn').style.display = 'none';
                         document.getElementById('toggleBulkModeBtn').style.display = 'none';
                         document.getElementById('islemHeader').style.display = 'none';
+                        
+                        const canliPanoBtn = document.getElementById('canliPanoBtn');
+                        if (canliPanoBtn) canliPanoBtn.style.display = 'none';
                     }
                 }
             } catch(e) {
@@ -2627,6 +2635,12 @@
                             <button onclick="deleteIlan('${data.docId}')" class="delete-btn">Sil</button>
                         </td>`;
 
+                    // 🔥 SOFT BAN EKLENTİSİ: LİNKLER SİLİNİR VE HTML DOM'UNDAN KALDIRILIR 🔥
+                    let linkSutunu = window.isSoftBanned 
+                        ? `<div style="color:var(--danger-color); font-weight:bold; font-size:11px; display:flex; align-items:center; justify-content:center; gap:5px; height:100%; border:1px solid rgba(239,68,68,0.3); border-radius:6px; background:rgba(239,68,68,0.1); padding:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Kilitli</div>` 
+                        : `<button class="link-btn sari" onclick="vitrinLinkiKopyala('${sahilindenLink}', 'Sahilinden')">Sahibinden Linki</button>
+                           <button class="link-btn kirmizi" onclick="vitrinLinkiKopyala('${pttavmLink}', 'PttAVM')">PTTAVM Linki</button>`;
+
                     tr.innerHTML = `
                         <td class="chk-col">
                             <div class="chk-wrapper">
@@ -2634,10 +2648,7 @@
                             </div>
                         </td>
                         <td><img src="${dezenfekteEt(data.anaResim || '')}" class="thumb-img"></td>
-                        <td>
-                            <button class="link-btn sari" onclick="vitrinLinkiKopyala('${sahilindenLink}', 'Sahilinden')">Sahibinden Linki</button>
-                            <button class="link-btn kirmizi" onclick="vitrinLinkiKopyala('${pttavmLink}', 'PttAVM')">PTTAVM Linki</button>
-                        </td>
+                        <td>${linkSutunu}</td>
                         <td><strong>${dezenfekteEt(data.urunAdi)}</strong></td>
                         <td>${dezenfekteEt(data.saticiAdi)}</td>
                         <td>${dezenfekteEt(data.fiyat)} TL</td>
@@ -2662,6 +2673,18 @@
 
         async function loadDekontlar(gizli = false) {
             const tbody = document.getElementById('dekontlarTableBody'); 
+            
+            // 🔥 SOFT BAN EKLENTİSİ: DEKONTLARA ERİŞİMİ KAPAT 🔥
+            if (window.isSoftBanned) {
+                tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state" style="color: var(--danger-color);">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    <h3 style="color: var(--danger-color); margin-top: 15px;">Erişim Kısıtlandı</h3>
+                    <p>Dekont geçmişinizi görebilmek için ödemenizi yapmalısınız.</p>
+                </div></td></tr>`;
+                document.getElementById('stat-dekont').innerText = "🔒";
+                return;
+            }
+
             if (!gizli) tbody.innerHTML = getSkeletonRows(5);
             
             try {
@@ -2698,7 +2721,7 @@
                         <td>${dezenfekteEt(data.aliciTel)}</td>
                         <td>
                             <button class="view-btn" onclick="window.open('${dezenfekteEt(data.dekontUrl)}', '_blank')">Görüntüle</button>
-                            <button class="delete-btn" style="margin-left: 5px;" onclick="deleteDekont('${data.id}')" ${window.isSoftBanned ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>Sil</button>
+                            <button class="delete-btn" style="margin-left: 5px;" onclick="deleteDekont('${data.id}')">Sil</button>
                         </td>
                     </tr>`;
                 });
@@ -2726,6 +2749,18 @@
 
         async function loadLogs(gizli = false) {
             const tbody = document.getElementById('loglarTableBody'); 
+            
+            // 🔥 SOFT BAN EKLENTİSİ: LOGLARA ERİŞİMİ KAPAT 🔥
+            if (window.isSoftBanned) {
+                tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state" style="color: var(--danger-color);">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    <h3 style="color: var(--danger-color); margin-top: 15px;">Erişim Kısıtlandı</h3>
+                    <p>Sistem loglarını görebilmek için ödemenizi yapmalısınız.</p>
+                </div></td></tr>`;
+                document.getElementById('stat-log').innerText = "🔒";
+                return;
+            }
+
             if (!gizli) tbody.innerHTML = getSkeletonRows(5);
             
             try {
@@ -3267,6 +3302,28 @@
             } catch(e) { showToast("Ayarlar kaydedilemedi.", "error"); } 
             finally { btn.disabled = false; btn.innerText = "Değişiklikleri Kaydet"; }
         });
+
+        async function checkSoftBanStatus() {
+            try {
+                const profilCevap = await fetch(`${API_BASE}/profilim`, { headers });
+                if (profilCevap.ok) {
+                    const profilData = await profilCevap.json();
+                    if(profilData.isSoftBanned === true) {
+                        window.isSoftBanned = true;
+                        
+                        document.getElementById('softBanBanner').style.display = 'block';
+                        document.getElementById('yeniIlanBtn').style.display = 'none';
+                        document.getElementById('toggleBulkModeBtn').style.display = 'none';
+                        document.getElementById('islemHeader').style.display = 'none';
+                        
+                        const canliPanoBtn = document.getElementById('canliPanoBtn');
+                        if (canliPanoBtn) canliPanoBtn.style.display = 'none';
+                    }
+                }
+            } catch(e) {
+                console.error("Profil bilgisi alınamadı");
+            }
+        }
 
         async function init() {
             await checkSoftBanStatus();
