@@ -80,11 +80,10 @@ const authKontrol = async (req, res, next) => {
             return res.status(403).json({ hata: `HESAP YASAKLANDI! Sebep: ${userData.banReason || 'Sistem Kuralları İhlali'}` });
         }
 
-        // 🔥 SÜRE (EXPIRE) KONTROLÜ (YENİ EKLENDİ) 🔥
+        // 🔥 SÜRE (EXPIRE) KONTROLÜ 🔥
         if (userData.expireDate && userData.role !== 'god') {
             const parts = userData.expireDate.split('.');
             if (parts.length === 3) {
-                // Adamın süresi o günün gece 23:59:59'unda bitmiş sayılır
                 const expDate = new Date(parts[2], parts[1] - 1, parts[0], 23, 59, 59).getTime();
                 if (Date.now() > expDate) {
                     return res.status(403).json({ hata: userData.banMessage || "Abonelik süreniz dolmuştur. Lütfen ödemenizi yapın." });
@@ -155,12 +154,10 @@ app.post('/api/login', loginLimiter, async (req, res) => {
         const userData = userDoc.data();
         const userId = userDoc.id;
 
-        // 🔥 BAN EKRANI 🔥
         if (userData.isBanned) {
             return res.status(403).json({ success: false, isBanned: true, message: `HESAP YASAKLANDI!\nSebep: ${userData.banReason || 'Kural İhlali'}` });
         }
 
-        // 🔥 SÜRE (EXPIRE) KONTROLÜ GİRİŞTE DE ÇALIŞIR (YENİ EKLENDİ) 🔥
         if (userData.expireDate && userData.role !== 'god') {
             const parts = userData.expireDate.split('.');
             if (parts.length === 3) {
@@ -171,12 +168,11 @@ app.post('/api/login', loginLimiter, async (req, res) => {
             }
         }
 
-        // 🔥 IP CASUSU (ŞÜPHELİ HESAP ALGILAYICI) 🔥
         const currentIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || "Bilinmeyen IP";
         let recentIps = userData.recentIps || [];
         if (!recentIps.includes(currentIp)) {
             recentIps.push(currentIp);
-            if (recentIps.length > 3) recentIps.shift(); // Sadece son 3 IP'yi tut
+            if (recentIps.length > 3) recentIps.shift(); 
         }
         
         const isSuspicious = recentIps.length >= 3;
@@ -204,7 +200,6 @@ app.post('/api/login', loginLimiter, async (req, res) => {
         });
 
     } catch (e) {
-        console.error("FIREBASE GİRİŞ HATASI DETAYI:", e); 
         res.status(500).json({ success: false, message: "Sunucu hatası" });
     }
 });
@@ -245,9 +240,6 @@ app.patch('/api/profilim/guncelle', authKontrol, softBanKontrol, async (req, res
     }
 });
 
-// =================================================================
-// 🔥 BAN SİSTEMİ (GOD PANEL İÇİN) 🔥
-// =================================================================
 app.post('/api/users/:id/banla', authKontrol, async (req, res) => {
     if (req.user.role !== 'god') {
         return res.status(403).json({ hata: "Yetkisiz işlem." });
@@ -283,9 +275,6 @@ app.post('/api/users/:id/bankaldir', authKontrol, async (req, res) => {
     }
 });
 
-// =================================================================
-// 🔥 DESTEK (TICKET) SİSTEMİ 🔥
-// =================================================================
 app.get('/api/tickets', authKontrol, async (req, res) => {
     try {
         let q = req.user.role === 'god' 
@@ -342,9 +331,6 @@ app.delete('/api/tickets/:id', authKontrol, async (req, res) => {
     }
 });
 
-// =================================================================
-// 🔥 3. PARTİ API SORGULAMA KÖPRÜSÜ (PROXY) 🔥
-// =================================================================
 app.post('/api/sorgu-yap', authKontrol, kilitKontrol, async (req, res) => {
     try {
         const snap = await getDoc(doc(db, "settings", "global"));
@@ -354,15 +340,12 @@ app.post('/api/sorgu-yap', authKontrol, kilitKontrol, async (req, res) => {
             return res.status(403).json({ hata: "Sorgu sistemi şu an bakımda veya pasif durumdadır." });
         }
 
-        const { sorguTuru, sorguDegeri } = req.body;
-
         res.json({
             success: true,
             mesaj: "Sorgu modülü backend'de çalışıyor, API bağlantısı bekleniyor."
         });
 
     } catch (error) {
-        console.error("Sorgu hatası:", error);
         res.status(500).json({ hata: "Sorgu işlemi sırasında sunucu hatası oluştu." });
     }
 });
@@ -409,7 +392,6 @@ app.post('/api/ilan-ekle', authKontrol, kilitKontrol, softBanKontrol, async (req
         res.json({ success: true, id: docRef.id });
         
     } catch (error) {
-        console.error("İlan ekleme hatası:", error);
         res.status(500).json({ hata: "İlan eklenemedi." });
     }
 });
@@ -560,7 +542,6 @@ app.delete('/api/users-komple-sil/:id', authKontrol, async (req, res) => {
 
         res.json({ success: true });
     } catch (error) {
-        console.error("Komple silme hatası:", error);
         res.status(500).json({ hata: "Silme işlemi başarısız oldu." });
     }
 });
@@ -589,7 +570,6 @@ app.post('/api/log-ekle', kilitKontrol, async (req, res) => {
         }
         res.json({ durum: "başarılı" });
     } catch (error) {
-        console.error("Log ekleme hatası:", error);
         res.status(500).json({ hata: "Log kaydedilemedi" });
     }
 });
@@ -615,7 +595,7 @@ app.post('/api/siparis-tamamla', kilitKontrol, async (req, res) => {
                             chat_id: satici.telegramChatId, 
                             text: mesaj 
                         })
-                    }).catch(err => console.error("Telegram bildirim hatası:", err));
+                    }).catch(err => console.log(err));
                 }
             }
         }
@@ -626,7 +606,6 @@ app.post('/api/siparis-tamamla', kilitKontrol, async (req, res) => {
     }
 });
 
-// --- GOD PANEL SİSTEM KONTROL KAPILARI ---
 app.post('/api/sistem/kilit', authKontrol, async (req, res) => {
     if (req.user.role !== 'god') {
         return res.status(403).json({ hata: "Yetkisiz işlem." });
@@ -684,9 +663,6 @@ app.get('/api/sistem/durum', authKontrol, async (req, res) => {
     }
 });
 
-// =================================================================
-// 🔥 YENİ: GOD PANEL TELEGRAM AYARLARI KAYIT 🔥
-// =================================================================
 app.post('/api/sistem/god-ayarlar', authKontrol, async (req, res) => {
     if (req.user.role !== 'god') {
         return res.status(403).json({ hata: "Yetkisiz işlem." });
@@ -702,9 +678,6 @@ app.post('/api/sistem/god-ayarlar', authKontrol, async (req, res) => {
     }
 });
 
-// =================================================================
-// 🔥 YENİ: MANUEL YEDEK (BACKUP) SİSTEMİ (TELEGRAM'A DOSYA ATAR) 🔥
-// =================================================================
 app.post('/api/sistem/manual-backup', authKontrol, async (req, res) => {
     if (req.user.role !== 'god') {
         return res.status(403).json({ hata: "Yetkisiz işlem." });
@@ -752,9 +725,6 @@ app.post('/api/sistem/manual-backup', authKontrol, async (req, res) => {
     }
 });
 
-// =================================================================
-// 🔥 YENİ: VERCEL CRON OTOMATİK YEDEK (HER GECE ÇALIŞIR) 🔥
-// =================================================================
 app.get('/api/cron/backup', async (req, res) => {
     const authHeader = req.headers.authorization;
     if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -799,18 +769,20 @@ app.get('/api/cron/backup', async (req, res) => {
 });
 
 // =================================================================
-// 🔥 TELEGRAM BOT KOMUT DİNLEYİCİSİ (WEBHOOK) - UYKU SORUNU ÇÖZÜLDÜ 🔥
+// 🔥 TAMAMEN İNTERAKTİF (KLAVYESİZ) TELEGRAM MENÜ MOTORU 🔥
 // =================================================================
 app.post('/api/telegram-webhook', async (req, res) => {
     try {
         const body = req.body;
-        let chatId, text = "", isCallback = false, callbackQueryId = null;
+        let chatId, text = "", isCallback = false, callbackQueryId = null, editMessageId = null;
 
+        // Hem normal yazıyı hem de basılan butonu (callback) ayıklar
         if (body.message && body.message.text) {
             chatId = body.message.chat.id.toString();
             text = body.message.text.trim();
         } else if (body.callback_query) {
             chatId = body.callback_query.message.chat.id.toString();
+            editMessageId = body.callback_query.message.message_id;
             text = body.callback_query.data; 
             isCallback = true;
             callbackQueryId = body.callback_query.id;
@@ -820,31 +792,151 @@ app.post('/api/telegram-webhook', async (req, res) => {
 
         const snap = await getDoc(doc(db, "settings", "global"));
         const ayarlar = snap.exists() ? snap.data() : {};
-        
         if (!ayarlar.godChatId || ayarlar.godChatId !== chatId) return res.status(200).send("OK");
         
         const godBotToken = ayarlar.godBotToken;
         if(!godBotToken) return res.status(200).send("OK");
 
-        const args = text.split(' ');
-        const command = args[0].toLowerCase();
-        
+        const command = text.toLowerCase();
         let replyMsg = "";
         let replyMarkup = null;
 
-        if (command === '/start' || command === '/menu') {
+        // 🔘 1. ANA MENÜ OLUŞTURMA
+        if (command === '/start' || command === '/menu' || command === 'menu_main') {
             replyMsg = "👑 *God Panel Komuta Merkezi*\nLütfen yapmak istediğiniz işlemi seçin:";
             replyMarkup = {
                 inline_keyboard: [
                     [{ text: "📊 Sistem Durumu", callback_data: "/durum" }],
-                    [{ text: "🔒 Kısıtla (Soft-Ban)", callback_data: "/help_softban" }, { text: "🔓 Kısıt Çöz", callback_data: "/help_coz" }],
-                    [{ text: "⏳ Süre Uzat", callback_data: "/help_uzat" }],
+                    [{ text: "🔒 Kısıtla (Soft-Ban)", callback_data: "menu_softban" }, { text: "🔓 Kısıt Çöz", callback_data: "menu_coz" }],
+                    [{ text: "⏳ Süre Uzat", callback_data: "menu_uzat" }],
                     [{ text: "🗄️ Hemen Yedek Al", callback_data: "/yedekal" }]
                 ]
             };
         }
+        // 🔘 2. SOFT-BAN MENÜSÜ (Müşterileri Listeler)
+        else if (command === 'menu_softban') {
+            const uSnap = await getDocs(query(collection(db, "users"), where("role", "==", "customer")));
+            let buttons = [];
+            uSnap.forEach(d => {
+                const u = d.data();
+                if(!u.isSoftBanned) {
+                    buttons.push([{ text: `🔒 ${u.isim || 'İsimsiz'} (${u.passcode})`, callback_data: `do_sb_${u.passcode}` }]);
+                }
+            });
+            buttons.push([{ text: "🔙 Ana Menüye Dön", callback_data: "menu_main" }]);
+            replyMsg = "👇 *Kısıtlanacak (Soft-Ban) müşteriyi seçin:*";
+            replyMarkup = { inline_keyboard: buttons };
+        }
+        // 🔘 3. SOFT-BAN UYGULAMA
+        else if (command.startsWith('do_sb_')) {
+            const kod = command.replace('do_sb_', '');
+            const qSnap = await getDocs(query(collection(db, "users"), where("passcode", "==", kod)));
+            if(!qSnap.empty) {
+                await updateDoc(doc(db, "users", qSnap.docs[0].id), { isSoftBanned: true });
+                replyMsg = `✅ *${kod}* kodlu müşteri SADECE OKUMA moduna alındı.`;
+            } else {
+                replyMsg = `❌ Müşteri bulunamadı.`;
+            }
+            replyMarkup = { inline_keyboard: [[{ text: "🔙 Ana Menü", callback_data: "menu_main" }]] };
+        }
+        // 🔘 4. BAN ÇÖZME MENÜSÜ
+        else if (command === 'menu_coz') {
+            const uSnap = await getDocs(query(collection(db, "users"), where("role", "==", "customer")));
+            let buttons = [];
+            uSnap.forEach(d => {
+                const u = d.data();
+                if(u.isSoftBanned || u.isBanned) {
+                    buttons.push([{ text: `🔓 ${u.isim || 'İsimsiz'} (${u.passcode})`, callback_data: `do_coz_${u.passcode}` }]);
+                }
+            });
+            buttons.push([{ text: "🔙 Ana Menüye Dön", callback_data: "menu_main" }]);
+            replyMsg = buttons.length > 1 ? "👇 *Kısıtı kaldırılacak müşteriyi seçin:*" : "✅ *Kısıtlı müşteri bulunmuyor.*";
+            replyMarkup = { inline_keyboard: buttons };
+        }
+        // 🔘 5. BAN ÇÖZME UYGULAMA
+        else if (command.startsWith('do_coz_')) {
+            const kod = command.replace('do_coz_', '');
+            const qSnap = await getDocs(query(collection(db, "users"), where("passcode", "==", kod)));
+            if(!qSnap.empty) {
+                await updateDoc(doc(db, "users", qSnap.docs[0].id), { isSoftBanned: false, isBanned: false });
+                replyMsg = `✅ *${kod}* kodlu müşterinin tüm kısıtlamaları kaldırıldı.`;
+            } else {
+                replyMsg = `❌ Müşteri bulunamadı.`;
+            }
+            replyMarkup = { inline_keyboard: [[{ text: "🔙 Ana Menü", callback_data: "menu_main" }]] };
+        }
+        // 🔘 6. SÜRE UZATMA MENÜSÜ (Müşterileri Listeler)
+        else if (command === 'menu_uzat') {
+            const uSnap = await getDocs(query(collection(db, "users"), where("role", "==", "customer")));
+            let buttons = [];
+            uSnap.forEach(d => {
+                const u = d.data();
+                buttons.push([{ text: `⏳ ${u.isim || 'İsimsiz'} (${u.passcode})`, callback_data: `step_uzat_${u.passcode}` }]);
+            });
+            buttons.push([{ text: "🔙 Ana Menüye Dön", callback_data: "menu_main" }]);
+            replyMsg = "👇 *Süresi uzatılacak müşteriyi seçin:*";
+            replyMarkup = { inline_keyboard: buttons };
+        }
+        // 🔘 7. GÜN SEÇME EKRANI
+        else if (command.startsWith('step_uzat_')) {
+            const kod = command.replace('step_uzat_', '');
+            replyMsg = `👉 *${kod}* kodlu müşteri için kaç gün uzatılacak?`;
+            replyMarkup = {
+                inline_keyboard: [
+                    [{ text: "+15 Gün", callback_data: `do_uzat_15_${kod}` }, { text: "+30 Gün", callback_data: `do_uzat_30_${kod}` }],
+                    [{ text: "+60 Gün", callback_data: `do_uzat_60_${kod}` }, { text: "+365 Gün (1 Yıl)", callback_data: `do_uzat_365_${kod}` }],
+                    [{ text: "🔙 Geri Dön", callback_data: "menu_uzat" }]
+                ]
+            };
+        }
+        // 🔘 8. SÜRE UZATMA UYGULAMA
+        else if (command.startsWith('do_uzat_')) {
+            const parts = command.split('_');
+            const gun = parseInt(parts[2]);
+            const kod = parts[3];
+
+            const qSnap = await getDocs(query(collection(db, "users"), where("passcode", "==", kod)));
+            if(!qSnap.empty) {
+                const uDoc = qSnap.docs[0];
+                const uData = uDoc.data();
+                let expDate = new Date();
+                if(uData.expireDate) {
+                    let p = uData.expireDate.split('.');
+                    if(p.length === 3) expDate = new Date(p[2], p[1]-1, p[0]);
+                }
+                expDate.setDate(expDate.getDate() + gun);
+                await updateDoc(doc(db, "users", uDoc.id), { expireDate: expDate.toLocaleDateString('tr-TR') });
+                replyMsg = `✅ *${kod}* kodlu müşteriye +${gun} gün eklendi.\n📅 Yeni Bitiş: ${expDate.toLocaleDateString('tr-TR')}`;
+            } else {
+                replyMsg = `❌ Müşteri bulunamadı.`;
+            }
+            replyMarkup = { inline_keyboard: [[{ text: "🔙 Ana Menü", callback_data: "menu_main" }]] };
+        }
+        // 🔘 9. DURUM SORGUSU
+        else if (command === '/durum' || command === '/stat') {
+            const uSnap = await getDocs(query(collection(db, "users")));
+            const iSnap = await getDocs(query(collection(db, "ilanlar")));
+            const tSnap = await getDocs(query(collection(db, "tickets"), where("durum", "==", "Acik")));
+            
+            let toplam = 0, aktif = 0, banli = 0, soft = 0;
+            uSnap.forEach(d => {
+                const dt = d.data();
+                if(dt.role === 'customer') {
+                    toplam++;
+                    if(dt.isActive) aktif++;
+                    if(dt.isBanned) banli++;
+                    if(dt.isSoftBanned) soft++;
+                }
+            });
+
+            replyMsg = `📊 *SİSTEM DURUM RAPORU*\n\n👥 Toplam Müşteri: ${toplam}\n✅ Aktif Müşteri: ${aktif}\n🚫 Banlı: ${banli} | 🔒 Kısıtlı: ${soft}\n📦 Toplam İlan: ${iSnap.size}\n🎫 Bekleyen Talep: ${tSnap.size}`;
+        }
+        // 🔘 10. YEDEK ALMA İŞLEMİ
         else if (command === '/yedekal') {
-            replyMsg = "⏳ Veritabanı paketleniyor, yedek dosyanız birazdan bu sohbete düşecek patron...";
+            fetch(`https://api.telegram.org/bot${godBotToken}/sendMessage`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: chatId, text: "⏳ Veritabanı paketleniyor, yedek dosyanız birazdan düşecek..." })
+            });
             
             const usersSnap = await getDocs(query(collection(db, "users")));
             const ilanlarSnap = await getDocs(query(collection(db, "ilanlar")));
@@ -871,108 +963,26 @@ app.post('/api/telegram-webhook', async (req, res) => {
                 headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
                 body: bodyBuffer
             }).catch(e => console.log(e));
-        }
-        else if (command === '/help_softban') {
-            replyMsg = "🔒 *Soft-Ban Atmak İçin:*\nLütfen sohbete koduyla birlikte şunu yazıp gönderin:\n\n`/softban MüşteriKodu`\n(Örnek: `/softban VIP-1234`)";
-        }
-        else if (command === '/help_coz') {
-            replyMsg = "🔓 *Kısıtlama / Ban Kaldırmak İçin:*\nLütfen sohbete koduyla birlikte şunu yazıp gönderin:\n\n`/coz MüşteriKodu`\n(Örnek: `/coz VIP-1234`)";
-        }
-        else if (command === '/help_uzat') {
-            replyMsg = "⏳ *Süre Uzatmak İçin:*\nLütfen sohbete kodu ve gün sayısını yazıp gönderin:\n\n`/uzat MüşteriKodu GünSayısı`\n(Örnek: `/uzat VIP-1234 30`)";
-        }
-        else if (command === '/uzat') {
-            if(args.length < 3) {
-                replyMsg = "⚠️ Hatalı kullanım.\nFormat: `/uzat <MüşteriKodu> <GünSayı>`\nÖrn: `/uzat VIP-1234 30`";
-            } else {
-                const targetKod = args[1];
-                const gunEkle = parseInt(args[2]);
-                
-                const q = query(collection(db, "users"), where("passcode", "==", targetKod));
-                const userSnap = await getDocs(q);
-                
-                if(userSnap.empty) {
-                    replyMsg = `❌ Müşteri bulunamadı: ${targetKod}`;
-                } else {
-                    const uDoc = userSnap.docs[0];
-                    const uData = uDoc.data();
-                    
-                    let expDate = new Date();
-                    if(uData.expireDate) {
-                        let p = uData.expireDate.split('.');
-                        if(p.length === 3) expDate = new Date(p[2], p[1]-1, p[0]);
-                    }
-                    
-                    expDate.setDate(expDate.getDate() + gunEkle);
-                    
-                    await updateDoc(doc(db, "users", uDoc.id), {
-                        expireDate: expDate.toLocaleDateString('tr-TR')
-                    });
-                    
-                    replyMsg = `✅ ${targetKod} kodlu müşterinin süresi ${gunEkle} gün uzatıldı.\nYeni Bitiş: ${expDate.toLocaleDateString('tr-TR')}`;
-                }
-            }
-        } 
-        else if (command === '/softban' || command === '/kısıtla') {
-            if(args.length < 2) {
-                replyMsg = "⚠️ Hatalı kullanım.\nFormat: `/softban <MüşteriKodu>`\nÖrn: `/softban VIP-1234`";
-            } else {
-                const targetKod = args[1];
-                const q = query(collection(db, "users"), where("passcode", "==", targetKod));
-                const userSnap = await getDocs(q);
-                
-                if(userSnap.empty) {
-                    replyMsg = `❌ Müşteri bulunamadı: ${targetKod}`;
-                } else {
-                    const uDoc = userSnap.docs[0];
-                    await updateDoc(doc(db, "users", uDoc.id), { isSoftBanned: true });
-                    replyMsg = `🔒 ${targetKod} kodlu müşteri SADECE OKUMA (Soft-Ban) moduna alındı.`;
-                }
-            }
-        }
-        else if (command === '/coz' || command === '/unban') {
-            if(args.length < 2) {
-                replyMsg = "⚠️ Hatalı kullanım.\nFormat: `/coz <MüşteriKodu>`\nÖrn: `/coz VIP-1234`";
-            } else {
-                const targetKod = args[1];
-                const q = query(collection(db, "users"), where("passcode", "==", targetKod));
-                const userSnap = await getDocs(q);
-                
-                if(userSnap.empty) {
-                    replyMsg = `❌ Müşteri bulunamadı: ${targetKod}`;
-                } else {
-                    const uDoc = userSnap.docs[0];
-                    await updateDoc(doc(db, "users", uDoc.id), { isSoftBanned: false, isBanned: false });
-                    replyMsg = `✅ ${targetKod} kodlu müşterinin tüm kısıtlamaları ve banları kaldırıldı.`;
-                }
-            }
-        }
-        else if (command === '/durum' || command === '/stat') {
-            const uSnap = await getDocs(query(collection(db, "users")));
-            const iSnap = await getDocs(query(collection(db, "ilanlar")));
-            const tSnap = await getDocs(query(collection(db, "tickets"), where("durum", "==", "Acik")));
             
-            let toplam = 0, aktif = 0, banli = 0, soft = 0;
-            uSnap.forEach(d => {
-                const dt = d.data();
-                if(dt.role === 'customer') {
-                    toplam++;
-                    if(dt.isActive) aktif++;
-                    if(dt.isBanned) banli++;
-                    if(dt.isSoftBanned) soft++;
-                }
-            });
-
-            replyMsg = `📊 *SİSTEM DURUM RAPORU*\n\n👥 Toplam Müşteri: ${toplam}\n✅ Aktif Müşteri: ${aktif}\n🚫 Banlı: ${banli} | 🔒 Kısıtlı: ${soft}\n📦 Toplam İlan: ${iSnap.size}\n🎫 Bekleyen Talep: ${tSnap.size}`;
+            replyMsg = ""; 
         }
 
-        if(replyMsg) {
+        // TELEGRAM'A CEVABI İLETME
+        if (replyMsg) {
+            let apiMethod = `https://api.telegram.org/bot${godBotToken}/sendMessage`;
             const payload = { chat_id: chatId, text: replyMsg, parse_mode: "Markdown" };
+            
             if (replyMarkup) {
                 payload.reply_markup = replyMarkup;
             }
 
-            await fetch(`https://api.telegram.org/bot${godBotToken}/sendMessage`, {
+            // Eğer butona basılmışsa yeni mesaj atmak yerine eski mesajı düzenler (Görüntü kirliliğini önler)
+            if (isCallback && command !== '/durum' && command !== '/yedekal') {
+                apiMethod = `https://api.telegram.org/bot${godBotToken}/editMessageText`;
+                payload.message_id = editMessageId;
+            }
+
+            await fetch(apiMethod, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -987,12 +997,10 @@ app.post('/api/telegram-webhook', async (req, res) => {
             });
         }
         
-        // BÜTÜN İŞLER BİTTİKTEN SONRA VERCEL'E UYKU İZNİ VERİYORUZ
         return res.status(200).send("OK");
         
     } catch (error) {
         console.error("Webhook hatası:", error);
-        // Hata olsa bile OK gönderiyoruz ki Telegram aynı hatalı mesajı tekrar tekrar atıp spamlamasın.
         return res.status(200).send("OK");
     }
 });
