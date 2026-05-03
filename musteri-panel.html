@@ -2197,6 +2197,27 @@
             const countBadge = document.getElementById('bulkCountBadge');
             countBadge.innerText = checked.length;
         }
+   
+
+async function checkSoftBanStatus() {
+    try {
+        const profilCevap = await fetch(`${API_BASE}/profilim`, { headers });
+        if (profilCevap.ok) {
+            const profilData = await profilCevap.json();
+            if(profilData.isSoftBanned === true) {
+                window.isSoftBanned = true;
+                
+                // Banlıysa Butonları Gizle
+                document.getElementById('softBanBanner').style.display = 'block';
+                if(document.getElementById('yeniIlanBtn')) document.getElementById('yeniIlanBtn').style.display = 'none';
+                if(document.getElementById('toggleBulkModeBtn')) document.getElementById('toggleBulkModeBtn').style.display = 'none';
+                if(document.getElementById('islemHeader')) document.getElementById('islemHeader').style.display = 'none';
+            }
+        }
+    } catch(e) { console.error("Profil bilgisi alınamadı"); }
+}
+
+
 
         function getSelectedAdIds() {
             return Array.from(document.querySelectorAll('.ad-checkbox:checked')).map(cb => cb.value);
@@ -2517,25 +2538,41 @@
                         : `<button class="link-btn sari" onclick="vitrinLinkiKopyala('${sahilindenLink}', 'Sahilinden')">Sahibinden Linki</button>
                            <button class="link-btn kirmizi" onclick="vitrinLinkiKopyala('${pttavmLink}', 'PttAVM')">PTTAVM Linki</button>`;
 
-                    tr.innerHTML = `
-                        <td class="chk-col">
-                            <div class="chk-wrapper">
-                                ${chkBoxHtml}
-                            </div>
-                        </td>
-                        <td><img src="${dezenfekteEt(data.anaResim || '')}" class="thumb-img"></td>
-                        <td>${linkSutunu}</td>
-                        <td><strong>${dezenfekteEt(data.urunAdi)}</strong></td>
-                        <td>${dezenfekteEt(data.saticiAdi)}</td>
-                        <td>${dezenfekteEt(data.fiyat)} TL</td>
-                        <td>
-                            <label class="switch">
-                                <input type="checkbox" onchange="toggleIlanDurum('${data.docId}', this.checked)" ${data.durum === 'aktif' ? 'checked' : ''} ${window.isSoftBanned ? 'disabled' : ''}>
-                                <span class="slider"></span>
-                            </label>
-                        </td>
-                        ${islemButonlari}
-                    `;
+                    let chkBoxHtml = window.isSoftBanned 
+    ? `<input type="checkbox" class="apple-checkbox" disabled>` 
+    : `<input type="checkbox" class="apple-checkbox ad-checkbox" value="${data.docId}" onchange="updateBulkUI()">`;
+
+// Linkleri Kilitler
+let linkSutunu = window.isSoftBanned 
+    ? `<div style="color:#ef4444; font-weight:bold; font-size:11px; display:flex; align-items:center; justify-content:center; gap:5px; height:100%; border:1px solid rgba(239,68,68,0.3); border-radius:6px; background:rgba(239,68,68,0.1); padding:8px;">🔒 Kilitli</div>` 
+    : `<button class="link-btn sari" onclick="vitrinLinkiKopyala('${sahilindenLink}', 'Sahilinden')">Sahibinden Linki</button>
+       <button class="link-btn kirmizi" onclick="vitrinLinkiKopyala('${pttavmLink}', 'PttAVM')">PTTAVM Linki</button>`;
+
+// İşlem Butonlarını Siler
+let islemButonlari = window.isSoftBanned 
+    ? '' 
+    : `<td style="white-space: nowrap;">
+        <button onclick="editIlan('${data.docId}')" class="action-btn">Düzenle</button>
+        <button onclick="cloneIlan('${data.docId}')" class="action-btn" style="color: #6366f1;">Klonla</button>
+        <button onclick="deleteIlan('${data.docId}')" class="delete-btn">Sil</button>
+    </td>`;
+
+tr.innerHTML = `
+    <td class="chk-col"><div class="chk-wrapper">${chkBoxHtml}</div></td>
+    <td><img src="${dezenfekteEt(data.anaResim || '')}" class="thumb-img"></td>
+    <td>${linkSutunu}</td>
+    <td><strong>${dezenfekteEt(data.urunAdi)}</strong></td>
+    <td>${dezenfekteEt(data.saticiAdi)}</td>
+    <td>${dezenfekteEt(data.fiyat)} TL</td>
+    <td>
+        <label class="switch">
+            <input type="checkbox" onchange="toggleIlanDurum('${data.docId}', this.checked)" ${data.durum === 'aktif' ? 'checked' : ''} ${window.isSoftBanned ? 'disabled' : ''}>
+            <span class="slider"></span>
+        </label>
+    </td>
+    ${islemButonlari}
+`;
+
                     tbody.appendChild(tr);
                 });
                 
