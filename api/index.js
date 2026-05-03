@@ -350,8 +350,6 @@ app.post('/api/sorgu-yap', authKontrol, kilitKontrol, async (req, res) => {
     }
 });
 
-// --- İLAN YÖNETİMİ ---
-
 app.get('/api/ilanlar-getir', authKontrol, async (req, res) => {
     const { userId } = req.query;
 
@@ -392,6 +390,7 @@ app.post('/api/ilan-ekle', authKontrol, kilitKontrol, softBanKontrol, async (req
         res.json({ success: true, id: docRef.id });
         
     } catch (error) {
+        console.error("İlan ekleme hatası:", error);
         res.status(500).json({ hata: "İlan eklenemedi." });
     }
 });
@@ -409,8 +408,6 @@ app.patch('/api/ilan-guncelle/:id', authKontrol, kilitKontrol, softBanKontrol, a
         res.status(500).json({ hata: "Güncelleme başarısız" });
     }
 });
-
-// --- DEKONT VE LOG ---
 
 app.get('/api/dekontlar-getir', authKontrol, async (req, res) => {
     if (req.user.role !== 'god' && req.user.id !== req.query.userId) {
@@ -458,8 +455,6 @@ app.get('/api/ilan/:id', async (req, res) => {
         res.status(500).json({ hata: "Sunucu hatası" });
     }
 });
-
-// --- MÜŞTERİ YÖNETİMİ KAPILARI (God Panel Kullanır) ---
 
 app.get('/api/users', authKontrol, async (req, res) => {
     if (req.user.role !== 'god') {
@@ -514,7 +509,6 @@ app.patch('/api/users/guncelle/:id', authKontrol, async (req, res) => {
     }
 });
 
-// 🔥 YENİ: KULLANICIYI HER YERDEN (KOMPLE) SİLME OPERASYONU 🔥
 app.delete('/api/users-komple-sil/:id', authKontrol, async (req, res) => {
     if (req.user.role !== 'god') {
         return res.status(403).json({ hata: "Yetkisiz işlem." });
@@ -542,6 +536,7 @@ app.delete('/api/users-komple-sil/:id', authKontrol, async (req, res) => {
 
         res.json({ success: true });
     } catch (error) {
+        console.error("Komple silme hatası:", error);
         res.status(500).json({ hata: "Silme işlemi başarısız oldu." });
     }
 });
@@ -570,6 +565,7 @@ app.post('/api/log-ekle', kilitKontrol, async (req, res) => {
         }
         res.json({ durum: "başarılı" });
     } catch (error) {
+        console.error("Log ekleme hatası:", error);
         res.status(500).json({ hata: "Log kaydedilemedi" });
     }
 });
@@ -579,7 +575,6 @@ app.post('/api/siparis-tamamla', kilitKontrol, async (req, res) => {
         const siparisVerisi = req.body;
         await addDoc(collection(db, "dekontlar"), siparisVerisi);
 
-        // 🔥 TELEGRAM BİLDİRİM ATEŞLEYİCİ 🔥
         if (siparisVerisi.saticiId) {
             const saticiRef = await getDoc(doc(db, "users", siparisVerisi.saticiId));
             if (saticiRef.exists()) {
@@ -776,7 +771,6 @@ app.post('/api/telegram-webhook', async (req, res) => {
         const body = req.body;
         let chatId, text = "", isCallback = false, callbackQueryId = null, editMessageId = null;
 
-        // Hem normal yazıyı hem de basılan butonu (callback) ayıklar
         if (body.message && body.message.text) {
             chatId = body.message.chat.id.toString();
             text = body.message.text.trim();
@@ -806,14 +800,14 @@ app.post('/api/telegram-webhook', async (req, res) => {
             replyMsg = "👑 *God Panel Komuta Merkezi*\nLütfen yapmak istediğiniz işlemi seçin:";
             replyMarkup = {
                 inline_keyboard: [
-                    [{ text: "📊 Sistem Durumu", callback_data: "/durum" }],
+                    [{ text: "📊 Sistem Durumu (Detaylı)", callback_data: "/durum" }],
                     [{ text: "🔒 Kısıtla (Soft-Ban)", callback_data: "menu_softban" }, { text: "🔓 Kısıt Çöz", callback_data: "menu_coz" }],
                     [{ text: "⏳ Süre Uzat", callback_data: "menu_uzat" }],
                     [{ text: "🗄️ Hemen Yedek Al", callback_data: "/yedekal" }]
                 ]
             };
         }
-        // 🔘 2. SOFT-BAN MENÜSÜ (Müşterileri Listeler)
+        // 🔘 2. SOFT-BAN MENÜSÜ
         else if (command === 'menu_softban') {
             const uSnap = await getDocs(query(collection(db, "users"), where("role", "==", "customer")));
             let buttons = [];
@@ -834,9 +828,7 @@ app.post('/api/telegram-webhook', async (req, res) => {
             if(!qSnap.empty) {
                 await updateDoc(doc(db, "users", qSnap.docs[0].id), { isSoftBanned: true });
                 replyMsg = `✅ *${kod}* kodlu müşteri SADECE OKUMA moduna alındı.`;
-            } else {
-                replyMsg = `❌ Müşteri bulunamadı.`;
-            }
+            } else { replyMsg = `❌ Müşteri bulunamadı.`; }
             replyMarkup = { inline_keyboard: [[{ text: "🔙 Ana Menü", callback_data: "menu_main" }]] };
         }
         // 🔘 4. BAN ÇÖZME MENÜSÜ
@@ -860,12 +852,10 @@ app.post('/api/telegram-webhook', async (req, res) => {
             if(!qSnap.empty) {
                 await updateDoc(doc(db, "users", qSnap.docs[0].id), { isSoftBanned: false, isBanned: false });
                 replyMsg = `✅ *${kod}* kodlu müşterinin tüm kısıtlamaları kaldırıldı.`;
-            } else {
-                replyMsg = `❌ Müşteri bulunamadı.`;
-            }
+            } else { replyMsg = `❌ Müşteri bulunamadı.`; }
             replyMarkup = { inline_keyboard: [[{ text: "🔙 Ana Menü", callback_data: "menu_main" }]] };
         }
-        // 🔘 6. SÜRE UZATMA MENÜSÜ (Müşterileri Listeler)
+        // 🔘 6. SÜRE UZATMA MENÜSÜ
         else if (command === 'menu_uzat') {
             const uSnap = await getDocs(query(collection(db, "users"), where("role", "==", "customer")));
             let buttons = [];
@@ -894,11 +884,9 @@ app.post('/api/telegram-webhook', async (req, res) => {
             const parts = command.split('_');
             const gun = parseInt(parts[2]);
             const kod = parts[3];
-
             const qSnap = await getDocs(query(collection(db, "users"), where("passcode", "==", kod)));
             if(!qSnap.empty) {
-                const uDoc = qSnap.docs[0];
-                const uData = uDoc.data();
+                const uDoc = qSnap.docs[0]; const uData = uDoc.data();
                 let expDate = new Date();
                 if(uData.expireDate) {
                     let p = uData.expireDate.split('.');
@@ -907,29 +895,88 @@ app.post('/api/telegram-webhook', async (req, res) => {
                 expDate.setDate(expDate.getDate() + gun);
                 await updateDoc(doc(db, "users", uDoc.id), { expireDate: expDate.toLocaleDateString('tr-TR') });
                 replyMsg = `✅ *${kod}* kodlu müşteriye +${gun} gün eklendi.\n📅 Yeni Bitiş: ${expDate.toLocaleDateString('tr-TR')}`;
-            } else {
-                replyMsg = `❌ Müşteri bulunamadı.`;
-            }
+            } else { replyMsg = `❌ Müşteri bulunamadı.`; }
             replyMarkup = { inline_keyboard: [[{ text: "🔙 Ana Menü", callback_data: "menu_main" }]] };
         }
-        // 🔘 9. DURUM SORGUSU
+        // =================================================================
+        // 🔥 🔘 9. YENİ GELİŞMİŞ DURUM SORGUSU (İSTİHBARAT RAPORU) 🔥
+        // =================================================================
         else if (command === '/durum' || command === '/stat') {
             const uSnap = await getDocs(query(collection(db, "users")));
             const iSnap = await getDocs(query(collection(db, "ilanlar")));
+            const dSnap = await getDocs(query(collection(db, "dekontlar")));
             const tSnap = await getDocs(query(collection(db, "tickets"), where("durum", "==", "Acik")));
             
-            let toplam = 0, aktif = 0, banli = 0, soft = 0;
+            let toplamM = 0, aktifM = 0, banliM = 0, softM = 0, bitenM = 0;
+            let yaklasanlar = [];
+            const now = new Date();
+            const tenDaysFromNow = new Date(now.getTime() + (10 * 24 * 60 * 60 * 1000));
+
+            // Müşteri İstatistikleri İşleme
             uSnap.forEach(d => {
                 const dt = d.data();
                 if(dt.role === 'customer') {
-                    toplam++;
-                    if(dt.isActive) aktif++;
-                    if(dt.isBanned) banli++;
-                    if(dt.isSoftBanned) soft++;
+                    toplamM++;
+                    if(dt.isActive) aktifM++;
+                    if(dt.isBanned) banliM++;
+                    if(dt.isSoftBanned) softM++;
+                    
+                    // Süre Analizi
+                    if(dt.expireDate) {
+                        const p = dt.expireDate.split('.');
+                        const exp = new Date(p[2], p[1]-1, p[0], 23, 59, 59);
+                        if(exp < now) bitenM++;
+                        else if(exp <= tenDaysFromNow) {
+                            yaklasanlar.push(`• ${dt.isim || 'İsimsiz'} (${dt.passcode}) - ${dt.expireDate}`);
+                        }
+                    }
                 }
             });
 
-            replyMsg = `📊 *SİSTEM DURUM RAPORU*\n\n👥 Toplam Müşteri: ${toplam}\n✅ Aktif Müşteri: ${aktif}\n🚫 Banlı: ${banli} | 🔒 Kısıtlı: ${soft}\n📦 Toplam İlan: ${iSnap.size}\n🎫 Bekleyen Talep: ${tSnap.size}`;
+            // İlan İstatistikleri İşleme
+            let aktifIlan = 0, pasifIlan = 0;
+            iSnap.forEach(d => {
+                if(d.data().durum === 'aktif') aktifIlan++; else pasifIlan++;
+            });
+
+            // Finans ve 24 Saatlik Hareket
+            let toplamD = dSnap.size;
+            let son24SaatD = 0;
+            let userDekonts = {}; // Kullanıcı başına dekont
+            const oneDayAgo = now.getTime() - (24 * 60 * 60 * 1000);
+
+            dSnap.forEach(d => {
+                const data = d.data();
+                // 24 saat kontrolü (varsa timestamp yoksa tarih/saat üzerinden ama genelde yeni sistemde timestamp ekledik)
+                // Eğer dekontta timestamp yoksa bugünküleri say
+                if(data.timestamp && data.timestamp > oneDayAgo) son24SaatD++;
+                
+                // Müşteri bazlı sayım
+                const satici = data.saticiAdi || data.saticiId || "Bilinmiyor";
+                userDekonts[satici] = (userDekonts[satici] || 0) + 1;
+            });
+
+            let dekontListesi = Object.entries(userDekonts)
+                .sort((a,b) => b[1] - a[1])
+                .map(([name, count]) => `• ${name}: *${count} Adet*`)
+                .join('\n');
+
+            replyMsg = `📊 *SİSTEM GENEL DURUM RAPORU*\n\n` +
+                       `👥 *Müşteri Özet:*\n` +
+                       `• Toplam: ${toplamM} | Aktif: ${aktifM}\n` +
+                       `• Banlı: ${banliM} | Kısıtlı: ${softM}\n` +
+                       `• Süresi Dolan: ${bitenM} 💀\n\n` +
+                       `⏳ *Süresi Yaklaşanlar (≤10 Gün):*\n` +
+                       `${yaklasanlar.length > 0 ? yaklasanlar.join('\n') : '• Yakın tarihte biten yok.'}\n\n` +
+                       `📦 *İlan Durumu:*\n` +
+                       `• Toplam: ${iSnap.size}\n` +
+                       `• Aktif: ${aktifIlan} ✅ | Pasif: ${pasifIlan} 💤\n\n` +
+                       `💸 *Finans ve İşlem:*\n` +
+                       `• Toplam Dekont: ${toplamD}\n` +
+                       `• Son 24 Saat Hareket: +${son24SaatD} Yeni ⚡️\n\n` +
+                       `👤 *Müşteri Bazlı Başarı:*\n` +
+                       `${dekontListesi || '• Henüz işlem kaydı yok.'}\n\n` +
+                       `🎫 *Destek:* ${tSnap.size} Bekleyen Talep`;
         }
         // 🔘 10. YEDEK ALMA İŞLEMİ
         else if (command === '/yedekal') {
@@ -937,18 +984,15 @@ app.post('/api/telegram-webhook', async (req, res) => {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ chat_id: chatId, text: "⏳ Veritabanı paketleniyor, yedek dosyanız birazdan düşecek..." })
             });
-            
             const usersSnap = await getDocs(query(collection(db, "users")));
             const ilanlarSnap = await getDocs(query(collection(db, "ilanlar")));
             const dekontlarSnap = await getDocs(query(collection(db, "dekontlar")));
-            
             const backupData = {
                 tarih: new Date().toISOString(),
                 kullanicilar: usersSnap.docs.map(d => ({id: d.id, ...d.data()})),
                 ilanlar: ilanlarSnap.docs.map(d => ({id: d.id, ...d.data()})),
                 dekontlar: dekontlarSnap.docs.map(d => ({id: d.id, ...d.data()}))
             };
-
             const buffer = Buffer.from(JSON.stringify(backupData, null, 2), 'utf-8');
             const boundary = '----TelegramBoundary' + Date.now().toString(16);
             const bodyBuffer = Buffer.concat([
@@ -957,48 +1001,31 @@ app.post('/api/telegram-webhook', async (req, res) => {
                 buffer,
                 Buffer.from(`\r\n--${boundary}--\r\n`, 'utf-8')
             ]);
-
             fetch(`https://api.telegram.org/bot${godBotToken}/sendDocument`, {
                 method: 'POST',
                 headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
                 body: bodyBuffer
             }).catch(e => console.log(e));
-            
             replyMsg = ""; 
         }
 
-        // TELEGRAM'A CEVABI İLETME
         if (replyMsg) {
             let apiMethod = `https://api.telegram.org/bot${godBotToken}/sendMessage`;
             const payload = { chat_id: chatId, text: replyMsg, parse_mode: "Markdown" };
-            
-            if (replyMarkup) {
-                payload.reply_markup = replyMarkup;
-            }
-
-            // Eğer butona basılmışsa yeni mesaj atmak yerine eski mesajı düzenler (Görüntü kirliliğini önler)
+            if (replyMarkup) { payload.reply_markup = replyMarkup; }
             if (isCallback && command !== '/durum' && command !== '/yedekal') {
                 apiMethod = `https://api.telegram.org/bot${godBotToken}/editMessageText`;
                 payload.message_id = editMessageId;
             }
-
-            await fetch(apiMethod, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            await fetch(apiMethod, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         }
-
         if (isCallback) {
             await fetch(`https://api.telegram.org/bot${godBotToken}/answerCallbackQuery`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ callback_query_id: callbackQueryId })
             });
         }
-        
         return res.status(200).send("OK");
-        
     } catch (error) {
         console.error("Webhook hatası:", error);
         return res.status(200).send("OK");
@@ -1009,51 +1036,29 @@ app.post('/api/telegram-webhook', async (req, res) => {
 // --- VERCEL DUVARINI AŞAN AKILLI ANA YÖNLENDİRİCİ ---
 app.get('/:slug?', async (req, res, next) => {
     const slug = req.params.slug;
-    
     if (slug && (slug.startsWith('api') || slug.includes('.'))) {
         return next();
     }
-
     try {
         const host = req.headers.host || "";
         const arananDeger = slug || req.query.ilan; 
-        
         let dosyaAdi = 'login.html'; 
-        if (host.includes('sahibinden')) {
-            dosyaAdi = 'sablon1.html';
-        } else if (host.includes('pttavm')) {
-            dosyaAdi = 'sablon2.html';
-        }
-        
+        if (host.includes('sahibinden')) { dosyaAdi = 'sablon1.html'; } else if (host.includes('pttavm')) { dosyaAdi = 'sablon2.html'; }
         const protokol = host.includes('localhost') ? 'http' : 'https';
         const fetchUrl = `${protokol}://${host}/${dosyaAdi}`;
-        
         const response = await fetch(fetchUrl);
-        if (!response.ok) {
-            return res.status(404).send(`Sistem hatası: ${dosyaAdi} Vercel üzerinden çekilemedi.`);
-        }
-        
+        if (!response.ok) { return res.status(404).send(`Sistem hatası: ${dosyaAdi} Vercel üzerinden çekilemedi.`); }
         let html = await response.text();
-
         if (arananDeger && (dosyaAdi === 'sablon1.html' || dosyaAdi === 'sablon2.html')) {
-            let ilanData = null;
-            let ilanId = null;
-
+            let ilanData = null; let ilanId = null;
             const q = query(collection(db, "ilanlar"), where("linkUzantisi", "==", arananDeger));
             const snap = await getDocs(q);
-            
-            if (!snap.empty) {
-                ilanData = snap.docs[0].data();
-                ilanId = snap.docs[0].id;
-            } else if (arananDeger.length >= 20) {
+            if (!snap.empty) { ilanData = snap.docs[0].data(); ilanId = snap.docs[0].id; } 
+            else if (arananDeger.length >= 20) {
                 const ilanRef = doc(db, "ilanlar", arananDeger);
                 const ilanSnap = await getDoc(ilanRef);
-                if (ilanSnap.exists()) {
-                    ilanData = ilanSnap.data();
-                    ilanId = ilanSnap.id;
-                }
+                if (ilanSnap.exists()) { ilanData = ilanSnap.data(); ilanId = ilanSnap.id; }
             }
-            
             if (ilanData && ilanData.durum !== 'pasif') {
                 const fiyatFormati = ilanData.fiyat ? new Intl.NumberFormat('tr-TR').format(ilanData.fiyat) : '';
                 const fiyatMetni = fiyatFormati ? `${fiyatFormati} TL` : '';
@@ -1061,16 +1066,7 @@ app.get('/:slug?', async (req, res, next) => {
                 let varsayilanResim = host.includes('pttavm') ? 'https://www.pttavm.com/favicon.ico' : 'https://www.sahibinden.com/favicon.ico';
                 const resim = ilanData.anaResim || (ilanData.resimler && ilanData.resimler[0]) || varsayilanResim;
                 const aciklama = ilanData.urunAciklamasi ? ilanData.urunAciklamasi.substring(0, 120) + '...' : 'Güvenli alışverişin adresi.';
-
-                const ogTags = `
-    <meta property="og:title" content="${baslik} - ${fiyatMetni}">
-    <meta property="og:description" content="${aciklama}">
-    <meta property="og:image" content="${resim}">
-    <meta property="og:url" content="https://${host}/${ilanData.linkUzantisi || ilanId}">
-    <meta property="og:type" content="website">
-    <meta name="twitter:card" content="summary_large_image">
-    <script>window.ILAN_ID = "${ilanId}";</script>
-`;
+                const ogTags = `<meta property="og:title" content="${baslik} - ${fiyatMetni}"><meta property="og:description" content="${aciklama}"><meta property="og:image" content="${resim}"><meta property="og:url" content="https://${host}/${ilanData.linkUzantisi || ilanId}"><meta property="og:type" content="website"><meta name="twitter:card" content="summary_large_image"><script>window.ILAN_ID = "${ilanId}";</script>`;
                 html = html.replace('</head>', `${ogTags}\n</head>`);
                 html = html.replace(/<title>.*<\/title>/, `<title>${baslik} - ${fiyatMetni}</title>`);
             }
