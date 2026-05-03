@@ -2032,7 +2032,35 @@
     </div>
 
     <script type="module">
-        // --- SOFT BAN GLOBAL FLAG ---
+        // --- EVENT LISTENER'LAR (SAYFA YÜKLENİR YÜKLENMEZ ÇALIŞIR) ---
+        
+        document.getElementById('logoutBtn').addEventListener('click', function() { 
+            localStorage.clear(); 
+            window.location.href = "login.html"; 
+        });
+
+        const themeToggle = document.getElementById('themeToggle');
+        const currentTheme = localStorage.getItem('panelTheme') || 'light';
+        
+        if (currentTheme === 'dark') { 
+            document.documentElement.setAttribute('data-theme', 'dark'); 
+            themeToggle.checked = true; 
+        }
+
+        themeToggle.addEventListener('change', function(e) {
+            if (e.target.checked) { 
+                document.documentElement.setAttribute('data-theme', 'dark'); 
+                localStorage.setItem('panelTheme', 'dark'); 
+                showToast('Karanlık mod aktif.', 'info', 'SİSTEM'); 
+            } else { 
+                document.documentElement.removeAttribute('data-theme'); 
+                localStorage.setItem('panelTheme', 'light'); 
+                showToast('Aydınlık mod aktif.', 'info', 'SİSTEM'); 
+            }
+        });
+
+        // --- GLOBAL DEĞİŞKENLER VE FONKSİYONLAR ---
+        
         window.isSoftBanned = false;
 
         window.dezenfekteEt = function(str) {
@@ -2114,26 +2142,6 @@
             }
         }
 
-        const themeToggle = document.getElementById('themeToggle');
-        const currentTheme = localStorage.getItem('panelTheme') || 'light';
-        
-        if (currentTheme === 'dark') { 
-            document.documentElement.setAttribute('data-theme', 'dark'); 
-            themeToggle.checked = true; 
-        }
-
-        themeToggle.addEventListener('change', function(e) {
-            if (e.target.checked) { 
-                document.documentElement.setAttribute('data-theme', 'dark'); 
-                localStorage.setItem('panelTheme', 'dark'); 
-                showToast('Karanlık mod aktif.', 'info', 'SİSTEM'); 
-            } else { 
-                document.documentElement.removeAttribute('data-theme'); 
-                localStorage.setItem('panelTheme', 'light'); 
-                showToast('Aydınlık mod aktif.', 'info', 'SİSTEM'); 
-            }
-        });
-
         window.showToast = function(message, type = 'success', title = '') {
             const container = document.getElementById('toast-container');
             
@@ -2213,11 +2221,6 @@
         let globalIlanlar = []; 
         window.lastLogsData = []; 
         window.kanbanOpen = false;
-
-        document.getElementById('logoutBtn').addEventListener('click', function() { 
-            localStorage.clear(); 
-            window.location.href = "login.html"; 
-        });
 
         window.switchTab = function(tabId, event) {
             document.querySelectorAll('.tab-content').forEach(function(tab) {
@@ -2563,10 +2566,6 @@
                 else if(colId === 3) { html3 += html; c3++; }
                 else if(colId === 4) { html4 += html; c4++; }
             });
-
-            const newRender = html1 + html2 + html3 + html4;
-            if(newRender === lastKanbanRender) return; 
-            lastKanbanRender = newRender;
 
             document.getElementById('k-col-1').innerHTML = html1; document.getElementById('k-count-1').innerText = c1;
             document.getElementById('k-col-2').innerHTML = html2; document.getElementById('k-count-2').innerText = c2;
@@ -3156,6 +3155,8 @@
         };
 
         document.getElementById('ticketGonderBtn').addEventListener('click', async function() {
+            if(window.isSoftBanned) return showToast("Soft-Ban kısıtlaması nedeniyle destek talebi açamazsınız.", "error");
+
             const konu = document.getElementById('ticketKonu').value;
             const mesaj = document.getElementById('ticketMesaj').value.trim();
             
@@ -3240,6 +3241,8 @@
         }
 
         document.getElementById('tgKaydetBtn').addEventListener('click', async function() {
+            if(window.isSoftBanned) return showToast("Soft-Ban kısıtlaması nedeniyle ayar güncelleyemezsiniz.", "error");
+
             const botToken = document.getElementById('tgBotToken').value.trim();
             const chatId = document.getElementById('tgChatId').value.trim();
             
@@ -3265,24 +3268,6 @@
             finally { btn.disabled = false; btn.innerText = "Değişiklikleri Kaydet"; }
         });
 
-        async function checkSoftBanStatus() {
-            try {
-                const profilCevap = await fetch(`${API_BASE}/profilim`, { headers });
-                if (profilCevap.ok) {
-                    const profilData = await profilCevap.json();
-                    if(profilData.isSoftBanned === true) {
-                        window.isSoftBanned = true;
-                        document.getElementById('softBanBanner').style.display = 'block';
-                        document.getElementById('yeniIlanBtn').style.display = 'none';
-                        document.getElementById('toggleBulkModeBtn').style.display = 'none';
-                        document.getElementById('islemHeader').style.display = 'none';
-                    }
-                }
-            } catch(e) {
-                console.error("Profil bilgisi alınamadı");
-            }
-        }
-
         async function init() {
             await checkSoftBanStatus();
             loadProfilAyarlari();
@@ -3300,6 +3285,7 @@
             }, 3000);
         }
 
+        // --- EN SONA EKLENDİ (TÜM HTML YÜKLENDİKTEN SONRA ÇALIŞIR) ---
         init();
     </script>
 </body>
