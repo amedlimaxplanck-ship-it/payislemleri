@@ -776,25 +776,32 @@ app.get('/api/cron/backup', async (req, res) => {
 });
 
 // =================================================================
-// 🔥 YENİ: TELEGRAM BOT KOMUT DİNLEYİCİSİ (WEBHOOK) 🔥
+// 🔥 YENİ: TELEGRAM BUTON VE KOMUT DİNLEYİCİSİ (WEBHOOK) 🔥
 // =================================================================
 app.post('/api/telegram-webhook', async (req, res) => {
-    // Telegram sunucularına "Aldım, sorun yok" diyoruz ki tekrar atmasın
-    res.json({ success: true });
+    res.json({ success: true }); 
 
     try {
         const body = req.body;
-        if (!body || !body.message || !body.message.text) return;
+        let chatId, text = "", isCallback = false, callbackQueryId = null;
 
-        const text = body.message.text.trim();
-        const chatId = body.message.chat.id.toString();
+        // Hem normal yazıyı hem de basılan butonu (callback) algılayan motor
+        if (body.message && body.message.text) {
+            chatId = body.message.chat.id.toString();
+            text = body.message.text.trim();
+        } else if (body.callback_query) {
+            chatId = body.callback_query.message.chat.id.toString();
+            text = body.callback_query.data; 
+            isCallback = true;
+            callbackQueryId = body.callback_query.id;
+        } else {
+            return;
+        }
 
         const snap = await getDoc(doc(db, "settings", "global"));
         const ayarlar = snap.exists() ? snap.data() : {};
         
-        // GÜVENLİK DUVARI: Sadece God Panel'de kaydedilen Chat ID komut verebilir!
         if (!ayarlar.godChatId || ayarlar.godChatId !== chatId) return;
-        
         const godBotToken = ayarlar.godBotToken;
         if(!godBotToken) return;
 
@@ -802,11 +809,64 @@ app.post('/api/telegram-webhook', async (req, res) => {
         const command = args[0].toLowerCase();
         
         let replyMsg = "";
+        let replyMarkup = null;
 
-        // KOMUT 1: SÜRE UZAT
-        if (command === '/uzat') {
+        // 🔘 KOMUT 0: ANA MENÜ BUTONLARI (INLINE KEYBOARD)
+        if (command === '/start' || command === '/menu') {
+            replyMsg = "👑 *God Panel Komuta Merkezi*\nLütfen yapmak istediğiniz işlemi seçin:";
+            replyMarkup = {
+                inline_keyboard: [
+                    [{ text: "📊 Sistem Durumu", callback_data: "/durum" }],
+                    [{ text: "🔒 Kısıtla (Soft-Ban)", callback_data: "/help_softban" }, { text: "🔓 Kısıt Çöz", callback_data: "/help_coz" }],
+                    [{ text: "⏳ Süre Uzat", callback_data: "/help_uzat" }],
+                    [{ text: "🗄️ Hemen Yedek Al", callback_data: "/yedekal" }]
+                ]
+            };
+        }
+        // 🔘 KOMUT 1: YEDEK ALMA (Butondan Tıklanınca)
+        else if (command === '/yedekal') {
+            replyMsg = "⏳ Veritabanı paketleniyor, yedek dosyanız birazdan bu sohbete düşecek patron...";
+            
+            const usersSnap = await getDocs(query(collection(db, "users")));
+            const ilanlarSnap = await getDocs(query(collection(db, "ilanlar")));
+            const dekontlarSnap = await getDocs(query(collection(db, "dekontlar")));
+            
+            const backupData = {
+                tarih: new Date().toISOString(),
+                kullanicilar: usersSnap.docs.map(d => ({id: d.id, ...d.data()})),
+                ilanlar: ilanlarSnap.docs.map(d => ({id: d.id, ...d.data()})),
+                dekontlar: dekontlarSnap.docs.map(d => ({id: d.id, ...d.data()}))
+            };
+
+            const buffer = Buffer.from(JSON.stringify(backupData, null, 2), 'utf-8');
+            const boundary = '----TelegramBoundary' + Date.now().toString(16);
+            const bodyBuffer = Buffer.concat([
+                Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="chat_id"\r\n\r\n${chatId}\r\n`, 'utf-8'),
+                Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="document"; filename="Santral_Yedek_${Date.now()}.json"\r\nContent-Type: application/json\r\n\r\n`, 'utf-8'),
+                buffer,
+                Buffer.from(`\r\n--${boundary}--\r\n`, 'utf-8')
+            ]);
+
+            fetch(`https://api.telegram.org/bot${godBotToken}/sendDocument`, {
+                method: 'POST',
+                headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
+                body: bodyBuffer
+            }).catch(e => console.log(e));
+        }
+        // 🔘 YARDIM MENÜLERİ (Butonlara basılınca bilgi verir)
+        else if (command === '/help_softban') {
+            replyMsg = "🔒 *Soft-Ban Atmak İçin:*\nLütfen sohbete koduyla birlikte şunu yazıp gönderin:\n\n`/softban MüşteriKodu`\n(Örnek: `/softban VIP-1234`)";
+        }
+        else if (command === '/help_coz') {
+            replyMsg = "🔓 *Kısıtlama / Ban Kaldırmak İçin:*\nLütfen sohbete koduyla birlikte şunu yazıp gönderin:\n\n`/coz MüşteriKodu`\n(Örnek: `/coz VIP-1234`)";
+        }
+        else if (command === '/help_uzat') {
+            replyMsg = "⏳ *Süre Uzatmak İçin:*\nLütfen sohbete kodu ve gün sayısını yazıp gönderin:\n\n`/uzat MüşteriKodu GünSayısı`\n(Örnek: `/uzat VIP-1234 30`)";
+        }
+        // KOMUT 2: SÜRE UZAT (Manuel Yazım)
+        else if (command === '/uzat') {
             if(args.length < 3) {
-                replyMsg = "⚠️ Hatalı kullanım.\nFormat: /uzat <MüşteriKodu> <GünSayı>\nÖrn: /uzat VIP-1234 30";
+                replyMsg = "⚠️ Hatalı kullanım.\nFormat: `/uzat <MüşteriKodu> <GünSayı>`\nÖrn: `/uzat VIP-1234 30`";
             } else {
                 const targetKod = args[1];
                 const gunEkle = parseInt(args[2]);
@@ -836,10 +896,10 @@ app.post('/api/telegram-webhook', async (req, res) => {
                 }
             }
         } 
-        // KOMUT 2: SOFT BAN AT
+        // KOMUT 3: SOFT BAN AT (Manuel Yazım)
         else if (command === '/softban' || command === '/kısıtla') {
             if(args.length < 2) {
-                replyMsg = "⚠️ Hatalı kullanım.\nFormat: /softban <MüşteriKodu>\nÖrn: /softban VIP-1234";
+                replyMsg = "⚠️ Hatalı kullanım.\nFormat: `/softban <MüşteriKodu>`\nÖrn: `/softban VIP-1234`";
             } else {
                 const targetKod = args[1];
                 const q = query(collection(db, "users"), where("passcode", "==", targetKod));
@@ -854,10 +914,10 @@ app.post('/api/telegram-webhook', async (req, res) => {
                 }
             }
         }
-        // KOMUT 3: BANLARI ÇÖZ
+        // KOMUT 4: BANLARI ÇÖZ (Manuel Yazım)
         else if (command === '/coz' || command === '/unban') {
             if(args.length < 2) {
-                replyMsg = "⚠️ Hatalı kullanım.\nFormat: /coz <MüşteriKodu>\nÖrn: /coz VIP-1234";
+                replyMsg = "⚠️ Hatalı kullanım.\nFormat: `/coz <MüşteriKodu>`\nÖrn: `/coz VIP-1234`";
             } else {
                 const targetKod = args[1];
                 const q = query(collection(db, "users"), where("passcode", "==", targetKod));
@@ -872,7 +932,7 @@ app.post('/api/telegram-webhook', async (req, res) => {
                 }
             }
         }
-        // KOMUT 4: YENİ İŞLEVSEL SİSTEM DURUM RAPORU
+        // KOMUT 5: SİSTEM DURUM RAPORU
         else if (command === '/durum' || command === '/stat') {
             const uSnap = await getDocs(query(collection(db, "users")));
             const iSnap = await getDocs(query(collection(db, "ilanlar")));
@@ -894,10 +954,24 @@ app.post('/api/telegram-webhook', async (req, res) => {
 
         // Telegram'a cevap gönder
         if(replyMsg) {
+            const payload = { chat_id: chatId, text: replyMsg, parse_mode: "Markdown" };
+            if (replyMarkup) {
+                payload.reply_markup = replyMarkup;
+            }
+
             await fetch(`https://api.telegram.org/bot${godBotToken}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: chatId, text: replyMsg })
+                body: JSON.stringify(payload)
+            });
+        }
+
+        // Tıklanan butonun dönmesini durdur (Telegram'a işin bittiğini haber ver)
+        if (isCallback) {
+            await fetch(`https://api.telegram.org/bot${godBotToken}/answerCallbackQuery`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ callback_query_id: callbackQueryId })
             });
         }
         
