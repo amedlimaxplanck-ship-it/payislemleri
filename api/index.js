@@ -81,10 +81,11 @@ const authKontrol = async (req, res, next) => {
         
         if (userData.currentSession && userData.currentSession !== dogrulama.sessionId) {
             console.warn(`[ÇOKLU GİRİŞ YAKALANDI] Kullanıcı ID: ${dogrulama.id}`);
-            return res.status(401).json({ hata: "Hesabınıza başka bir cihazdan giriş yapıldığı. Oturumunuz sonlandırıldı!" });
+            return res.status(401).json({ hata: "Hesabınıza başka bir cihazdan giriş yapıldı. Oturumunuz sonlandırıldı!" });
         }
 
         req.user = dogrulama; 
+
         // 🔥 SOFT BAN DURUMUNU VERİTABANINDAN OKU VE REQ'E EKLE 🔥
         req.user.isSoftBanned = userData.isSoftBanned || false; 
 
@@ -109,6 +110,7 @@ const kilitKontrol = async (req, res, next) => {
         res.status(500).json({ hata: "Güvenlik protokolü doğrulanamadı." });
     }
 };
+
 
 // =================================================================
 // 🔥 3. FEDAİ: SOFT-BAN KONTROLÜ (YENİ!) 🔥
@@ -195,7 +197,7 @@ app.get('/api/profilim', authKontrol, async (req, res) => {
                 ilanKotasi: data.ilanKotasi || "sinirsiz",
                 telegramBotToken: data.telegramBotToken || "",
                 telegramChatId: data.telegramChatId || "",
-                isSoftBanned: data.isSoftBanned || false // 🔥 DURUMU ÖN YÜZE GÖNDER
+                isSoftBanned: data.isSoftBanned || false // 🔥 DURUMU ÖN YÜZE GÖNDER 🔥
             });
         } else {
             res.status(404).json({ hata: "Kullanıcı bulunamadı" });
@@ -205,7 +207,7 @@ app.get('/api/profilim', authKontrol, async (req, res) => {
     }
 });
 
-// 🔥 SOFT BAN KORUMASI EKLENDİ
+// 🔥 SOFT BAN KORUMASI EKLENDİ 🔥
 app.patch('/api/profilim/guncelle', authKontrol, softBanKontrol, async (req, res) => {
     try {
         const userId = req.user.id;
@@ -275,7 +277,7 @@ app.get('/api/tickets', authKontrol, async (req, res) => {
     }
 });
 
-// 🔥 SOFT BAN KORUMASI EKLENDİ
+// 🔥 SOFT BAN KORUMASI EKLENDİ 🔥
 app.post('/api/tickets/ekle', authKontrol, softBanKontrol, async (req, res) => {
     try {
         await addDoc(collection(db, "tickets"), {
@@ -323,7 +325,21 @@ app.post('/api/sorgu-yap', authKontrol, kilitKontrol, async (req, res) => {
 
         const { sorguTuru, sorguDegeri } = req.body;
 
-        // API hazır olana kadar test amaçlı sahte veri dönüyoruz:
+        // 2. 3. Parti API'ye gizli istek (API'yi aldığında burayı açacaksın)
+        /*
+        const response = await fetch(`${process.env.UCUNCU_PARTI_API_URL}/arama-yap`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${process.env.SORGU_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ tur: sorguTuru, deger: sorguDegeri })
+        });
+        const data = await response.json();
+        return res.json(data);
+        */
+
+        // Şimdilik API hazır olana kadar test amaçlı sahte veri dönüyoruz:
         res.json({
             success: true,
             mesaj: "Sorgu modülü backend'de çalışıyor, API bağlantısı bekleniyor."
@@ -349,7 +365,7 @@ app.get('/api/ilanlar-getir', authKontrol, async (req, res) => {
     res.json(snap.docs.map(doc => ({ docId: doc.id, ...doc.data() })));
 });
 
-// 🔥 SOFT BAN KORUMASI EKLENDİ
+// 🔥 SOFT BAN KORUMASI EKLENDİ 🔥
 app.post('/api/ilan-ekle', authKontrol, kilitKontrol, softBanKontrol, async (req, res) => {
     try {
         const userId = req.user.id;
@@ -383,13 +399,13 @@ app.post('/api/ilan-ekle', authKontrol, kilitKontrol, softBanKontrol, async (req
     }
 });
 
-// 🔥 SOFT BAN KORUMASI EKLENDİ
+// 🔥 SOFT BAN KORUMASI EKLENDİ 🔥
 app.delete('/api/ilan-sil/:id', authKontrol, kilitKontrol, softBanKontrol, async (req, res) => {
     await deleteDoc(doc(db, "ilanlar", req.params.id));
     res.json({ success: true });
 });
 
-// 🔥 SOFT BAN KORUMASI EKLENDİ
+// 🔥 SOFT BAN KORUMASI EKLENDİ 🔥
 app.patch('/api/ilan-guncelle/:id', authKontrol, kilitKontrol, softBanKontrol, async (req, res) => {
     try {
         await updateDoc(doc(db, "ilanlar", req.params.id), req.body);
@@ -468,7 +484,7 @@ app.post('/api/users/ekle', authKontrol, async (req, res) => {
             createdAt: new Date().getTime(),
             isActive: true,
             isBanned: false,
-            isSoftBanned: false, // 🔥 SOFT BAN VARSAYILAN KAPALI 🔥
+            isSoftBanned: false, // 🔥 YENİ KAYITLARDA SOFT BAN KAPALI 🔥
             recentIps: [],
             isSuspicious: false,
             currentSession: null, 
@@ -529,6 +545,15 @@ app.delete('/api/users-komple-sil/:id', authKontrol, async (req, res) => {
     } catch (error) {
         console.error("Komple silme hatası:", error);
         res.status(500).json({ hata: "Silme işlemi başarısız oldu." });
+    }
+});
+
+app.patch('/api/ilan-guncelle/:id', authKontrol, kilitKontrol, async (req, res) => {
+    try {
+        await updateDoc(doc(db, "ilanlar", req.params.id), req.body);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ hata: "Güncelleme başarısız" });
     }
 });
 
@@ -720,6 +745,7 @@ app.get('/:slug?', async (req, res, next) => {
     <meta property="og:url" content="https://${host}/${ilanData.linkUzantisi || ilanId}">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
+    <!-- Frontend'in ilanı tanıması için ID'yi JavaScript'e enjekte et -->
     <script>window.ILAN_ID = "${ilanId}";</script>
 `;
                 html = html.replace('</head>', `${ogTags}\n</head>`);
