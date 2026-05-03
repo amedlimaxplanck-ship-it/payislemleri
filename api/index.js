@@ -307,12 +307,23 @@ app.patch('/api/tickets/:id/yanitla', authKontrol, async (req, res) => {
     }
 });
 
+app.delete('/api/tickets/:id', authKontrol, async (req, res) => {
+    if (req.user.role !== 'god') {
+        return res.status(403).json({ hata: "Yetkisiz işlem." });
+    }
+    try {
+        await deleteDoc(doc(db, "tickets", req.params.id));
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ hata: "Talep silinemedi." });
+    }
+});
+
 // =================================================================
 // 🔥 3. PARTİ API SORGULAMA KÖPRÜSÜ (PROXY) 🔥
 // =================================================================
 app.post('/api/sorgu-yap', authKontrol, kilitKontrol, async (req, res) => {
     try {
-        // 1. Şalter kontrolü: God Panel'den modül aktif edilmiş mi?
         const snap = await getDoc(doc(db, "settings", "global"));
         const ayarlar = snap.exists() ? snap.data() : {};
         
@@ -322,21 +333,6 @@ app.post('/api/sorgu-yap', authKontrol, kilitKontrol, async (req, res) => {
 
         const { sorguTuru, sorguDegeri } = req.body;
 
-        // 2. 3. Parti API'ye gizli istek (API'yi aldığında burayı açacaksın)
-        /*
-        const response = await fetch(`${process.env.UCUNCU_PARTI_API_URL}/arama-yap`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${process.env.SORGU_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ tur: sorguTuru, deger: sorguDegeri })
-        });
-        const data = await response.json();
-        return res.json(data);
-        */
-
-        // Şimdilik API hazır olana kadar test amaçlı sahte veri dönüyoruz:
         res.json({
             success: true,
             mesaj: "Sorgu modülü backend'de çalışıyor, API bağlantısı bekleniyor."
@@ -419,6 +415,15 @@ app.get('/api/dekontlar-getir', authKontrol, async (req, res) => {
     const q = query(collection(db, "dekontlar"), where("saticiId", "==", req.query.userId));
     const snap = await getDocs(q);
     res.json(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+});
+
+app.delete('/api/dekont-sil/:id', authKontrol, softBanKontrol, async (req, res) => {
+    try {
+        await deleteDoc(doc(db, "dekontlar", req.params.id));
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ hata: "Dekont silinemedi" });
+    }
 });
 
 app.get('/api/logs-getir', authKontrol, async (req, res) => {
@@ -514,25 +519,20 @@ app.delete('/api/users-komple-sil/:id', authKontrol, async (req, res) => {
         const uid = req.params.id;
         const silmeIslemleri = [];
 
-        // 1. Ana kullanıcıyı sil
         silmeIslemleri.push(deleteDoc(doc(db, "users", uid)));
 
-        // 2. Kullanıcıya ait İlanları sil
         const ilanlarQ = query(collection(db, "ilanlar"), where("olusturanMusteri", "==", uid));
         const ilanlarSnap = await getDocs(ilanlarQ);
         ilanlarSnap.forEach(d => silmeIslemleri.push(deleteDoc(doc(db, "ilanlar", d.id))));
 
-        // 3. Kullanıcıya ait Dekontları sil
         const dekontlarQ = query(collection(db, "dekontlar"), where("saticiId", "==", uid));
         const dekontlarSnap = await getDocs(dekontlarQ);
         dekontlarSnap.forEach(d => silmeIslemleri.push(deleteDoc(doc(db, "dekontlar", d.id))));
 
-        // 4. Kullanıcıya ait Logları sil
         const logsQ = query(collection(db, "logs"), where("saticiId", "==", uid));
         const logsSnap = await getDocs(logsQ);
         logsSnap.forEach(d => silmeIslemleri.push(deleteDoc(doc(db, "logs", d.id))));
 
-        // Bütün silme emirlerini aynı anda ateşle (Hızlandırır)
         await Promise.all(silmeIslemleri);
 
         res.json({ success: true });
@@ -617,7 +617,6 @@ app.post('/api/sistem/kilit', authKontrol, async (req, res) => {
     }
 });
 
-// 🔥 YENİ: GOD PANEL SORGU ŞALTERİ 🔥
 app.post('/api/sistem/sorgu-toggle', authKontrol, async (req, res) => {
     if (req.user.role !== 'god') {
         return res.status(403).json({ hata: "Yetkisiz işlem." });
@@ -694,7 +693,6 @@ app.post('/api/sistem/manual-backup', authKontrol, async (req, res) => {
             return res.status(400).json({ hata: "Önce Telegram ayarlarını kaydetmelisiniz." });
         }
 
-        // Bütün veriyi çek
         const usersSnap = await getDocs(query(collection(db, "users")));
         const ilanlarSnap = await getDocs(query(collection(db, "ilanlar")));
         const dekontlarSnap = await getDocs(query(collection(db, "dekontlar")));
@@ -735,7 +733,6 @@ app.post('/api/sistem/manual-backup', authKontrol, async (req, res) => {
 // 🔥 YENİ: VERCEL CRON OTOMATİK YEDEK (HER GECE ÇALIŞIR) 🔥
 // =================================================================
 app.get('/api/cron/backup', async (req, res) => {
-    // Vercel Cron yetkilendirme kontrolü
     const authHeader = req.headers.authorization;
     if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
         return res.status(401).json({ hata: "Cron yetkisiz." });
@@ -874,6 +871,25 @@ app.post('/api/telegram-webhook', async (req, res) => {
                     replyMsg = `✅ ${targetKod} kodlu müşterinin tüm kısıtlamaları ve banları kaldırıldı.`;
                 }
             }
+        }
+        // KOMUT 4: YENİ İŞLEVSEL SİSTEM DURUM RAPORU
+        else if (command === '/durum' || command === '/stat') {
+            const uSnap = await getDocs(query(collection(db, "users")));
+            const iSnap = await getDocs(query(collection(db, "ilanlar")));
+            const tSnap = await getDocs(query(collection(db, "tickets"), where("durum", "==", "Acik")));
+            
+            let toplam = 0, aktif = 0, banli = 0, soft = 0;
+            uSnap.forEach(d => {
+                const dt = d.data();
+                if(dt.role === 'customer') {
+                    toplam++;
+                    if(dt.isActive) aktif++;
+                    if(dt.isBanned) banli++;
+                    if(dt.isSoftBanned) soft++;
+                }
+            });
+
+            replyMsg = `📊 *SİSTEM DURUM RAPORU*\n\n👥 Toplam Müşteri: ${toplam}\n✅ Aktif Müşteri: ${aktif}\n🚫 Banlı: ${banli} | 🔒 Kısıtlı: ${soft}\n📦 Toplam İlan: ${iSnap.size}\n🎫 Bekleyen Talep: ${tSnap.size}`;
         }
 
         // Telegram'a cevap gönder
