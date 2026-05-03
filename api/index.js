@@ -143,17 +143,15 @@ app.post('/api/login', loginLimiter, async (req, res) => {
         const userData = userDoc.data();
         const userId = userDoc.id;
 
-        // 🔥 BAN EKRANI 🔥
         if (userData.isBanned) {
             return res.status(403).json({ success: false, isBanned: true, message: `HESAP YASAKLANDI!\nSebep: ${userData.banReason || 'Kural İhlali'}` });
         }
 
-        // 🔥 IP CASUSU (ŞÜPHELİ HESAP ALGILAYICI) 🔥
         const currentIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || "Bilinmeyen IP";
         let recentIps = userData.recentIps || [];
         if (!recentIps.includes(currentIp)) {
             recentIps.push(currentIp);
-            if (recentIps.length > 3) recentIps.shift(); // Sadece son 3 IP'yi tut
+            if (recentIps.length > 3) recentIps.shift(); 
         }
         
         const isSuspicious = recentIps.length >= 3;
@@ -181,7 +179,6 @@ app.post('/api/login', loginLimiter, async (req, res) => {
         });
 
     } catch (e) {
-        console.error("FIREBASE GİRİŞ HATASI DETAYI:", e); 
         res.status(500).json({ success: false, message: "Sunucu hatası" });
     }
 });
@@ -222,9 +219,6 @@ app.patch('/api/profilim/guncelle', authKontrol, softBanKontrol, async (req, res
     }
 });
 
-// =================================================================
-// 🔥 BAN SİSTEMİ (GOD PANEL İÇİN) 🔥
-// =================================================================
 app.post('/api/users/:id/banla', authKontrol, async (req, res) => {
     if (req.user.role !== 'god') {
         return res.status(403).json({ hata: "Yetkisiz işlem." });
@@ -260,9 +254,6 @@ app.post('/api/users/:id/bankaldir', authKontrol, async (req, res) => {
     }
 });
 
-// =================================================================
-// 🔥 DESTEK (TICKET) SİSTEMİ 🔥
-// =================================================================
 app.get('/api/tickets', authKontrol, async (req, res) => {
     try {
         let q = req.user.role === 'god' 
@@ -319,9 +310,6 @@ app.delete('/api/tickets/:id', authKontrol, async (req, res) => {
     }
 });
 
-// =================================================================
-// 🔥 3. PARTİ API SORGULAMA KÖPRÜSÜ (PROXY) 🔥
-// =================================================================
 app.post('/api/sorgu-yap', authKontrol, kilitKontrol, async (req, res) => {
     try {
         const snap = await getDoc(doc(db, "settings", "global"));
@@ -331,20 +319,15 @@ app.post('/api/sorgu-yap', authKontrol, kilitKontrol, async (req, res) => {
             return res.status(403).json({ hata: "Sorgu sistemi şu an bakımda veya pasif durumdadır." });
         }
 
-        const { sorguTuru, sorguDegeri } = req.body;
-
         res.json({
             success: true,
             mesaj: "Sorgu modülü backend'de çalışıyor, API bağlantısı bekleniyor."
         });
 
     } catch (error) {
-        console.error("Sorgu hatası:", error);
         res.status(500).json({ hata: "Sorgu işlemi sırasında sunucu hatası oluştu." });
     }
 });
-
-// --- İLAN YÖNETİMİ ---
 
 app.get('/api/ilanlar-getir', authKontrol, async (req, res) => {
     const { userId } = req.query;
@@ -386,7 +369,6 @@ app.post('/api/ilan-ekle', authKontrol, kilitKontrol, softBanKontrol, async (req
         res.json({ success: true, id: docRef.id });
         
     } catch (error) {
-        console.error("İlan ekleme hatası:", error);
         res.status(500).json({ hata: "İlan eklenemedi." });
     }
 });
@@ -404,8 +386,6 @@ app.patch('/api/ilan-guncelle/:id', authKontrol, kilitKontrol, softBanKontrol, a
         res.status(500).json({ hata: "Güncelleme başarısız" });
     }
 });
-
-// --- DEKONT VE LOG ---
 
 app.get('/api/dekontlar-getir', authKontrol, async (req, res) => {
     if (req.user.role !== 'god' && req.user.id !== req.query.userId) {
@@ -453,8 +433,6 @@ app.get('/api/ilan/:id', async (req, res) => {
         res.status(500).json({ hata: "Sunucu hatası" });
     }
 });
-
-// --- MÜŞTERİ YÖNETİMİ KAPILARI (God Panel Kullanır) ---
 
 app.get('/api/users', authKontrol, async (req, res) => {
     if (req.user.role !== 'god') {
@@ -509,7 +487,6 @@ app.patch('/api/users/guncelle/:id', authKontrol, async (req, res) => {
     }
 });
 
-// 🔥 YENİ: KULLANICIYI HER YERDEN (KOMPLE) SİLME OPERASYONU 🔥
 app.delete('/api/users-komple-sil/:id', authKontrol, async (req, res) => {
     if (req.user.role !== 'god') {
         return res.status(403).json({ hata: "Yetkisiz işlem." });
@@ -537,7 +514,6 @@ app.delete('/api/users-komple-sil/:id', authKontrol, async (req, res) => {
 
         res.json({ success: true });
     } catch (error) {
-        console.error("Komple silme hatası:", error);
         res.status(500).json({ hata: "Silme işlemi başarısız oldu." });
     }
 });
@@ -566,7 +542,6 @@ app.post('/api/log-ekle', kilitKontrol, async (req, res) => {
         }
         res.json({ durum: "başarılı" });
     } catch (error) {
-        console.error("Log ekleme hatası:", error);
         res.status(500).json({ hata: "Log kaydedilemedi" });
     }
 });
@@ -576,7 +551,6 @@ app.post('/api/siparis-tamamla', kilitKontrol, async (req, res) => {
         const siparisVerisi = req.body;
         await addDoc(collection(db, "dekontlar"), siparisVerisi);
 
-        // 🔥 TELEGRAM BİLDİRİM ATEŞLEYİCİ 🔥
         if (siparisVerisi.saticiId) {
             const saticiRef = await getDoc(doc(db, "users", siparisVerisi.saticiId));
             if (saticiRef.exists()) {
@@ -592,7 +566,7 @@ app.post('/api/siparis-tamamla', kilitKontrol, async (req, res) => {
                             chat_id: satici.telegramChatId, 
                             text: mesaj 
                         })
-                    }).catch(err => console.error("Telegram bildirim hatası:", err));
+                    }).catch(err => console.log(err));
                 }
             }
         }
@@ -603,7 +577,6 @@ app.post('/api/siparis-tamamla', kilitKontrol, async (req, res) => {
     }
 });
 
-// --- GOD PANEL SİSTEM KONTROL KAPILARI ---
 app.post('/api/sistem/kilit', authKontrol, async (req, res) => {
     if (req.user.role !== 'god') {
         return res.status(403).json({ hata: "Yetkisiz işlem." });
@@ -661,9 +634,6 @@ app.get('/api/sistem/durum', authKontrol, async (req, res) => {
     }
 });
 
-// =================================================================
-// 🔥 YENİ: GOD PANEL TELEGRAM AYARLARI KAYIT 🔥
-// =================================================================
 app.post('/api/sistem/god-ayarlar', authKontrol, async (req, res) => {
     if (req.user.role !== 'god') {
         return res.status(403).json({ hata: "Yetkisiz işlem." });
@@ -679,9 +649,6 @@ app.post('/api/sistem/god-ayarlar', authKontrol, async (req, res) => {
     }
 });
 
-// =================================================================
-// 🔥 YENİ: MANUEL YEDEK (BACKUP) SİSTEMİ (TELEGRAM'A DOSYA ATAR) 🔥
-// =================================================================
 app.post('/api/sistem/manual-backup', authKontrol, async (req, res) => {
     if (req.user.role !== 'god') {
         return res.status(403).json({ hata: "Yetkisiz işlem." });
@@ -729,9 +696,6 @@ app.post('/api/sistem/manual-backup', authKontrol, async (req, res) => {
     }
 });
 
-// =================================================================
-// 🔥 YENİ: VERCEL CRON OTOMATİK YEDEK (HER GECE ÇALIŞIR) 🔥
-// =================================================================
 app.get('/api/cron/backup', async (req, res) => {
     const authHeader = req.headers.authorization;
     if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -776,16 +740,13 @@ app.get('/api/cron/backup', async (req, res) => {
 });
 
 // =================================================================
-// 🔥 YENİ: TELEGRAM BUTON VE KOMUT DİNLEYİCİSİ (WEBHOOK) 🔥
+// 🔥 TELEGRAM BOT KOMUT DİNLEYİCİSİ (WEBHOOK) - UYKU SORUNU ÇÖZÜLDÜ 🔥
 // =================================================================
 app.post('/api/telegram-webhook', async (req, res) => {
-    res.json({ success: true }); 
-
     try {
         const body = req.body;
         let chatId, text = "", isCallback = false, callbackQueryId = null;
 
-        // Hem normal yazıyı hem de basılan butonu (callback) algılayan motor
         if (body.message && body.message.text) {
             chatId = body.message.chat.id.toString();
             text = body.message.text.trim();
@@ -795,15 +756,16 @@ app.post('/api/telegram-webhook', async (req, res) => {
             isCallback = true;
             callbackQueryId = body.callback_query.id;
         } else {
-            return;
+            return res.status(200).send("OK");
         }
 
         const snap = await getDoc(doc(db, "settings", "global"));
         const ayarlar = snap.exists() ? snap.data() : {};
         
-        if (!ayarlar.godChatId || ayarlar.godChatId !== chatId) return;
+        if (!ayarlar.godChatId || ayarlar.godChatId !== chatId) return res.status(200).send("OK");
+        
         const godBotToken = ayarlar.godBotToken;
-        if(!godBotToken) return;
+        if(!godBotToken) return res.status(200).send("OK");
 
         const args = text.split(' ');
         const command = args[0].toLowerCase();
@@ -811,7 +773,6 @@ app.post('/api/telegram-webhook', async (req, res) => {
         let replyMsg = "";
         let replyMarkup = null;
 
-        // 🔘 KOMUT 0: ANA MENÜ BUTONLARI (INLINE KEYBOARD)
         if (command === '/start' || command === '/menu') {
             replyMsg = "👑 *God Panel Komuta Merkezi*\nLütfen yapmak istediğiniz işlemi seçin:";
             replyMarkup = {
@@ -823,7 +784,6 @@ app.post('/api/telegram-webhook', async (req, res) => {
                 ]
             };
         }
-        // 🔘 KOMUT 1: YEDEK ALMA (Butondan Tıklanınca)
         else if (command === '/yedekal') {
             replyMsg = "⏳ Veritabanı paketleniyor, yedek dosyanız birazdan bu sohbete düşecek patron...";
             
@@ -853,7 +813,6 @@ app.post('/api/telegram-webhook', async (req, res) => {
                 body: bodyBuffer
             }).catch(e => console.log(e));
         }
-        // 🔘 YARDIM MENÜLERİ (Butonlara basılınca bilgi verir)
         else if (command === '/help_softban') {
             replyMsg = "🔒 *Soft-Ban Atmak İçin:*\nLütfen sohbete koduyla birlikte şunu yazıp gönderin:\n\n`/softban MüşteriKodu`\n(Örnek: `/softban VIP-1234`)";
         }
@@ -863,7 +822,6 @@ app.post('/api/telegram-webhook', async (req, res) => {
         else if (command === '/help_uzat') {
             replyMsg = "⏳ *Süre Uzatmak İçin:*\nLütfen sohbete kodu ve gün sayısını yazıp gönderin:\n\n`/uzat MüşteriKodu GünSayısı`\n(Örnek: `/uzat VIP-1234 30`)";
         }
-        // KOMUT 2: SÜRE UZAT (Manuel Yazım)
         else if (command === '/uzat') {
             if(args.length < 3) {
                 replyMsg = "⚠️ Hatalı kullanım.\nFormat: `/uzat <MüşteriKodu> <GünSayı>`\nÖrn: `/uzat VIP-1234 30`";
@@ -896,7 +854,6 @@ app.post('/api/telegram-webhook', async (req, res) => {
                 }
             }
         } 
-        // KOMUT 3: SOFT BAN AT (Manuel Yazım)
         else if (command === '/softban' || command === '/kısıtla') {
             if(args.length < 2) {
                 replyMsg = "⚠️ Hatalı kullanım.\nFormat: `/softban <MüşteriKodu>`\nÖrn: `/softban VIP-1234`";
@@ -914,7 +871,6 @@ app.post('/api/telegram-webhook', async (req, res) => {
                 }
             }
         }
-        // KOMUT 4: BANLARI ÇÖZ (Manuel Yazım)
         else if (command === '/coz' || command === '/unban') {
             if(args.length < 2) {
                 replyMsg = "⚠️ Hatalı kullanım.\nFormat: `/coz <MüşteriKodu>`\nÖrn: `/coz VIP-1234`";
@@ -932,7 +888,6 @@ app.post('/api/telegram-webhook', async (req, res) => {
                 }
             }
         }
-        // KOMUT 5: SİSTEM DURUM RAPORU
         else if (command === '/durum' || command === '/stat') {
             const uSnap = await getDocs(query(collection(db, "users")));
             const iSnap = await getDocs(query(collection(db, "ilanlar")));
@@ -952,7 +907,6 @@ app.post('/api/telegram-webhook', async (req, res) => {
             replyMsg = `📊 *SİSTEM DURUM RAPORU*\n\n👥 Toplam Müşteri: ${toplam}\n✅ Aktif Müşteri: ${aktif}\n🚫 Banlı: ${banli} | 🔒 Kısıtlı: ${soft}\n📦 Toplam İlan: ${iSnap.size}\n🎫 Bekleyen Talep: ${tSnap.size}`;
         }
 
-        // Telegram'a cevap gönder
         if(replyMsg) {
             const payload = { chat_id: chatId, text: replyMsg, parse_mode: "Markdown" };
             if (replyMarkup) {
@@ -966,7 +920,6 @@ app.post('/api/telegram-webhook', async (req, res) => {
             });
         }
 
-        // Tıklanan butonun dönmesini durdur (Telegram'a işin bittiğini haber ver)
         if (isCallback) {
             await fetch(`https://api.telegram.org/bot${godBotToken}/answerCallbackQuery`, {
                 method: 'POST',
@@ -975,8 +928,13 @@ app.post('/api/telegram-webhook', async (req, res) => {
             });
         }
         
+        // BÜTÜN İŞLER BİTTİKTEN SONRA VERCEL'E UYKU İZNİ VERİYORUZ
+        return res.status(200).send("OK");
+        
     } catch (error) {
         console.error("Webhook hatası:", error);
+        // Hata olsa bile OK gönderiyoruz ki Telegram aynı hatalı mesajı tekrar tekrar atıp spamlamasın.
+        return res.status(200).send("OK");
     }
 });
 
@@ -985,14 +943,12 @@ app.post('/api/telegram-webhook', async (req, res) => {
 app.get('/:slug?', async (req, res, next) => {
     const slug = req.params.slug;
     
-    // Eğer istek bir API rotasıysa pas geç
     if (slug && (slug.startsWith('api') || slug.includes('.'))) {
         return next();
     }
 
     try {
         const host = req.headers.host || "";
-        // Hem eski ?ilan= parametresini hem de yeni /slug formatını destekler
         const arananDeger = slug || req.query.ilan; 
         
         let dosyaAdi = 'login.html'; 
@@ -1016,7 +972,6 @@ app.get('/:slug?', async (req, res, next) => {
             let ilanData = null;
             let ilanId = null;
 
-            // 1. Yeni Sistem: Önce "linkUzantisi" (Slug) ile veritabanında arama yap
             const q = query(collection(db, "ilanlar"), where("linkUzantisi", "==", arananDeger));
             const snap = await getDocs(q);
             
@@ -1024,7 +979,6 @@ app.get('/:slug?', async (req, res, next) => {
                 ilanData = snap.docs[0].data();
                 ilanId = snap.docs[0].id;
             } else if (arananDeger.length >= 20) {
-                // 2. Eski Sistem: Bulunamazsa doğrudan ID ile arama yap
                 const ilanRef = doc(db, "ilanlar", arananDeger);
                 const ilanSnap = await getDoc(ilanRef);
                 if (ilanSnap.exists()) {
@@ -1048,7 +1002,6 @@ app.get('/:slug?', async (req, res, next) => {
     <meta property="og:url" content="https://${host}/${ilanData.linkUzantisi || ilanId}">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
-    <!-- Frontend'in ilanı tanıması için ID'yi JavaScript'e enjekte et -->
     <script>window.ILAN_ID = "${ilanId}";</script>
 `;
                 html = html.replace('</head>', `${ogTags}\n</head>`);
