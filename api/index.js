@@ -3,6 +3,7 @@ require('dotenv').config();
 Vercel paneline gidip Settings -> Environment Variables kısmına şunları ekleyeceksin:
 - UCUNCU_PARTI_API_URL = (Satın aldığın API'nin adresi örn: https://api.sorgusistemi.com/v1)
 - SORGU_API_KEY = (Satın aldığın servisin sana vereceği şifre)
+- CRON_SECRET = (Vercel Cron için kendi belirleyeceğin bir şifre)
 */
 
 const express = require('express');
@@ -85,7 +86,7 @@ const authKontrol = async (req, res, next) => {
         }
 
         req.user = dogrulama; 
-
+        
         // 🔥 SOFT BAN DURUMUNU VERİTABANINDAN OKU VE REQ'E EKLE 🔥
         req.user.isSoftBanned = userData.isSoftBanned || false; 
 
@@ -111,12 +112,10 @@ const kilitKontrol = async (req, res, next) => {
     }
 };
 
-
 // =================================================================
-// 🔥 3. FEDAİ: SOFT-BAN KONTROLÜ (YENİ!) 🔥
+// 🔥 3. FEDAİ: SOFT-BAN KONTROLÜ (SADECE OKUMA) 🔥
 // =================================================================
 const softBanKontrol = (req, res, next) => {
-    // God panel yetkisi olanları engelleme, sadece normal müşterileri kısıtla
     if (req.user.role !== 'god' && req.user.isSoftBanned === true) {
         return res.status(403).json({ 
             hata: "İŞLEM KISITLANDI! Abonelik süreniz dolduğu için sadece okuma modundasınız.",
@@ -197,7 +196,7 @@ app.get('/api/profilim', authKontrol, async (req, res) => {
                 ilanKotasi: data.ilanKotasi || "sinirsiz",
                 telegramBotToken: data.telegramBotToken || "",
                 telegramChatId: data.telegramChatId || "",
-                isSoftBanned: data.isSoftBanned || false // 🔥 DURUMU ÖN YÜZE GÖNDER 🔥
+                isSoftBanned: data.isSoftBanned || false
             });
         } else {
             res.status(404).json({ hata: "Kullanıcı bulunamadı" });
@@ -207,7 +206,6 @@ app.get('/api/profilim', authKontrol, async (req, res) => {
     }
 });
 
-// 🔥 SOFT BAN KORUMASI EKLENDİ 🔥
 app.patch('/api/profilim/guncelle', authKontrol, softBanKontrol, async (req, res) => {
     try {
         const userId = req.user.id;
@@ -277,7 +275,6 @@ app.get('/api/tickets', authKontrol, async (req, res) => {
     }
 });
 
-// 🔥 SOFT BAN KORUMASI EKLENDİ 🔥
 app.post('/api/tickets/ekle', authKontrol, softBanKontrol, async (req, res) => {
     try {
         await addDoc(collection(db, "tickets"), {
@@ -365,7 +362,6 @@ app.get('/api/ilanlar-getir', authKontrol, async (req, res) => {
     res.json(snap.docs.map(doc => ({ docId: doc.id, ...doc.data() })));
 });
 
-// 🔥 SOFT BAN KORUMASI EKLENDİ 🔥
 app.post('/api/ilan-ekle', authKontrol, kilitKontrol, softBanKontrol, async (req, res) => {
     try {
         const userId = req.user.id;
@@ -399,13 +395,11 @@ app.post('/api/ilan-ekle', authKontrol, kilitKontrol, softBanKontrol, async (req
     }
 });
 
-// 🔥 SOFT BAN KORUMASI EKLENDİ 🔥
 app.delete('/api/ilan-sil/:id', authKontrol, kilitKontrol, softBanKontrol, async (req, res) => {
     await deleteDoc(doc(db, "ilanlar", req.params.id));
     res.json({ success: true });
 });
 
-// 🔥 SOFT BAN KORUMASI EKLENDİ 🔥
 app.patch('/api/ilan-guncelle/:id', authKontrol, kilitKontrol, softBanKontrol, async (req, res) => {
     try {
         await updateDoc(doc(db, "ilanlar", req.params.id), req.body);
@@ -484,7 +478,7 @@ app.post('/api/users/ekle', authKontrol, async (req, res) => {
             createdAt: new Date().getTime(),
             isActive: true,
             isBanned: false,
-            isSoftBanned: false, // 🔥 YENİ KAYITLARDA SOFT BAN KAPALI 🔥
+            isSoftBanned: false, 
             recentIps: [],
             isSuspicious: false,
             currentSession: null, 
@@ -545,15 +539,6 @@ app.delete('/api/users-komple-sil/:id', authKontrol, async (req, res) => {
     } catch (error) {
         console.error("Komple silme hatası:", error);
         res.status(500).json({ hata: "Silme işlemi başarısız oldu." });
-    }
-});
-
-app.patch('/api/ilan-guncelle/:id', authKontrol, kilitKontrol, async (req, res) => {
-    try {
-        await updateDoc(doc(db, "ilanlar", req.params.id), req.body);
-        res.json({ success: true });
-    } catch (error) {
-        res.status(500).json({ hata: "Güncelleme başarısız" });
     }
 });
 
@@ -667,7 +652,6 @@ app.get('/api/sistem/durum', authKontrol, async (req, res) => {
         const snap = await getDoc(doc(db, "settings", "global"));
         if (snap.exists()) {
             const veri = snap.data();
-            // Eğer sorguAktif daha önce hiç ayarlanmadıysa varsayılan olarak kapalı (false) gönder
             if(veri.sorguAktif === undefined) veri.sorguAktif = false;
             res.json(veri);
         } else {
@@ -677,6 +661,235 @@ app.get('/api/sistem/durum', authKontrol, async (req, res) => {
         res.status(500).json({ hata: "Durum çekilemedi" });
     }
 });
+
+// =================================================================
+// 🔥 YENİ: GOD PANEL TELEGRAM AYARLARI KAYIT 🔥
+// =================================================================
+app.post('/api/sistem/god-ayarlar', authKontrol, async (req, res) => {
+    if (req.user.role !== 'god') {
+        return res.status(403).json({ hata: "Yetkisiz işlem." });
+    }
+    try {
+        await setDoc(doc(db, "settings", "global"), { 
+            godBotToken: req.body.godBotToken, 
+            godChatId: req.body.godChatId 
+        }, { merge: true });
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ hata: "Ayarlar kaydedilemedi" });
+    }
+});
+
+// =================================================================
+// 🔥 YENİ: MANUEL YEDEK (BACKUP) SİSTEMİ (TELEGRAM'A DOSYA ATAR) 🔥
+// =================================================================
+app.post('/api/sistem/manual-backup', authKontrol, async (req, res) => {
+    if (req.user.role !== 'god') {
+        return res.status(403).json({ hata: "Yetkisiz işlem." });
+    }
+    try {
+        const snap = await getDoc(doc(db, "settings", "global"));
+        const ayarlar = snap.exists() ? snap.data() : {};
+        if (!ayarlar.godBotToken || !ayarlar.godChatId) {
+            return res.status(400).json({ hata: "Önce Telegram ayarlarını kaydetmelisiniz." });
+        }
+
+        // Bütün veriyi çek
+        const usersSnap = await getDocs(query(collection(db, "users")));
+        const ilanlarSnap = await getDocs(query(collection(db, "ilanlar")));
+        const dekontlarSnap = await getDocs(query(collection(db, "dekontlar")));
+        
+        const backupData = {
+            tarih: new Date().toISOString(),
+            kullanicilar: usersSnap.docs.map(d => ({id: d.id, ...d.data()})),
+            ilanlar: ilanlarSnap.docs.map(d => ({id: d.id, ...d.data()})),
+            dekontlar: dekontlarSnap.docs.map(d => ({id: d.id, ...d.data()}))
+        };
+
+        const buffer = Buffer.from(JSON.stringify(backupData, null, 2), 'utf-8');
+        const boundary = '----TelegramBoundary' + Date.now().toString(16);
+        const body = Buffer.concat([
+            Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="chat_id"\r\n\r\n${ayarlar.godChatId}\r\n`, 'utf-8'),
+            Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="document"; filename="Santral_Yedek_${Date.now()}.json"\r\nContent-Type: application/json\r\n\r\n`, 'utf-8'),
+            buffer,
+            Buffer.from(`\r\n--${boundary}--\r\n`, 'utf-8')
+        ]);
+
+        const tgRes = await fetch(`https://api.telegram.org/bot${ayarlar.godBotToken}/sendDocument`, {
+            method: 'POST',
+            headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
+            body: body
+        });
+
+        if (tgRes.ok) {
+            res.json({ success: true, mesaj: "Yedek Telegram'a iletildi." });
+        } else {
+            res.status(500).json({ hata: "Telegram'a gönderilirken hata oluştu." });
+        }
+    } catch (error) {
+        res.status(500).json({ hata: "Yedekleme motoru çöktü." });
+    }
+});
+
+// =================================================================
+// 🔥 YENİ: VERCEL CRON OTOMATİK YEDEK (HER GECE ÇALIŞIR) 🔥
+// =================================================================
+app.get('/api/cron/backup', async (req, res) => {
+    // Vercel Cron yetkilendirme kontrolü
+    const authHeader = req.headers.authorization;
+    if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+        return res.status(401).json({ hata: "Cron yetkisiz." });
+    }
+
+    try {
+        const snap = await getDoc(doc(db, "settings", "global"));
+        const ayarlar = snap.exists() ? snap.data() : {};
+        if (!ayarlar.godBotToken || !ayarlar.godChatId) {
+            return res.status(400).json({ hata: "Telegram ayarları yok." });
+        }
+
+        const usersSnap = await getDocs(query(collection(db, "users")));
+        const ilanlarSnap = await getDocs(query(collection(db, "ilanlar")));
+        
+        const backupData = {
+            tarih: new Date().toISOString(),
+            kullanicilar: usersSnap.docs.map(d => ({id: d.id, ...d.data()})),
+            ilanlar: ilanlarSnap.docs.map(d => ({id: d.id, ...d.data()}))
+        };
+
+        const buffer = Buffer.from(JSON.stringify(backupData, null, 2), 'utf-8');
+        const boundary = '----TelegramBoundary' + Date.now().toString(16);
+        const body = Buffer.concat([
+            Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="chat_id"\r\n\r\n${ayarlar.godChatId}\r\n`, 'utf-8'),
+            Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="document"; filename="Otomatik_Yedek_${Date.now()}.json"\r\nContent-Type: application/json\r\n\r\n`, 'utf-8'),
+            buffer,
+            Buffer.from(`\r\n--${boundary}--\r\n`, 'utf-8')
+        ]);
+
+        await fetch(`https://api.telegram.org/bot${ayarlar.godBotToken}/sendDocument`, {
+            method: 'POST',
+            headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
+            body: body
+        });
+
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ hata: "Cron çöktü." });
+    }
+});
+
+// =================================================================
+// 🔥 YENİ: TELEGRAM BOT KOMUT DİNLEYİCİSİ (WEBHOOK) 🔥
+// =================================================================
+app.post('/api/telegram-webhook', async (req, res) => {
+    // Telegram sunucularına "Aldım, sorun yok" diyoruz ki tekrar atmasın
+    res.json({ success: true });
+
+    try {
+        const body = req.body;
+        if (!body || !body.message || !body.message.text) return;
+
+        const text = body.message.text.trim();
+        const chatId = body.message.chat.id.toString();
+
+        const snap = await getDoc(doc(db, "settings", "global"));
+        const ayarlar = snap.exists() ? snap.data() : {};
+        
+        // GÜVENLİK DUVARI: Sadece God Panel'de kaydedilen Chat ID komut verebilir!
+        if (!ayarlar.godChatId || ayarlar.godChatId !== chatId) return;
+        
+        const godBotToken = ayarlar.godBotToken;
+        if(!godBotToken) return;
+
+        const args = text.split(' ');
+        const command = args[0].toLowerCase();
+        
+        let replyMsg = "";
+
+        // KOMUT 1: SÜRE UZAT
+        if (command === '/uzat') {
+            if(args.length < 3) {
+                replyMsg = "⚠️ Hatalı kullanım.\nFormat: /uzat <MüşteriKodu> <GünSayı>\nÖrn: /uzat VIP-1234 30";
+            } else {
+                const targetKod = args[1];
+                const gunEkle = parseInt(args[2]);
+                
+                const q = query(collection(db, "users"), where("passcode", "==", targetKod));
+                const userSnap = await getDocs(q);
+                
+                if(userSnap.empty) {
+                    replyMsg = `❌ Müşteri bulunamadı: ${targetKod}`;
+                } else {
+                    const uDoc = userSnap.docs[0];
+                    const uData = uDoc.data();
+                    
+                    let expDate = new Date();
+                    if(uData.expireDate) {
+                        let p = uData.expireDate.split('.');
+                        if(p.length === 3) expDate = new Date(p[2], p[1]-1, p[0]);
+                    }
+                    
+                    expDate.setDate(expDate.getDate() + gunEkle);
+                    
+                    await updateDoc(doc(db, "users", uDoc.id), {
+                        expireDate: expDate.toLocaleDateString('tr-TR')
+                    });
+                    
+                    replyMsg = `✅ ${targetKod} kodlu müşterinin süresi ${gunEkle} gün uzatıldı.\nYeni Bitiş: ${expDate.toLocaleDateString('tr-TR')}`;
+                }
+            }
+        } 
+        // KOMUT 2: SOFT BAN AT
+        else if (command === '/softban' || command === '/kısıtla') {
+            if(args.length < 2) {
+                replyMsg = "⚠️ Hatalı kullanım.\nFormat: /softban <MüşteriKodu>\nÖrn: /softban VIP-1234";
+            } else {
+                const targetKod = args[1];
+                const q = query(collection(db, "users"), where("passcode", "==", targetKod));
+                const userSnap = await getDocs(q);
+                
+                if(userSnap.empty) {
+                    replyMsg = `❌ Müşteri bulunamadı: ${targetKod}`;
+                } else {
+                    const uDoc = userSnap.docs[0];
+                    await updateDoc(doc(db, "users", uDoc.id), { isSoftBanned: true });
+                    replyMsg = `🔒 ${targetKod} kodlu müşteri SADECE OKUMA (Soft-Ban) moduna alındı.`;
+                }
+            }
+        }
+        // KOMUT 3: BANLARI ÇÖZ
+        else if (command === '/coz' || command === '/unban') {
+            if(args.length < 2) {
+                replyMsg = "⚠️ Hatalı kullanım.\nFormat: /coz <MüşteriKodu>\nÖrn: /coz VIP-1234";
+            } else {
+                const targetKod = args[1];
+                const q = query(collection(db, "users"), where("passcode", "==", targetKod));
+                const userSnap = await getDocs(q);
+                
+                if(userSnap.empty) {
+                    replyMsg = `❌ Müşteri bulunamadı: ${targetKod}`;
+                } else {
+                    const uDoc = userSnap.docs[0];
+                    await updateDoc(doc(db, "users", uDoc.id), { isSoftBanned: false, isBanned: false });
+                    replyMsg = `✅ ${targetKod} kodlu müşterinin tüm kısıtlamaları ve banları kaldırıldı.`;
+                }
+            }
+        }
+
+        // Telegram'a cevap gönder
+        if(replyMsg) {
+            await fetch(`https://api.telegram.org/bot${godBotToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: chatId, text: replyMsg })
+            });
+        }
+        
+    } catch (error) {
+        console.error("Webhook hatası:", error);
+    }
+});
+
 
 // --- VERCEL DUVARINI AŞAN AKILLI ANA YÖNLENDİRİCİ ---
 app.get('/:slug?', async (req, res, next) => {
