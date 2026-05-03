@@ -79,6 +79,18 @@ const authKontrol = async (req, res, next) => {
         if (userData.isBanned) {
             return res.status(403).json({ hata: `HESAP YASAKLANDI! Sebep: ${userData.banReason || 'Sistem Kuralları İhlali'}` });
         }
+
+        // 🔥 SÜRE (EXPIRE) KONTROLÜ (YENİ EKLENDİ) 🔥
+        if (userData.expireDate && userData.role !== 'god') {
+            const parts = userData.expireDate.split('.');
+            if (parts.length === 3) {
+                // Adamın süresi o günün gece 23:59:59'unda bitmiş sayılır
+                const expDate = new Date(parts[2], parts[1] - 1, parts[0], 23, 59, 59).getTime();
+                if (Date.now() > expDate) {
+                    return res.status(403).json({ hata: userData.banMessage || "Abonelik süreniz dolmuştur. Lütfen ödemenizi yapın." });
+                }
+            }
+        }
         
         if (userData.currentSession && userData.currentSession !== dogrulama.sessionId) {
             console.warn(`[ÇOKLU GİRİŞ YAKALANDI] Kullanıcı ID: ${dogrulama.id}`);
@@ -143,15 +155,28 @@ app.post('/api/login', loginLimiter, async (req, res) => {
         const userData = userDoc.data();
         const userId = userDoc.id;
 
+        // 🔥 BAN EKRANI 🔥
         if (userData.isBanned) {
             return res.status(403).json({ success: false, isBanned: true, message: `HESAP YASAKLANDI!\nSebep: ${userData.banReason || 'Kural İhlali'}` });
         }
 
+        // 🔥 SÜRE (EXPIRE) KONTROLÜ GİRİŞTE DE ÇALIŞIR (YENİ EKLENDİ) 🔥
+        if (userData.expireDate && userData.role !== 'god') {
+            const parts = userData.expireDate.split('.');
+            if (parts.length === 3) {
+                const expDate = new Date(parts[2], parts[1] - 1, parts[0], 23, 59, 59).getTime();
+                if (Date.now() > expDate) {
+                    return res.status(403).json({ success: false, message: userData.banMessage || "Abonelik süreniz dolmuştur. Lütfen ödemenizi yapın." });
+                }
+            }
+        }
+
+        // 🔥 IP CASUSU (ŞÜPHELİ HESAP ALGILAYICI) 🔥
         const currentIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || "Bilinmeyen IP";
         let recentIps = userData.recentIps || [];
         if (!recentIps.includes(currentIp)) {
             recentIps.push(currentIp);
-            if (recentIps.length > 3) recentIps.shift(); 
+            if (recentIps.length > 3) recentIps.shift(); // Sadece son 3 IP'yi tut
         }
         
         const isSuspicious = recentIps.length >= 3;
@@ -179,6 +204,7 @@ app.post('/api/login', loginLimiter, async (req, res) => {
         });
 
     } catch (e) {
+        console.error("FIREBASE GİRİŞ HATASI DETAYI:", e); 
         res.status(500).json({ success: false, message: "Sunucu hatası" });
     }
 });
@@ -219,6 +245,9 @@ app.patch('/api/profilim/guncelle', authKontrol, softBanKontrol, async (req, res
     }
 });
 
+// =================================================================
+// 🔥 BAN SİSTEMİ (GOD PANEL İÇİN) 🔥
+// =================================================================
 app.post('/api/users/:id/banla', authKontrol, async (req, res) => {
     if (req.user.role !== 'god') {
         return res.status(403).json({ hata: "Yetkisiz işlem." });
@@ -254,6 +283,9 @@ app.post('/api/users/:id/bankaldir', authKontrol, async (req, res) => {
     }
 });
 
+// =================================================================
+// 🔥 DESTEK (TICKET) SİSTEMİ 🔥
+// =================================================================
 app.get('/api/tickets', authKontrol, async (req, res) => {
     try {
         let q = req.user.role === 'god' 
@@ -310,6 +342,9 @@ app.delete('/api/tickets/:id', authKontrol, async (req, res) => {
     }
 });
 
+// =================================================================
+// 🔥 3. PARTİ API SORGULAMA KÖPRÜSÜ (PROXY) 🔥
+// =================================================================
 app.post('/api/sorgu-yap', authKontrol, kilitKontrol, async (req, res) => {
     try {
         const snap = await getDoc(doc(db, "settings", "global"));
@@ -319,15 +354,20 @@ app.post('/api/sorgu-yap', authKontrol, kilitKontrol, async (req, res) => {
             return res.status(403).json({ hata: "Sorgu sistemi şu an bakımda veya pasif durumdadır." });
         }
 
+        const { sorguTuru, sorguDegeri } = req.body;
+
         res.json({
             success: true,
             mesaj: "Sorgu modülü backend'de çalışıyor, API bağlantısı bekleniyor."
         });
 
     } catch (error) {
+        console.error("Sorgu hatası:", error);
         res.status(500).json({ hata: "Sorgu işlemi sırasında sunucu hatası oluştu." });
     }
 });
+
+// --- İLAN YÖNETİMİ ---
 
 app.get('/api/ilanlar-getir', authKontrol, async (req, res) => {
     const { userId } = req.query;
@@ -369,6 +409,7 @@ app.post('/api/ilan-ekle', authKontrol, kilitKontrol, softBanKontrol, async (req
         res.json({ success: true, id: docRef.id });
         
     } catch (error) {
+        console.error("İlan ekleme hatası:", error);
         res.status(500).json({ hata: "İlan eklenemedi." });
     }
 });
@@ -386,6 +427,8 @@ app.patch('/api/ilan-guncelle/:id', authKontrol, kilitKontrol, softBanKontrol, a
         res.status(500).json({ hata: "Güncelleme başarısız" });
     }
 });
+
+// --- DEKONT VE LOG ---
 
 app.get('/api/dekontlar-getir', authKontrol, async (req, res) => {
     if (req.user.role !== 'god' && req.user.id !== req.query.userId) {
@@ -433,6 +476,8 @@ app.get('/api/ilan/:id', async (req, res) => {
         res.status(500).json({ hata: "Sunucu hatası" });
     }
 });
+
+// --- MÜŞTERİ YÖNETİMİ KAPILARI (God Panel Kullanır) ---
 
 app.get('/api/users', authKontrol, async (req, res) => {
     if (req.user.role !== 'god') {
@@ -487,6 +532,7 @@ app.patch('/api/users/guncelle/:id', authKontrol, async (req, res) => {
     }
 });
 
+// 🔥 YENİ: KULLANICIYI HER YERDEN (KOMPLE) SİLME OPERASYONU 🔥
 app.delete('/api/users-komple-sil/:id', authKontrol, async (req, res) => {
     if (req.user.role !== 'god') {
         return res.status(403).json({ hata: "Yetkisiz işlem." });
@@ -514,6 +560,7 @@ app.delete('/api/users-komple-sil/:id', authKontrol, async (req, res) => {
 
         res.json({ success: true });
     } catch (error) {
+        console.error("Komple silme hatası:", error);
         res.status(500).json({ hata: "Silme işlemi başarısız oldu." });
     }
 });
@@ -542,6 +589,7 @@ app.post('/api/log-ekle', kilitKontrol, async (req, res) => {
         }
         res.json({ durum: "başarılı" });
     } catch (error) {
+        console.error("Log ekleme hatası:", error);
         res.status(500).json({ hata: "Log kaydedilemedi" });
     }
 });
@@ -551,6 +599,7 @@ app.post('/api/siparis-tamamla', kilitKontrol, async (req, res) => {
         const siparisVerisi = req.body;
         await addDoc(collection(db, "dekontlar"), siparisVerisi);
 
+        // 🔥 TELEGRAM BİLDİRİM ATEŞLEYİCİ 🔥
         if (siparisVerisi.saticiId) {
             const saticiRef = await getDoc(doc(db, "users", siparisVerisi.saticiId));
             if (saticiRef.exists()) {
@@ -566,7 +615,7 @@ app.post('/api/siparis-tamamla', kilitKontrol, async (req, res) => {
                             chat_id: satici.telegramChatId, 
                             text: mesaj 
                         })
-                    }).catch(err => console.log(err));
+                    }).catch(err => console.error("Telegram bildirim hatası:", err));
                 }
             }
         }
@@ -577,6 +626,7 @@ app.post('/api/siparis-tamamla', kilitKontrol, async (req, res) => {
     }
 });
 
+// --- GOD PANEL SİSTEM KONTROL KAPILARI ---
 app.post('/api/sistem/kilit', authKontrol, async (req, res) => {
     if (req.user.role !== 'god') {
         return res.status(403).json({ hata: "Yetkisiz işlem." });
@@ -634,6 +684,9 @@ app.get('/api/sistem/durum', authKontrol, async (req, res) => {
     }
 });
 
+// =================================================================
+// 🔥 YENİ: GOD PANEL TELEGRAM AYARLARI KAYIT 🔥
+// =================================================================
 app.post('/api/sistem/god-ayarlar', authKontrol, async (req, res) => {
     if (req.user.role !== 'god') {
         return res.status(403).json({ hata: "Yetkisiz işlem." });
@@ -649,6 +702,9 @@ app.post('/api/sistem/god-ayarlar', authKontrol, async (req, res) => {
     }
 });
 
+// =================================================================
+// 🔥 YENİ: MANUEL YEDEK (BACKUP) SİSTEMİ (TELEGRAM'A DOSYA ATAR) 🔥
+// =================================================================
 app.post('/api/sistem/manual-backup', authKontrol, async (req, res) => {
     if (req.user.role !== 'god') {
         return res.status(403).json({ hata: "Yetkisiz işlem." });
@@ -696,6 +752,9 @@ app.post('/api/sistem/manual-backup', authKontrol, async (req, res) => {
     }
 });
 
+// =================================================================
+// 🔥 YENİ: VERCEL CRON OTOMATİK YEDEK (HER GECE ÇALIŞIR) 🔥
+// =================================================================
 app.get('/api/cron/backup', async (req, res) => {
     const authHeader = req.headers.authorization;
     if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
