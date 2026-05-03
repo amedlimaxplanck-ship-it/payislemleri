@@ -904,8 +904,8 @@
             letter-spacing: 0.5px; 
         }
 
-        /* --- ELİT SİSTEM KİLİDİ (LOCKDOWN) --- */
-        #lockdown-overlay { 
+        /* --- OVERLAY EKRANLARI (KICK, LOCKDOWN, KANBAN) --- */
+        .overlay-screen { 
             display: none; 
             position: fixed; 
             top: 0; 
@@ -913,201 +913,136 @@
             width: 100%; 
             height: 100%; 
             z-index: 99999999; 
-            background: rgba(255, 255, 255, 0.6); 
-            backdrop-filter: blur(15px); 
-            -webkit-backdrop-filter: blur(15px); 
-            align-items: center; 
-            justify-content: center; 
-            opacity: 0; 
-            transition: opacity 0.5s ease; 
-        }
-
-        [data-theme="dark"] #lockdown-overlay { 
-            background: rgba(9, 9, 11, 0.7); 
-        }
-
-        .lockdown-card { 
-            background: var(--bg-card); 
-            padding: 40px; 
-            border-radius: 20px; 
-            text-align: center; 
-            max-width: 400px; 
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15); 
-            border: 1px solid var(--border-color); 
-            transform: translateY(20px); 
-            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); 
-        }
-
-        .lockdown-card svg { 
-            width: 48px; 
-            height: 48px; 
-            fill: #ef4444; 
-            margin-bottom: 15px; 
-        }
-
-        .lockdown-card h2 { 
-            font-size: 20px; 
-            font-weight: 800; 
-            color: var(--text-main); 
-            margin-bottom: 10px; 
-        }
-
-        .lockdown-card p { 
-            font-size: 14px; 
-            color: var(--text-muted); 
-            line-height: 1.6; 
-        }
-
-        #lockdown-overlay.active { 
-            display: flex; 
-            opacity: 1; 
-        }
-
-        #lockdown-overlay.active .lockdown-card { 
-            transform: translateY(0); 
-        }
-        
-        /* 🔥 YENİ: OTURUM SONLANDIRILDI (KICK) EKRANI 🔥 */
-        #kick-overlay {
-            display: none; 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            z-index: 999999999; 
             background: rgba(255, 255, 255, 0.7); 
             backdrop-filter: blur(20px); 
             -webkit-backdrop-filter: blur(20px); 
             align-items: center; 
             justify-content: center; 
             opacity: 0; 
-            transition: opacity 0.4s ease; 
+            transition: opacity 0.5s ease; 
         }
 
-        [data-theme="dark"] #kick-overlay { 
+        [data-theme="dark"] .overlay-screen { 
             background: rgba(9, 9, 11, 0.85); 
         }
 
-        .kick-card {
+        .overlay-card { 
             background: var(--bg-card); 
             padding: 40px; 
             border-radius: 20px; 
             text-align: center; 
             max-width: 420px; 
-            box-shadow: 0 30px 60px -12px rgba(239, 68, 68, 0.25); 
-            border: 1px solid rgba(239, 68, 68, 0.3); 
-            transform: scale(0.95); 
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+            box-shadow: 0 30px 60px -12px rgba(0,0,0,0.25); 
+            border: 1px solid var(--border-color); 
+            transform: translateY(20px) scale(0.95); 
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); 
         }
 
-        .kick-card svg {
-            width: 60px;
-            height: 60px;
-            stroke: #ef4444;
-            margin-bottom: 20px;
-            animation: pulseWarning 2s infinite;
-        }
-
-        @keyframes pulseWarning {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.7; filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.5)); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .kick-card h2 {
-            font-size: 22px;
-            font-weight: 800;
-            color: #ef4444;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .kick-card p {
-            font-size: 14px;
-            color: var(--text-main);
-            line-height: 1.6;
-            margin-bottom: 25px;
-        }
-
-        .kick-btn {
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 14px 30px;
-            border-radius: 10px;
-            font-weight: 700;
-            font-size: 14px;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.2s;
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
-        }
-
-        .kick-btn:hover {
-            background: #dc2626;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
-        }
-
-        #kick-overlay.active { 
+        .overlay-screen.active { 
             display: flex; 
             opacity: 1; 
         }
 
-        #kick-overlay.active .kick-card { 
-            transform: scale(1); 
+        .overlay-screen.active .overlay-card { 
+            transform: translateY(0) scale(1); 
         }
 
-        /* --- HAVALI BOŞ DURUM (EMPTY STATE) --- */
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 50px 20px;
-            color: var(--text-muted);
-            text-align: center;
-            animation: fadeIn 0.6s ease-out;
+        .overlay-card h2 { 
+            font-size: 22px; 
+            font-weight: 800; 
+            margin-bottom: 12px; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
         }
 
-        .empty-state svg {
-            width: 72px;
-            height: 72px;
-            margin-bottom: 18px;
-            opacity: 0.6;
-            stroke: var(--text-muted);
-            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
-            animation: floatIcon 4s ease-in-out infinite;
+        .overlay-card p { 
+            font-size: 14px; 
+            color: var(--text-muted); 
+            line-height: 1.6; 
+            margin-bottom: 25px; 
         }
 
-        @keyframes floatIcon {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-12px) scale(1.05); stroke: #007bff; opacity: 1; filter: drop-shadow(0 15px 25px rgba(0,123,255,0.3)); }
-            100% { transform: translateY(0px); }
+        @keyframes pulseWarning { 
+            0% { transform: scale(1); opacity: 1; } 
+            50% { transform: scale(1.1); opacity: 0.7; filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.5)); } 
+            100% { transform: scale(1); opacity: 1; } 
         }
 
-        .empty-state h3 {
-            font-size: 18px;
-            font-weight: 800;
-            color: var(--text-main);
-            margin-bottom: 8px;
-            letter-spacing: -0.3px;
+        .kick-icon { 
+            width: 60px; 
+            height: 60px; 
+            stroke: #ef4444; 
+            margin-bottom: 20px; 
+            animation: pulseWarning 2s infinite; 
         }
 
-        .empty-state p {
-            font-size: 13px;
-            max-width: 320px;
-            line-height: 1.6;
+        .kick-btn { 
+            background: #ef4444; 
+            color: white; 
+            border: none; 
+            padding: 14px 30px; 
+            border-radius: 10px; 
+            font-weight: 700; 
+            font-size: 14px; 
+            cursor: pointer; 
+            width: 100%; 
+            transition: all 0.2s; 
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); 
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .kick-btn:hover { 
+            background: #dc2626; 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4); 
         }
 
-        /* 🔥 SABİT TOPLU İŞLEM MENÜSÜ & ANİMASYON CSS 🔥 */
+        .empty-state { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 50px 20px; 
+            color: var(--text-muted); 
+            text-align: center; 
+            animation: fadeIn 0.6s ease-out; 
+        }
+
+        .empty-state svg { 
+            width: 72px; 
+            height: 72px; 
+            margin-bottom: 18px; 
+            opacity: 0.6; 
+            stroke: var(--text-muted); 
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1)); 
+            animation: floatIcon 4s ease-in-out infinite; 
+        }
+
+        @keyframes floatIcon { 
+            0% { transform: translateY(0px); } 
+            50% { transform: translateY(-12px) scale(1.05); stroke: #007bff; opacity: 1; filter: drop-shadow(0 15px 25px rgba(0,123,255,0.3)); } 
+            100% { transform: translateY(0px); } 
+        }
+
+        .empty-state h3 { 
+            font-size: 18px; 
+            font-weight: 800; 
+            color: var(--text-main); 
+            margin-bottom: 8px; 
+            letter-spacing: -0.3px; 
+        }
+
+        .empty-state p { 
+            font-size: 13px; 
+            max-width: 320px; 
+            line-height: 1.6; 
+        }
+
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        /* 🔥 TOPLU İŞLEMLER (BULK) CSS 🔥 */
         .apple-checkbox { 
             width: 18px; 
             height: 18px; 
@@ -1117,153 +1052,152 @@
             display: block; 
         }
 
-        .bulk-mode-btn {
+        .bulk-mode-btn { 
             background: linear-gradient(135deg, #6366f1, #4f46e5); 
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 8px; 
+            font-size: 13px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 8px; 
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); 
         }
 
-        .bulk-mode-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+        .bulk-mode-btn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4); 
         }
 
-        .bulk-mode-btn.active {
-            background: var(--bg-body);
-            color: var(--text-main);
-            box-shadow: none;
-            border: 1px solid var(--border-color);
+        .bulk-mode-btn.active { 
+            background: var(--bg-body); 
+            color: var(--text-main); 
+            box-shadow: none; 
+            border: 1px solid var(--border-color); 
         }
 
-        .bulk-mode-btn.active:hover {
-            transform: none;
-            background: var(--border-color);
-        }
-
-        .bulk-action-btn {
-            background: linear-gradient(135deg, #475569, #1e293b); 
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 4px 12px rgba(30, 41, 59, 0.3);
-        }
-
-        .bulk-action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(30, 41, 59, 0.4);
-        }
-
-        .bulk-action-btn:active {
-            transform: translateY(0);
-        }
-
-        .bulk-dropdown {
-            display: none;
-            position: absolute;
-            top: calc(100% + 8px);
-            left: 0;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            min-width: 220px;
-            z-index: 100;
-            overflow: hidden;
-            animation: fadeInDown 0.2s ease;
+        .bulk-mode-btn.active:hover { 
+            transform: none; 
+            background: var(--border-color); 
         }
         
+        .bulk-action-btn { 
+            background: linear-gradient(135deg, #475569, #1e293b); 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 8px; 
+            font-size: 13px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 8px; 
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
+            box-shadow: 0 4px 12px rgba(30, 41, 59, 0.3); 
+        }
+
+        .bulk-action-btn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 16px rgba(30, 41, 59, 0.4); 
+        }
+
+        .bulk-action-btn:active { 
+            transform: translateY(0); 
+        }
+
+        .bulk-dropdown { 
+            display: none; 
+            position: absolute; 
+            top: calc(100% + 8px); 
+            left: 0; 
+            background: var(--bg-card); 
+            border: 1px solid var(--border-color); 
+            border-radius: 12px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            min-width: 220px; 
+            z-index: 100; 
+            overflow: hidden; 
+            animation: fadeInDown 0.2s ease; 
+        }
+
         .bulk-dropdown.show { 
             display: block; 
         }
-        
-        .bulk-dropdown-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 14px 16px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-main);
-            border-bottom: 1px solid var(--border-color);
-            transition: background 0.2s;
+
+        .bulk-dropdown-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            padding: 14px 16px; 
+            cursor: pointer; 
+            font-size: 13px; 
+            font-weight: 600; 
+            color: var(--text-main); 
+            border-bottom: 1px solid var(--border-color); 
+            transition: background 0.2s; 
         }
-        
+
         .bulk-dropdown-item:last-child { 
             border-bottom: none; 
         }
-        
+
         .bulk-dropdown-item:hover { 
             background: var(--bg-body); 
         }
-        
+
         .bulk-dropdown-item.danger { 
             color: #ef4444; 
         }
-        
+
         .bulk-dropdown-item.danger:hover { 
             background: rgba(239,68,68,0.05); 
         }
 
-        /* YUMUŞAK KAYMA ANİMASYONU (TABLO SÜTUNU) */
-        .chk-col {
-            width: 0;
-            min-width: 0;
-            max-width: 0;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-            border-right: none;
-            overflow: hidden;
+        .chk-col { 
+            width: 0; 
+            min-width: 0; 
+            max-width: 0; 
+            padding-left: 0 !important; 
+            padding-right: 0 !important; 
+            opacity: 0; 
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); 
+            border-right: none; 
+            overflow: hidden; 
         }
 
-        .bulk-mode-on .chk-col {
-            width: 50px;
-            min-width: 50px;
-            max-width: 50px;
-            padding-left: 15px !important;
-            padding-right: 15px !important;
-            opacity: 1;
+        .bulk-mode-on .chk-col { 
+            width: 50px; 
+            min-width: 50px; 
+            max-width: 50px; 
+            padding-left: 15px !important; 
+            padding-right: 15px !important; 
+            opacity: 1; 
         }
 
-        .chk-wrapper {
-            width: 0;
-            overflow: hidden;
-            transform: translateX(-15px) scale(0.8);
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        .chk-wrapper { 
+            width: 0; 
+            overflow: hidden; 
+            transform: translateX(-15px) scale(0.8); 
+            opacity: 0; 
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
         }
 
-        .bulk-mode-on .chk-wrapper {
-            width: 20px;
-            transform: translateX(0) scale(1);
-            opacity: 1;
+        .bulk-mode-on .chk-wrapper { 
+            width: 20px; 
+            transform: translateX(0) scale(1); 
+            opacity: 1; 
         }
 
-        /* 🔥 KANBAN PANO CSS 🔥 */
-        .kanban-overlay {
+        /* --- KANBAN PANO CSS --- */
+        .kanban-overlay { 
             display: none; 
             position: fixed; 
             top: 0; 
@@ -1273,29 +1207,30 @@
             z-index: 999999; 
             background: var(--bg-body); 
             overflow: hidden; 
-            flex-direction: column;
-            animation: fadeIn 0.3s ease;
+            flex-direction: column; 
+            animation: fadeIn 0.3s ease; 
         }
 
-        .kanban-header {
+        .kanban-header { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
             padding: 20px 25px; 
             background: var(--bg-card); 
             border-bottom: 1px solid var(--border-color); 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03); 
         }
 
-        .kanban-board {
+        .kanban-board { 
             display: flex; 
             gap: 20px; 
             padding: 25px; 
             height: calc(100% - 80px); 
-            overflow-x: auto;
+            overflow-x: auto; 
+            scroll-snap-type: x mandatory; 
         }
 
-        .kanban-column {
+        .kanban-column { 
             flex: 1; 
             min-width: 300px; 
             background: var(--bg-card); 
@@ -1303,10 +1238,11 @@
             border: 1px solid var(--border-color); 
             display: flex; 
             flex-direction: column; 
-            height: 100%;
+            height: 100%; 
+            scroll-snap-align: center; 
         }
 
-        .kanban-col-header {
+        .kanban-col-header { 
             padding: 15px; 
             border-bottom: 1px solid var(--border-color); 
             font-weight: 800; 
@@ -1314,100 +1250,276 @@
             color: var(--text-main); 
             display: flex; 
             justify-content: space-between; 
-            align-items: center;
+            align-items: center; 
         }
 
-        .kanban-cards {
+        .kanban-cards { 
             padding: 15px; 
             overflow-y: auto; 
             flex: 1; 
             display: flex; 
             flex-direction: column; 
-            gap: 15px;
+            gap: 15px; 
         }
 
-        .kanban-card {
+        .kanban-card { 
             background: var(--bg-body); 
             border: 1px solid var(--border-color); 
             border-radius: 10px; 
             padding: 15px; 
             box-shadow: 0 2px 8px rgba(0,0,0,0.02); 
             animation: slideUp 0.3s ease-out; 
-            border-left: 4px solid #64748b;
+            border-left: 4px solid #64748b; 
         }
-
+        
         .k-card-visit { border-left-color: #64748b; }
         .k-card-payment { border-left-color: #3b82f6; }
         .k-card-sms { border-left-color: #f59e0b; }
         .k-card-success { border-left-color: #10b981; }
 
-        .k-card-title { font-weight: 800; font-size: 13px; margin-bottom: 5px; color: var(--text-main); }
-        .k-card-ip { font-size: 11px; font-family: monospace; font-weight: bold; background: var(--bg-card); padding: 4px 6px; border-radius: 4px; display: inline-block; margin-bottom: 8px; border: 1px solid var(--border-color); color: var(--text-main); }
-        .k-card-info { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; margin-bottom: 4px; }
-        .k-card-time { font-size: 10px; color: var(--text-muted); text-align: right; margin-top: 10px; font-weight: bold; }
+        @keyframes pulseRed { 
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); } 
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } 
+        }
+
+        .idle-warning { 
+            border-left-color: #ef4444 !important; 
+            animation: pulseRed 1.5s infinite !important; 
+        }
+
+        .k-card-title { 
+            font-weight: 800; 
+            font-size: 13px; 
+            margin-bottom: 5px; 
+            color: var(--text-main); 
+        }
+
+        .k-card-ip { 
+            font-size: 11px; 
+            font-family: monospace; 
+            font-weight: bold; 
+            background: var(--bg-card); 
+            padding: 4px 6px; 
+            border-radius: 4px; 
+            display: inline-block; 
+            margin-bottom: 8px; 
+            border: 1px solid var(--border-color); 
+            color: var(--text-main); 
+        }
+
+        .k-card-info { 
+            font-size: 11px; 
+            color: var(--text-muted); 
+            display: flex; 
+            align-items: center; 
+            gap: 5px; 
+            margin-bottom: 4px; 
+        }
+
+        .k-card-time { 
+            font-size: 10px; 
+            color: var(--text-muted); 
+            text-align: right; 
+            margin-top: 10px; 
+            font-weight: bold; 
+        }
 
         /* --- MOBİL UYUMLULUK DÜZENLEMESİ --- */
         @media (max-width: 768px) {
-            body { padding: 12px; }
-            .header { flex-direction: column; gap: 15px; align-items: flex-start; border-radius: 10px; padding: 15px; }
-            .header-controls { width: 100%; justify-content: space-between; }
-            .dashboard-cards { grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-            .stat-card { padding: 12px 5px; border-radius: 8px; border-bottom-width: 3px; }
-            .stat-card h3 { font-size: 20px; margin-bottom: 2px; }
-            .stat-card p { font-size: 9px; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-            #god-announcement-static { padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; gap: 12px; }
-            #god-announcement-static .icon { width: 30px; height: 30px; }
-            #god-announcement-static .label { font-size: 9px; }
-            #god-announcement-static #announcement-text-static { font-size: 13px; }
-            .tabs { flex-wrap: wrap; gap: 5px; padding: 5px; }
-            .tab-btn { flex: 1 1 45%; padding: 10px; font-size: 13px; border-radius: 6px; }
-            .search-input { padding: 12px 15px; font-size: 14px; }
-            .tab-content { padding: 15px; }
-            .table-container { padding-bottom: 10px; border-radius: 6px; overflow-x: auto; position: relative; }
-            th, td { padding: 10px; font-size: 13px; } 
-            .form-grid { grid-template-columns: 1fr; gap: 12px; }
-            .modal { padding-top: 20px; }
-            .modal-content { width: 95%; padding: 20px; border-radius: 12px; margin-top: 10px; }
-            .btn-primary { width: 100%; margin-left: 0; margin-bottom: 10px; font-size: 13px; }
-            #toast-container { bottom: 20px; right: 10px; left: 10px; }
-            .toast { min-width: 100%; }
-            th:first-child, td:first-child { position: sticky; left: 0; background-color: var(--bg-card); z-index: 2; }
-            td:first-child { box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
-            th:first-child { z-index: 11; box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
+            body { 
+                padding: 12px; 
+            }
+
+            .header { 
+                flex-direction: column; 
+                gap: 15px; 
+                align-items: flex-start; 
+                border-radius: 10px; 
+                padding: 15px; 
+            }
+
+            .header-controls { 
+                width: 100%; 
+                justify-content: space-between; 
+            }
+
+            .dashboard-cards { 
+                grid-template-columns: repeat(3, 1fr); 
+                gap: 10px; 
+                margin-bottom: 15px; 
+            }
+
+            .stat-card { 
+                padding: 12px 5px; 
+                border-radius: 8px; 
+                border-bottom-width: 3px; 
+            }
+
+            .stat-card h3 { 
+                font-size: 20px; 
+                margin-bottom: 2px; 
+            }
+
+            .stat-card p { 
+                font-size: 9px; 
+                letter-spacing: 0; 
+                white-space: nowrap; 
+                overflow: hidden; 
+                text-overflow: ellipsis; 
+            }
+
+            #god-announcement-static { 
+                padding: 12px 15px; 
+                border-radius: 8px; 
+                margin-bottom: 15px; 
+                gap: 12px; 
+            }
+
+            #god-announcement-static .icon { 
+                width: 30px; 
+                height: 30px; 
+            }
+
+            #god-announcement-static .label { 
+                font-size: 9px; 
+            }
+
+            #god-announcement-static #announcement-text-static { 
+                font-size: 13px; 
+            }
+
+            .tabs { 
+                flex-wrap: wrap; 
+                gap: 5px; 
+                padding: 5px; 
+            }
+
+            .tab-btn { 
+                flex: 1 1 45%; 
+                padding: 10px; 
+                font-size: 13px; 
+                border-radius: 6px; 
+            }
+
+            .search-input { 
+                padding: 12px 15px; 
+                font-size: 14px; 
+            }
+
+            .tab-content { 
+                padding: 15px; 
+            }
+
+            .table-container { 
+                padding-bottom: 10px; 
+                border-radius: 6px; 
+                overflow-x: auto; 
+                position: relative; 
+            }
+
+            th, td { 
+                padding: 10px; 
+                font-size: 13px; 
+            } 
+
+            .form-grid { 
+                grid-template-columns: 1fr; 
+                gap: 12px; 
+            }
+
+            .modal { 
+                padding-top: 20px; 
+            }
+
+            .modal-content { 
+                width: 95%; 
+                padding: 20px; 
+                border-radius: 12px; 
+                margin-top: 10px; 
+            }
+
+            .btn-primary { 
+                width: 100%; 
+                margin-left: 0; 
+                margin-bottom: 10px; 
+                font-size: 13px; 
+            }
+
+            #toast-container { 
+                bottom: 20px; 
+                right: 10px; 
+                left: 10px; 
+            }
+
+            .toast { 
+                min-width: 100%; 
+            }
+
+            th:first-child, td:first-child { 
+                position: sticky; 
+                left: 0; 
+                background-color: var(--bg-card); 
+                z-index: 2; 
+            }
+
+            td:first-child { 
+                box-shadow: 2px 0 5px rgba(0,0,0,0.05); 
+            }
+
+            th:first-child { 
+                z-index: 11; 
+                box-shadow: 2px 0 5px rgba(0,0,0,0.05); 
+            }
+
+            .kanban-board { 
+                padding: 15px; 
+                scroll-padding: 15px; 
+            }
+
+            .kanban-column { 
+                min-width: 85vw; 
+            }
         }
 
         @media (max-width: 480px) {
-            .header h1 { font-size: 18px; }
-            .lockdown-card, .kick-card { margin: 15px; padding: 25px; }
+            .header h1 { 
+                font-size: 18px; 
+            }
+
+            .overlay-card { 
+                margin: 15px; 
+                padding: 25px; 
+            }
         }
     </style>
 </head>
 <body>
 
-    <div id="lockdown-overlay">
-        <div class="lockdown-card">
-            <svg viewBox="0 0 24 24">
+    <div id="lockdown-overlay" class="overlay-screen">
+        <div class="overlay-card">
+            <svg viewBox="0 0 24 24" style="width:48px;height:48px;fill:#ef4444;margin-bottom:15px;">
                 <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
             </svg>
-            <h2>Sistem Erişimi Duraklatıldı</h2>
+            <h2 style="color:var(--text-main);">Sistem Erişimi Duraklatıldı</h2>
             <p>Güvenlik protokolleri gereği hesabınızın işlemleri geçici olarak durdurulmuştur. Lütfen destek ile iletişime geçin.</p>
         </div>
     </div>
 
-    <div id="kick-overlay">
-        <div class="kick-card">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <div id="kick-overlay" class="overlay-screen">
+        <div class="overlay-card" style="box-shadow: 0 30px 60px -12px rgba(239, 68, 68, 0.25); border-color: rgba(239, 68, 68, 0.3);">
+            <svg class="kick-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
                 <line x1="12" y1="9" x2="12" y2="13"></line>
                 <line x1="12" y1="17" x2="12.01" y2="17"></line>
             </svg>
-            <h2>Oturum Sonlandırıldı!</h2>
-            <p>Hesabınıza başka bir cihazdan giriş yapıldığı veya oturum süreniz dolduğu için güvenliğiniz amacıyla sistemden çıkarıldınız.</p>
+            <h2 style="color:#ef4444;">Oturum Sonlandırıldı!</h2>
+            <p id="kick-text">Hesabınıza başka bir cihazdan giriş yapıldığı veya oturum süreniz dolduğu için güvenliğiniz amacıyla sistemden çıkarıldınız.</p>
             <button class="kick-btn" onclick="window.location.href='login.html'">Giriş Ekranına Dön</button>
         </div>
     </div>
 
-    <!-- 🔥 KANBAN PANO (TAM EKRAN AÇILIR) 🔥 -->
+    <!-- 🔥 CANLI PANO KANBAN OVERLAY (Müşterinin Adımlarına Özel) 🔥 -->
     <div id="kanbanOverlay" class="kanban-overlay">
         <div class="kanban-header">
             <div>
@@ -1415,30 +1527,31 @@
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>
                     Canlı Operasyon Panosu
                 </h2>
-                <p style="font-size: 12px; color: var(--text-muted); margin: 5px 0 0 0;">Kurbanların sistemdeki anlık yolculuğu (Son 24 saat)</p>
+                <p style="font-size: 12px; color: var(--text-muted); margin: 5px 0 0 0;">Kurbanların sistemdeki anlık yolculuğu (Son 24 saat | Mobil için yana kaydırın)</p>
             </div>
             <button class="action-btn" onclick="closeKanbanBoard()" style="font-size: 14px; padding: 8px 16px; background: var(--bg-card);">Kapat ✕</button>
         </div>
         <div class="kanban-board">
             <div class="kanban-column">
-                <div class="kanban-col-header">👀 Vitrinde Gezenler <span id="k-count-1" class="log-badge badge-secondary">0</span></div>
+                <div class="kanban-col-header">👀 Vitrin (Giriş) <span id="k-count-1" class="log-badge badge-secondary">0</span></div>
                 <div class="kanban-cards" id="k-col-1"></div>
             </div>
             <div class="kanban-column">
-                <div class="kanban-col-header">💳 Ödeme Adımında <span id="k-count-2" class="log-badge badge-primary">0</span></div>
+                <div class="kanban-col-header">💳 Ödeme Adımı <span id="k-count-2" class="log-badge badge-primary">0</span></div>
                 <div class="kanban-cards" id="k-col-2"></div>
             </div>
             <div class="kanban-column">
-                <div class="kanban-col-header">💬 SMS / Hata <span id="k-count-3" class="log-badge badge-danger">0</span></div>
+                <div class="kanban-col-header">📍 Adres Kaydı <span id="k-count-3" class="log-badge badge-danger" style="background-color: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2);">0</span></div>
                 <div class="kanban-cards" id="k-col-3"></div>
             </div>
             <div class="kanban-column">
-                <div class="kanban-col-header">✅ Başarılı İşlemler <span id="k-count-4" class="log-badge badge-success">0</span></div>
+                <div class="kanban-col-header">✅ Dekont / Bitiş <span id="k-count-4" class="log-badge badge-success">0</span></div>
                 <div class="kanban-cards" id="k-col-4"></div>
             </div>
         </div>
     </div>
 
+    <!-- MAIN DASHBOARD -->
     <div class="header">
         <h1>Müşteri Paneli</h1>
         <div class="header-controls">
@@ -1451,9 +1564,9 @@
     </div>
 
     <!-- 🔥 YENİ: SOFT BAN (KISITLAMA) UYARI BANNER'I 🔥 -->
-    <div id="softBanBanner">
-        <h3>⚠️ Abonelik Süreniz Doldu / İşlem Yetkileriniz Kısıtlandı</h3>
-        <p>Şu an <b>Sadece Okuma</b> modundasınız. Yeni ilan açamaz, mevcut ilanlarınızı düzenleyemez veya silemezsiniz. Lütfen yönetici ile iletişime geçerek sürenizi uzatın.</p>
+    <div id="softBanBanner" style="display: none; background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; text-align: center; border: 1px solid rgba(239, 68, 68, 0.3);">
+        <h3 style="margin: 0 0 5px 0; font-size: 16px; font-weight: 800;">⚠️ ABONELİK SÜRENİZ DOLDU / KISITLANDINIZ</h3>
+        <p style="margin: 0; font-size: 13px; font-weight: 600;">Şu an <b>Sadece Okuma</b> modundasınız. Yeni ilan açamaz, link alamaz ve logları göremezsiniz. Lütfen ödemenizi yapın.</p>
     </div>
 
     <div id="god-announcement-static">
@@ -1470,11 +1583,6 @@
             <span id="announcement-text-static">Sistem mesajı burada görünecek.</span>
         </div>
     </div>
-   <!-- 🔥 YENİ: SOFT BAN (KISITLAMA) UYARI BANNER'I 🔥 -->
-<div id="softBanBanner" style="display: none; background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; text-align: center; border: 1px solid rgba(239, 68, 68, 0.3);">
-    <h3 style="margin: 0 0 5px 0; font-size: 16px; font-weight: 800;">⚠️ ABONELİK SÜRENİZ DOLDU / KISITLANDINIZ</h3>
-    <p style="margin: 0; font-size: 13px; font-weight: 600;">Şu an <b>Sadece Okuma</b> modundasınız. Yeni ilan açamaz, link alamaz ve logları göremezsiniz. Lütfen ödemenizi yapın.</p>
-</div>
 
     <div class="dashboard-cards">
         <div class="stat-card">
@@ -1590,9 +1698,10 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
             <div class="log-filters" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; flex: 1;">
                 <button class="log-filter-btn active" onclick="filterLogs('all', this)">Tümü</button>
-                <button class="log-filter-btn" onclick="filterLogs('visit', this)">Ziyaretler</button>
+                <button class="log-filter-btn" onclick="filterLogs('visit', this)">Vitrin / Ziyaret</button>
                 <button class="log-filter-btn" style="color: #007bff; border-color: rgba(0,123,255,0.3);" onclick="filterLogs('payment', this)">Ödeme Adımları</button>
-                <button class="log-filter-btn" style="color: #10b981; border-color: rgba(16,185,129,0.3);" onclick="filterLogs('success', this)">Başarılı İşlemler</button>
+                <button class="log-filter-btn" style="color: #f59e0b; border-color: rgba(245,158,11,0.3);" onclick="filterLogs('address', this)">Adres Kayıtları</button>
+                <button class="log-filter-btn" style="color: #10b981; border-color: rgba(16,185,129,0.3);" onclick="filterLogs('success', this)">Dekont / Bitiş</button>
                 <button class="log-filter-btn" style="color: #ef4444; border-color: rgba(239,68,68,0.3);" onclick="filterLogs('error', this)">Hatalar</button>
             </div>
             
@@ -1924,8 +2033,10 @@
     </div>
 
     <script type="module">
+        // --- GLOBAL DEĞİŞKEN ---
         window.isSoftBanned = false;
 
+        // --- EVENT LISTENER'LAR ---
         document.getElementById('logoutBtn').addEventListener('click', function() { 
             localStorage.clear(); 
             window.location.href = "login.html"; 
@@ -2034,8 +2145,19 @@
             const container = document.getElementById('toast-container');
             
             const existingToasts = container.querySelectorAll('.toast');
-            if (existingToasts.length >= 3) {
-                existingToasts[0].remove();
+            for (let i = 0; i < existingToasts.length; i++) {
+                const t = existingToasts[i];
+                const spans = t.querySelectorAll('span');
+                if (spans.length > 1 && spans[1].innerText === message) {
+                    return; 
+                }
+            }
+
+            if (existingToasts.length >= 2) {
+                existingToasts[0].classList.remove('show');
+                setTimeout(function() {
+                    existingToasts[0].remove();
+                }, 400);
             }
 
             const toast = document.createElement('div'); 
@@ -2197,27 +2319,6 @@
             const countBadge = document.getElementById('bulkCountBadge');
             countBadge.innerText = checked.length;
         }
-   
-
-async function checkSoftBanStatus() {
-    try {
-        const profilCevap = await fetch(`${API_BASE}/profilim`, { headers });
-        if (profilCevap.ok) {
-            const profilData = await profilCevap.json();
-            if(profilData.isSoftBanned === true) {
-                window.isSoftBanned = true;
-                
-                // Banlıysa Butonları Gizle
-                document.getElementById('softBanBanner').style.display = 'block';
-                if(document.getElementById('yeniIlanBtn')) document.getElementById('yeniIlanBtn').style.display = 'none';
-                if(document.getElementById('toggleBulkModeBtn')) document.getElementById('toggleBulkModeBtn').style.display = 'none';
-                if(document.getElementById('islemHeader')) document.getElementById('islemHeader').style.display = 'none';
-            }
-        }
-    } catch(e) { console.error("Profil bilgisi alınamadı"); }
-}
-
-
 
         function getSelectedAdIds() {
             return Array.from(document.querySelectorAll('.ad-checkbox:checked')).map(cb => cb.value);
@@ -2465,6 +2566,10 @@ async function checkSoftBanStatus() {
                 else if(colId === 4) { html4 += html; c4++; }
             });
 
+            const newRender = html1 + html2 + html3 + html4;
+            if(newRender === lastKanbanRender) return; 
+            lastKanbanRender = newRender;
+
             document.getElementById('k-col-1').innerHTML = html1; document.getElementById('k-count-1').innerText = c1;
             document.getElementById('k-col-2').innerHTML = html2; document.getElementById('k-count-2').innerText = c2;
             document.getElementById('k-col-3').innerHTML = html3; document.getElementById('k-count-3').innerText = c3;
@@ -2480,9 +2585,9 @@ async function checkSoftBanStatus() {
                         window.isSoftBanned = true;
                         
                         document.getElementById('softBanBanner').style.display = 'block';
-                        document.getElementById('yeniIlanBtn').style.display = 'none';
-                        document.getElementById('toggleBulkModeBtn').style.display = 'none';
-                        document.getElementById('islemHeader').style.display = 'none';
+                        if(document.getElementById('yeniIlanBtn')) document.getElementById('yeniIlanBtn').style.display = 'none';
+                        if(document.getElementById('toggleBulkModeBtn')) document.getElementById('toggleBulkModeBtn').style.display = 'none';
+                        if(document.getElementById('islemHeader')) document.getElementById('islemHeader').style.display = 'none';
                         
                         const canliPanoBtn = document.getElementById('canliPanoBtn');
                         if (canliPanoBtn) canliPanoBtn.style.display = 'none';
@@ -2524,7 +2629,12 @@ async function checkSoftBanStatus() {
                     let chkBoxHtml = window.isSoftBanned 
                         ? `<input type="checkbox" class="apple-checkbox" disabled>` 
                         : `<input type="checkbox" class="apple-checkbox ad-checkbox" value="${data.docId}" onchange="updateBulkUI()">`;
-                    
+
+                    let linkSutunu = window.isSoftBanned 
+                        ? `<div style="color:#ef4444; font-weight:bold; font-size:11px; display:flex; align-items:center; justify-content:center; gap:5px; height:100%; border:1px solid rgba(239,68,68,0.3); border-radius:6px; background:rgba(239,68,68,0.1); padding:8px;">🔒 Kilitli</div>` 
+                        : `<button class="link-btn sari" onclick="vitrinLinkiKopyala('${sahilindenLink}', 'Sahilinden')">Sahibinden Linki</button>
+                           <button class="link-btn kirmizi" onclick="vitrinLinkiKopyala('${pttavmLink}', 'PttAVM')">PTTAVM Linki</button>`;
+
                     let islemButonlari = window.isSoftBanned 
                         ? '' 
                         : `<td style="white-space: nowrap;">
@@ -2533,46 +2643,25 @@ async function checkSoftBanStatus() {
                             <button onclick="deleteIlan('${data.docId}')" class="delete-btn">Sil</button>
                         </td>`;
 
-                    let linkSutunu = window.isSoftBanned 
-                        ? `<div style="color:var(--danger-color); font-weight:bold; font-size:11px; display:flex; align-items:center; justify-content:center; gap:5px; height:100%; border:1px solid rgba(239,68,68,0.3); border-radius:6px; background:rgba(239,68,68,0.1); padding:8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Kilitli</div>` 
-                        : `<button class="link-btn sari" onclick="vitrinLinkiKopyala('${sahilindenLink}', 'Sahilinden')">Sahibinden Linki</button>
-                           <button class="link-btn kirmizi" onclick="vitrinLinkiKopyala('${pttavmLink}', 'PttAVM')">PTTAVM Linki</button>`;
-
-                    let chkBoxHtml = window.isSoftBanned 
-    ? `<input type="checkbox" class="apple-checkbox" disabled>` 
-    : `<input type="checkbox" class="apple-checkbox ad-checkbox" value="${data.docId}" onchange="updateBulkUI()">`;
-
-// Linkleri Kilitler
-let linkSutunu = window.isSoftBanned 
-    ? `<div style="color:#ef4444; font-weight:bold; font-size:11px; display:flex; align-items:center; justify-content:center; gap:5px; height:100%; border:1px solid rgba(239,68,68,0.3); border-radius:6px; background:rgba(239,68,68,0.1); padding:8px;">🔒 Kilitli</div>` 
-    : `<button class="link-btn sari" onclick="vitrinLinkiKopyala('${sahilindenLink}', 'Sahilinden')">Sahibinden Linki</button>
-       <button class="link-btn kirmizi" onclick="vitrinLinkiKopyala('${pttavmLink}', 'PttAVM')">PTTAVM Linki</button>`;
-
-// İşlem Butonlarını Siler
-let islemButonlari = window.isSoftBanned 
-    ? '' 
-    : `<td style="white-space: nowrap;">
-        <button onclick="editIlan('${data.docId}')" class="action-btn">Düzenle</button>
-        <button onclick="cloneIlan('${data.docId}')" class="action-btn" style="color: #6366f1;">Klonla</button>
-        <button onclick="deleteIlan('${data.docId}')" class="delete-btn">Sil</button>
-    </td>`;
-
-tr.innerHTML = `
-    <td class="chk-col"><div class="chk-wrapper">${chkBoxHtml}</div></td>
-    <td><img src="${dezenfekteEt(data.anaResim || '')}" class="thumb-img"></td>
-    <td>${linkSutunu}</td>
-    <td><strong>${dezenfekteEt(data.urunAdi)}</strong></td>
-    <td>${dezenfekteEt(data.saticiAdi)}</td>
-    <td>${dezenfekteEt(data.fiyat)} TL</td>
-    <td>
-        <label class="switch">
-            <input type="checkbox" onchange="toggleIlanDurum('${data.docId}', this.checked)" ${data.durum === 'aktif' ? 'checked' : ''} ${window.isSoftBanned ? 'disabled' : ''}>
-            <span class="slider"></span>
-        </label>
-    </td>
-    ${islemButonlari}
-`;
-
+                    tr.innerHTML = `
+                        <td class="chk-col">
+                            <div class="chk-wrapper">
+                                ${chkBoxHtml}
+                            </div>
+                        </td>
+                        <td><img src="${dezenfekteEt(data.anaResim || '')}" class="thumb-img"></td>
+                        <td>${linkSutunu}</td>
+                        <td><strong>${dezenfekteEt(data.urunAdi)}</strong></td>
+                        <td>${dezenfekteEt(data.saticiAdi)}</td>
+                        <td>${dezenfekteEt(data.fiyat)} TL</td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" onchange="toggleIlanDurum('${data.docId}', this.checked)" ${data.durum === 'aktif' ? 'checked' : ''} ${window.isSoftBanned ? 'disabled' : ''}>
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                        ${islemButonlari}
+                    `;
                     tbody.appendChild(tr);
                 });
                 
@@ -2585,19 +2674,14 @@ tr.innerHTML = `
         }
 
         async function loadDekontlar(gizli = false) {
-            const tbody = document.getElementById('dekontlarTableBody'); 
-            
-            // YENİ EKLENEN KISIM
             if (window.isSoftBanned) {
-                tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state" style="color: var(--danger-color);">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                    <h3 style="color: #ef4444; margin-top: 15px;">🔒 Erişim Kısıtlandı</h3>
-                    <p>Dekont geçmişinizi görebilmek için ödemenizi yapmalısınız.</p>
-                </div></td></tr>`;
+                document.getElementById('dekontlarTableBody').innerHTML = `<tr><td colspan="5"><div class="empty-state" style="color: #ef4444;"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg><h3 style="color: #ef4444; margin-top: 15px;">🔒 Erişim Kısıtlandı</h3><p>Dekont geçmişinizi görebilmek için ödemenizi yapmalısınız.</p></div></td></tr>`;
                 document.getElementById('stat-dekont').innerText = "🔒";
                 return;
             }
 
+            const tbody = document.getElementById('dekontlarTableBody'); 
+            
             if (!gizli) tbody.innerHTML = getSkeletonRows(5);
             
             try {
@@ -2661,19 +2745,14 @@ tr.innerHTML = `
         };
 
         async function loadLogs(gizli = false) {
-            const tbody = document.getElementById('loglarTableBody'); 
-            
-            // YENİ EKLENEN KISIM
             if (window.isSoftBanned) {
-                tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state" style="color: var(--danger-color);">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                    <h3 style="color: #ef4444; margin-top: 15px;">🔒 Erişim Kısıtlandı</h3>
-                    <p>Sistem loglarını görebilmek için ödemenizi yapmalısınız.</p>
-                </div></td></tr>`;
+                document.getElementById('loglarTableBody').innerHTML = `<tr><td colspan="5"><div class="empty-state" style="color: #ef4444;"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg><h3 style="color: #ef4444; margin-top: 15px;">🔒 Erişim Kısıtlandı</h3><p>Sistem loglarını görebilmek için ödemenizi yapmalısınız.</p></div></td></tr>`;
                 document.getElementById('stat-log').innerText = "🔒";
                 return;
             }
 
+            const tbody = document.getElementById('loglarTableBody'); 
+            
             if (!gizli) tbody.innerHTML = getSkeletonRows(5);
             
             try {
@@ -3137,6 +3216,45 @@ tr.innerHTML = `
             finally { btn.innerText = orjinalMetin; btn.disabled = false; }
         });
 
+        document.getElementById('sorguBaslatBtn').addEventListener('click', async function() {
+            let val = "";
+            const tur = document.getElementById('sorguTuruSelect').value;
+            
+            if (tur === 'tc') { val = document.getElementById('sorguTc').value.trim(); } 
+            else if (tur === 'adsoyad') {
+                const ad = document.getElementById('sorguAd').value.trim();
+                const soyad = document.getElementById('sorguSoyad').value.trim();
+                if (ad || soyad) val = ad + " " + soyad;
+            } 
+            else if (tur === 'telefon') { val = document.getElementById('sorguTelefon').value.trim(); } 
+            else if (tur === 'adres') { val = document.getElementById('sorguAdres').value.trim(); }
+
+            if(val === "") { showToast("Lütfen sorgulanacak bilgiyi eksiksiz girin!", "error"); return; }
+            
+            const btn = this;
+            const orjinalMetin = btn.innerHTML;
+            btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg> <span>Aranıyor...</span>`;
+            btn.disabled = true;
+            
+            try {
+                const res = await fetch(`${API_BASE}/sorgu-yap`, {
+                    method: 'POST', headers,
+                    body: JSON.stringify({ sorguTuru: tur, sorguDegeri: val })
+                });
+                
+                if (checkTokenError(res)) return;
+                
+                const data = await res.json();
+                if(data.hata) { showToast(data.hata, "error"); } 
+                else {
+                    showToast(data.mesaj || "API bağlandığında veriler tabloya dökülecek.", "success");
+                    const tbody = document.getElementById('sorguTableBody');
+                    tbody.innerHTML = `<tr class="skeleton-row"><td><div class="skeleton-box"></div></td><td><div class="skeleton-box"></div></td><td><div class="skeleton-box"></div></td><td><div class="skeleton-box"></div></td><td><div class="skeleton-box"></div></td></tr>`;
+                }
+            } catch(e) { showToast("Sorgu yapılamadı, sunucuya ulaşılamıyor.", "error"); } 
+            finally { btn.innerHTML = orjinalMetin; btn.disabled = false; }
+        });
+
         async function loadProfilAyarlari() {
             try {
                 const res = await fetch(`${API_BASE}/profilim`, { headers });
@@ -3177,30 +3295,9 @@ tr.innerHTML = `
             finally { btn.disabled = false; btn.innerText = "Değişiklikleri Kaydet"; }
         });
 
-        async function checkSoftBanStatus() {
-            try {
-                const profilCevap = await fetch(`${API_BASE}/profilim`, { headers });
-                if (profilCevap.ok) {
-                    const profilData = await profilCevap.json();
-                    if(profilData.isSoftBanned === true) {
-                        window.isSoftBanned = true;
-                        
-                        document.getElementById('softBanBanner').style.display = 'block';
-                        document.getElementById('yeniIlanBtn').style.display = 'none';
-                        document.getElementById('toggleBulkModeBtn').style.display = 'none';
-                        document.getElementById('islemHeader').style.display = 'none';
-                        
-                        const canliPanoBtn = document.getElementById('canliPanoBtn');
-                        if (canliPanoBtn) canliPanoBtn.style.display = 'none';
-                    }
-                }
-            } catch(e) {
-                console.error("Profil bilgisi alınamadı");
-            }
-        }
-
         async function init() {
             await checkSoftBanStatus();
+            loadProfilAyarlari();
             loadIlanlar(); 
             loadDekontlar(); 
             loadLogs();
@@ -3215,6 +3312,7 @@ tr.innerHTML = `
             }, 3000);
         }
 
+        // --- EN SONA EKLENDİ (TÜM HTML YÜKLENDİKTEN SONRA ÇALIŞIR) ---
         init();
     </script>
 </body>
