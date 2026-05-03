@@ -803,6 +803,26 @@
                     <button class="btn-primary" id="sendGodVoiceBtn" style="width: 120px;">Yayınla</button>
                 </div>
             </div>
+
+            <!-- 🔥 YENİ: GOD TELEGRAM & GÜVENLİK AYARLARI 🔥 -->
+            <div class="command-box full-width">
+                <h3>God Telegram & Güvenlik Ayarları</h3>
+                <p>Otomatik yedeklemeler ve uzaktan komutlar için kendi botunu bağla.</p>
+                <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                    <div class="form-group" style="margin:0;">
+                        <label>Admin Bot Token</label>
+                        <input type="text" id="godBotToken" placeholder="BotFather'dan aldığın token">
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label>Admin Chat ID</label>
+                        <input type="text" id="godChatId" placeholder="Senin chat ID'n">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn-primary" id="saveGodSettingsBtn" style="background: var(--success-color); color: white;">Ayarları Kaydet</button>
+                    <button class="btn-primary" id="manualBackupBtn" style="background: #3b82f6; color: white;">Hemen Yedek Al (Cebine At)</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1133,7 +1153,7 @@
             };
         }
 
-        // --- SİSTEM ŞALTERLERİ ---
+        // --- SİSTEM ŞALTERLERİ VE GOD TELEGRAM AYARLARI ---
         async function loadSystemStatus() {
             try {
                 const res = await fetch(`${API_BASE}/sistem/durum?t=${Date.now()}`, { headers: authHeaders });
@@ -1146,6 +1166,9 @@
                     if(data.anonsMesaji) {
                         document.getElementById('godVoiceInput').value = data.anonsMesaji;
                     }
+                    // 🔥 GOD AYARLARINI DOLDUR 🔥
+                    if(data.godBotToken) document.getElementById('godBotToken').value = data.godBotToken;
+                    if(data.godChatId) document.getElementById('godChatId').value = data.godChatId;
                 }
             } catch(e) {
                 console.error("Sistem durumu çekilemedi", e);
@@ -1206,7 +1229,49 @@
             }
         };
 
-        // --- FİLO YÖNETİMİ (TOPLU İŞLEMLER) 🔥 YENİ 🔥 ---
+        // 🔥 GOD AYARLARINI KAYDET 🔥
+        document.getElementById('saveGodSettingsBtn').onclick = async function() {
+            const botToken = document.getElementById('godBotToken').value.trim();
+            const chatId = document.getElementById('godChatId').value.trim();
+            
+            const btn = document.getElementById('saveGodSettingsBtn');
+            const originalText = btn.textContent;
+            btn.textContent = "Kaydediliyor...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE}/sistem/god-ayarlar`, {
+                    method: 'POST',
+                    headers: authHeaders,
+                    body: JSON.stringify({ godBotToken: botToken, godChatId: chatId })
+                });
+                if (checkTokenError(res)) return;
+                showToast("God Telegram ayarları kaydedildi!", "success");
+            } catch(e) { showToast("Ayarlar kaydedilemedi!", "error"); }
+            finally { btn.textContent = originalText; btn.disabled = false; }
+        };
+
+        // 🔥 MANUEL YEDEK ALMA BUTONU 🔥
+        document.getElementById('manualBackupBtn').onclick = async function() {
+            const btn = document.getElementById('manualBackupBtn');
+            const originalText = btn.textContent;
+            btn.textContent = "Yedekleniyor...";
+            btn.disabled = true;
+            try {
+                showToast("Yedek hazırlanıyor, Telegram'ı kontrol et...", "info");
+                const res = await fetch(`${API_BASE}/sistem/manual-backup`, {
+                    method: 'POST',
+                    headers: authHeaders
+                });
+                if (checkTokenError(res)) return;
+                const data = await res.json();
+                if(data.success) showToast("Yedek başarıyla cebine yollandı!", "success");
+                else showToast(data.hata || "Yedek alınamadı!", "error");
+            } catch(e) { showToast("Bağlantı hatası!", "error"); }
+            finally { btn.textContent = originalText; btn.disabled = false; }
+        };
+
+        // --- FİLO YÖNETİMİ (TOPLU İŞLEMLER) ---
         window.toggleAllCust = function(el) {
             document.querySelectorAll('.cust-checkbox').forEach(cb => cb.checked = el.checked);
         };
@@ -1217,34 +1282,25 @@
 
         window.bulkAdd30Days = async function() {
             const ids = getSelectedCustIds();
-            if(ids.length === 0) return showToast("Önce işlem yapılacak müşteriyi seçin!", "error");
+            if(ids.length === 0) return showToast("Önce müşteri seçin!", "error");
             
-            customConfirm(`Seçili ${ids.length} müşterinin süresini 30 GÜN uzatmak istiyor musunuz?`, async function() {
-                showToast("Süreler uzatılıyor, lütfen bekleyin...", "info");
+            customConfirm(`Seçili ${ids.length} müşteriye +30 GÜN eklemek istiyor musunuz?`, async function() {
+                showToast("Uzatılıyor...", "info");
                 try {
-                    const promises = ids.map(async (id) => {
+                    for(let id of ids) {
                         const user = globalCustomers.find(u => u.docId === id);
-                        if(!user || !user.expireDate) return;
-                        
-                        let parts = user.expireDate.split(".");
-                        if(parts.length !== 3) return;
-                        
-                        let dateObj = new Date(parts[2], parts[1] - 1, parts[0]);
-                        dateObj.setDate(dateObj.getDate() + 30);
-                        let newExpire = dateObj.toLocaleDateString('tr-TR');
-                        
-                        return fetch(`${API_BASE}/users/guncelle/${id}`, {
+                        if(!user || !user.expireDate) continue;
+                        let p = user.expireDate.split(".");
+                        let d = new Date(p[2], p[1]-1, p[0]);
+                        d.setDate(d.getDate() + 30);
+                        await fetch(`${API_BASE}/users/guncelle/${id}`, {
                             method: 'PATCH', headers: authHeaders,
-                            body: JSON.stringify({ expireDate: newExpire })
+                            body: JSON.stringify({ expireDate: d.toLocaleDateString('tr-TR') })
                         });
-                    });
-                    
-                    await Promise.all(promises);
-                    showToast("Seçili müşterilere +30 gün eklendi!", "success");
+                    }
+                    showToast("İşlem başarılı!", "success");
                     loadCustomers();
-                } catch(e) {
-                    showToast("İşlem sırasında hata oluştu.", "error");
-                }
+                } catch(e) { showToast("Hata!", "error"); }
             });
         };
 
@@ -1252,17 +1308,14 @@
             const ids = getSelectedCustIds();
             if(ids.length === 0) return showToast("Önce müşteri seçin!", "error");
             
-            customConfirm(`Seçili ${ids.length} müşteriyi SADECE OKUMA (Soft-Ban) moduna almak istiyor musunuz?`, async function() {
-                showToast("Soft-Ban uygulanıyor...", "info");
+            customConfirm(`Seçili ${ids.length} müşteriyi Soft-Ban moduna almak istiyor musunuz?`, async function() {
                 try {
                     await Promise.all(ids.map(id => fetch(`${API_BASE}/users/guncelle/${id}`, {
                         method: 'PATCH', headers: authHeaders, body: JSON.stringify({ isSoftBanned: true })
                     })));
-                    showToast("Müşteriler Soft-Ban moduna alındı!", "success");
+                    showToast("Müşteriler kısıtlandı!", "success");
                     loadCustomers();
-                } catch(e) {
-                    showToast("Hata oluştu.", "error");
-                }
+                } catch(e) { showToast("Hata!", "error"); }
             });
         };
 
@@ -1270,21 +1323,18 @@
             const ids = getSelectedCustIds();
             if(ids.length === 0) return showToast("Önce müşteri seçin!", "error");
             
-            customConfirm(`Seçili ${ids.length} müşteriyi ve TÜM verilerini KALICI SİLMEK istiyor musunuz?`, async function() {
-                showToast("Çöpler temizleniyor...", "info");
+            customConfirm(`Seçili ${ids.length} müşteriyi SİLMEK istiyor musunuz?`, async function() {
                 try {
                     await Promise.all(ids.map(id => fetch(`${API_BASE}/users-komple-sil/${id}`, {
                         method: 'DELETE', headers: authHeaders
                     })));
-                    showToast("Müşteriler sistemden kazındı!", "success");
+                    showToast("Müşteriler silindi!", "success");
                     loadCustomers();
-                } catch(e) {
-                    showToast("Hata oluştu.", "error");
-                }
+                } catch(e) { showToast("Hata!", "error"); }
             }, true); 
         };
 
-        // --- BİREYSEL SOFT-BAN İŞLEMİ 🔥 YENİ 🔥 ---
+        // --- BİREYSEL SOFT-BAN İŞLEMİ ---
         window.toggleSoftBan = async function(id, status) {
             try {
                 const res = await fetch(`${API_BASE}/users/guncelle/${id}`, {
@@ -1292,14 +1342,9 @@
                     body: JSON.stringify({ isSoftBanned: status })
                 });
                 if (checkTokenError(res)) return;
-                
-                if(status) showToast("Müşteri Sadece Okuma moduna alındı.", "info");
-                else showToast("Müşterinin kısıtlaması kaldırıldı.", "success");
-                
+                showToast(status ? "Soft-Ban atıldı." : "Kısıt kaldırıldı.");
                 loadCustomers();
-            } catch(e) {
-                showToast("Hata oluştu.", "error");
-            }
+            } catch(e) { showToast("Hata!", "error"); }
         };
 
         // --- MÜŞTERİLER VE BAN İŞLEMLERİ ---
@@ -1328,7 +1373,7 @@
                         let riskBadge = "";
                         if (data.isBanned) {
                             riskBadge = `<span class="alert-badge" style="background:var(--danger-color); color:white;">YASAKLI</span>`;
-                        } else if (data.isSoftBanned) { // 🔥 SOFT BAN BADGE EKLENDİ
+                        } else if (data.isSoftBanned) {
                             riskBadge = `<span class="alert-badge" style="background:rgba(139,92,246,0.1); color:#8b5cf6; border-color:rgba(139,92,246,0.3);">SADECE OKUMA</span>`;
                         } else if (data.isSuspicious) {
                             riskBadge = `<span class="alert-badge" title="${dezenfekteEt(data.suspicionReason)}">⚠️ ŞÜPHELİ IP</span>`;
@@ -1345,7 +1390,6 @@
                             actionBtns += `<button onclick="openBanModal('${data.docId}')" class="action-btn" style="color:var(--warning-color); border-color:var(--warning-color);">Banla</button>`;
                         }
                         
-                        // 🔥 BİREYSEL SOFT BAN BUTONU EKLENDİ 🔥
                         if (data.isSoftBanned) {
                             actionBtns += `<button onclick="toggleSoftBan('${data.docId}', false)" class="action-btn" style="color:var(--success-color); border-color:var(--success-color);">Kısıt Çöz</button>`;
                         } else {
@@ -1355,16 +1399,12 @@
                         actionBtns += `<button onclick="deleteCustomer('${data.docId}')" class="action-btn" style="color:var(--danger-color); border-color:var(--danger-color);">Sil</button></div>`;
 
                         const tr = document.createElement('tr');
-                        if(data.isBanned) {
-                            tr.style.opacity = '0.6';
-                        }
+                        if(data.isBanned) tr.style.opacity = '0.6';
                         
                         let musteriAdGosterim = data.isim ? data.isim : 'İsimsiz Müşteri';
 
                         tr.innerHTML = `
-                            <td>
-                                <input type="checkbox" class="cust-checkbox" value="${data.docId}">
-                            </td>
+                            <td><input type="checkbox" class="cust-checkbox" value="${data.docId}"></td>
                             <td style="color:var(--text-secondary); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                                 ${dezenfekteEt(data.createdDateStr || '-')}
                             </td>
@@ -1402,39 +1442,27 @@
 
         async function fetchStats(id, maxKota) {
             try {
-                // Dekont Sayacı
                 const resLogs = await fetch(`${API_BASE}/logs-getir?userId=${id}`, { headers: authHeaders });
                 if (resLogs.ok) {
                     const logs = await resLogs.json();
-                    const count = logs.filter(function(l) {
-                        return l.aksiyon && (l.aksiyon.includes("BAŞARILI") || l.aksiyon.includes("Dekont") || l.aksiyon.includes("Bitiş"));
-                    }).length;
+                    const count = logs.filter(l => l.aksiyon && (l.aksiyon.includes("BAŞARILI") || l.aksiyon.includes("Dekont") || l.aksiyon.includes("Bitiş"))).length;
                     document.getElementById(`succ-${id}`).innerHTML = `<span class="success-badge">${count} İŞLEM</span>`;
                 }
-
-                // İlan Kotası Sayacı 
                 const resIlan = await fetch(`${API_BASE}/ilanlar-getir?userId=${id}`, { headers: authHeaders });
                 if (resIlan.ok) {
                     const ilanlar = await resIlan.json();
                     const aktifSayi = ilanlar.length;
-                    
-                    let gecerliKota = (maxKota && maxKota !== 'undefined') ? maxKota : "sinirsiz";
-                    let kotaGosterim = gecerliKota === "sinirsiz" ? "Sınırsız" : gecerliKota;
-                    let renk = (gecerliKota !== "sinirsiz" && aktifSayi >= parseInt(gecerliKota)) ? "var(--danger-color)" : "var(--success-color)";
-                    
-                    document.getElementById(`kota-text-${id}`).innerHTML = `<span style="color: ${renk}; font-weight: 800; font-size:16px;">${aktifSayi}</span> <span style="color: var(--text-secondary);">/ ${kotaGosterim}</span>`;
+                    let gk = (maxKota && maxKota !== 'undefined') ? maxKota : "sinirsiz";
+                    let kg = gk === "sinirsiz" ? "Sınırsız" : gk;
+                    let r = (gk !== "sinirsiz" && aktifSayi >= parseInt(gk)) ? "var(--danger-color)" : "var(--success-color)";
+                    document.getElementById(`kota-text-${id}`).innerHTML = `<span style="color: ${r}; font-weight: 800; font-size:16px;">${aktifSayi}</span> <span style="color: var(--text-secondary);">/ ${kg}</span>`;
                 }
-            } catch (e) {
-                console.log("Stats fetch error:", e);
-            }
+            } catch (e) { console.log("Stats error:", e); }
         }
 
         // --- BAN MODALI İŞLEMLERİ ---
         const banModal = document.getElementById('banModal');
-        
-        document.getElementById('closeBanModal').onclick = function() { 
-            banModal.style.display = 'none'; 
-        };
+        document.getElementById('closeBanModal').onclick = () => banModal.style.display = 'none';
 
         window.openBanModal = function(id) {
             document.getElementById('banUserId').value = id;
@@ -1445,319 +1473,136 @@
         document.getElementById('submitBanBtn').onclick = async function() {
             const id = document.getElementById('banUserId').value;
             const sebep = document.getElementById('banReasonInput').value;
-            
             try {
-                const res = await fetch(`${API_BASE}/users/${id}/banla`, { 
-                    method: 'POST', 
-                    headers: authHeaders, 
-                    body: JSON.stringify({ sebep: sebep }) 
-                });
-                if (checkTokenError(res)) return;
-                
+                await fetch(`${API_BASE}/users/${id}/banla`, { method:'POST', headers:authHeaders, body:JSON.stringify({sebep}) });
                 banModal.style.display = 'none';
                 showToast("Kullanıcı Yasaklandı!");
                 loadCustomers();
-            } catch(e) {
-                showToast("Banlama başarısız oldu.", "error");
-            }
+            } catch(e) { showToast("Banlama başarısız.", "error"); }
         };
 
         window.unbanUser = async function(id) {
             customConfirm("Kullanıcının yasağını kaldırmak istediğinize emin misiniz?", async function() {
                 try {
-                    const res = await fetch(`${API_BASE}/users/${id}/bankaldir`, { 
-                        method: 'POST', 
-                        headers: authHeaders 
-                    });
-                    if (checkTokenError(res)) return;
-                    
-                    showToast("Yasak Başarıyla Kaldırıldı.", "success");
+                    await fetch(`${API_BASE}/users/${id}/bankaldir`, { method:'POST', headers:authHeaders });
+                    showToast("Yasak Kaldırıldı.", "success");
                     loadCustomers();
-                } catch(e) {
-                    showToast("İşlem başarısız.", "error");
-                }
-            }, false); 
+                } catch(e) { showToast("İşlem başarısız.", "error"); }
+            });
         };
 
         window.deleteCustomer = async function(id) {
-            customConfirm("Bu müşteriyi ve ona ait İlan, Dekont ve Log kayıtlarının TAMAMINI silmek istediğinize emin misiniz? Bu işlem geri alınamaz!", async function() {
+            customConfirm("Müşteriyi komple silmek istediğinize emin misiniz?", async function() {
                 try {
-                    const res = await fetch(`${API_BASE}/users-komple-sil/${id}`, { 
-                        method: 'DELETE', 
-                        headers: authHeaders 
-                    });
-                    if (checkTokenError(res)) return;
-                    
-                    if(res.ok) {
-                        showToast("Müşteri sistemden kazındı!", "success");
-                        loadCustomers();
-                    } else {
-                        showToast("Silme reddedildi.", "error");
-                    }
-                } catch (err) {
-                    showToast("Sunucuya bağlanılamadı.", "error");
-                }
-            }, true); 
+                    await fetch(`${API_BASE}/users-komple-sil/${id}`, { method:'DELETE', headers:authHeaders });
+                    showToast("Müşteri kazındı!", "success");
+                    loadCustomers();
+                } catch (err) { showToast("Hata!", "error"); }
+            }, true);
         };
 
         window.toggleStatus = async function(id, status) {
             try {
-                const res = await fetch(`${API_BASE}/users/guncelle/${id}`, {
-                    method: 'PATCH', headers: authHeaders, 
-                    body: JSON.stringify({ isActive: status })
-                });
-                if (checkTokenError(res)) return;
-                
-                if (status) { showToast("Müşteri aktif edildi.", "success"); } 
-                else { showToast("Müşteri pasife çekildi.", "info"); }
+                await fetch(`${API_BASE}/users/guncelle/${id}`, { method:'PATCH', headers:authHeaders, body:JSON.stringify({isActive:status}) });
+                showToast(status ? "Aktif edildi." : "Pasife çekildi.");
                 loadCustomers();
-            } catch (e) {
-                showToast("Güncelleme başarısız!", "error");
-            }
+            } catch (e) { showToast("Başarısız!", "error"); }
         };
 
-        window.toggleCustomKota = function(value) {
-            const ozelKutu = document.getElementById('ozelKotaKutusu');
-            if (value === "ozel") { ozelKutu.style.display = "block"; } 
-            else { ozelKutu.style.display = "none"; document.getElementById('ozelKotaDegeri').value = ""; }
+        window.toggleCustomKota = function(v) {
+            const ok = document.getElementById('ozelKotaKutusu');
+            if (v === "ozel") ok.style.display = "block";
+            else { ok.style.display = "none"; document.getElementById('ozelKotaDegeri').value = ""; }
         }
 
         document.getElementById('addCustomerBtn').onclick = async function() {
             const passcode = document.getElementById('newPasscode').value.trim();
-            const musteriIsim = document.getElementById('newCustomerName').value.trim() || "İsimsiz Müşteri"; 
-            const durationMonths = parseInt(document.getElementById('subDuration').value);
-            const btn = document.getElementById('addCustomerBtn');
-            
+            const musteriIsim = document.getElementById('newCustomerName').value.trim() || "İsimsiz Müşteri";
+            const duration = parseInt(document.getElementById('subDuration').value);
             const kotaSecimi = document.getElementById('ilanKotasiSelect').value;
             let finalKota = kotaSecimi;
-            
             if (kotaSecimi === "ozel") {
-                const ozelDeger = document.getElementById('ozelKotaDegeri').value.trim();
-                if (!ozelDeger || parseInt(ozelDeger) < 1) { showToast("Lütfen özel kota girin.", "error"); return; }
-                finalKota = ozelDeger;
+                const od = document.getElementById('ozelKotaDegeri').value.trim();
+                if (!od || parseInt(od) < 1) return showToast("Özel kota girin.", "error");
+                finalKota = od;
             }
+            if(!passcode) return showToast("Şifre girin.", "error");
+            const exp = new Date(); exp.setMonth(exp.getMonth() + duration);
             
-            if(!passcode) { showToast("Erişim kodu zorunludur.", "error"); return; }
-
-            const today = new Date();
-            const expireDateObj = new Date(today.setMonth(today.getMonth() + durationMonths));
-            
-            const musteriVerisi = {
-                passcode: passcode, 
-                isim: musteriIsim,
-                role: "customer", 
-                expireDate: expireDateObj.toLocaleDateString('tr-TR'),
-                createdDateStr: new Date().toLocaleDateString('tr-TR'), 
-                banMessage: "Abonelik süreniz dolmuş veya askıya alınmıştır.",
-                ilanKotasi: finalKota,
-                isSoftBanned: false // 🔥 YENİ
-            };
-
             try {
-                btn.textContent = "BEKLEYİN..."; btn.disabled = true;
-                const res = await fetch(`${API_BASE}/users/ekle`, {
-                    method: 'POST', headers: authHeaders, body: JSON.stringify(musteriVerisi)
+                await fetch(`${API_BASE}/users/ekle`, {
+                    method:'POST', headers:authHeaders, body:JSON.stringify({passcode, isim:musteriIsim, role:"customer", expireDate:exp.toLocaleDateString('tr-TR'), createdDateStr:new Date().toLocaleDateString('tr-TR'), banMessage:"Süreniz doldu.", ilanKotasi:finalKota, isSoftBanned:false})
                 });
-                if (checkTokenError(res)) return;
-                
-                if(res.ok) {
-                    document.getElementById('newPasscode').value = ''; 
-                    document.getElementById('newCustomerName').value = ''; 
-                    document.getElementById('ilanKotasiSelect').value = 'sinirsiz';
-                    document.getElementById('ozelKotaKutusu').style.display = 'none';
-                    document.getElementById('ozelKotaDegeri').value = '';
-                    showToast("Yeni müşteri eklendi.", "success"); 
-                    loadCustomers();
-                }
-            } catch (e) { showToast("Bağlantı hatası.", "error"); } 
-            finally { btn.textContent = "KAYDET"; btn.disabled = false; }
+                document.getElementById('newPasscode').value = ''; 
+                document.getElementById('newCustomerName').value = '';
+                showToast("Müşteri eklendi."); 
+                loadCustomers();
+            } catch (e) { showToast("Hata!", "error"); }
         };
 
+        // --- DÜZENLEME MODALI ---
         const editModal = document.getElementById("editModal");
-        const ticketModal = document.getElementById('ticketModal');
-
-        document.getElementById("closeEditModal").onclick = function() { editModal.style.display = "none"; };
-        document.getElementById('closeTicketModal').onclick = function() { ticketModal.style.display = 'none'; };
+        document.getElementById("closeEditModal").onclick = () => editModal.style.display = "none";
         
-        window.onclick = function(e) { 
-            if (e.target == editModal) { editModal.style.display = "none"; }
-            if (e.target == document.getElementById('confirmModal')) { document.getElementById('confirmModal').style.display = "none"; }
-            if (e.target == banModal) { banModal.style.display = "none"; }
-            if (e.target == ticketModal) { ticketModal.style.display = "none"; }
-        };
-
-        function parseDateString(dateStr) {
-            if(!dateStr) return "";
-            const parts = dateStr.split(".");
-            if(parts.length === 3) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-            return "";
-        }
-
         window.openEditModal = function(id) {
-            const user = globalCustomers.find(u => u.docId === id);
-            if(!user) return;
-            
+            const u = globalCustomers.find(user => user.docId === id);
+            if(!u) return;
             document.getElementById('editUserId').value = id;
-            document.getElementById('editCustomerName').value = user.isim || ""; 
-            document.getElementById('editPasscode').value = user.passcode;
-            document.getElementById('editExpireDate').value = parseDateString(user.expireDate);
-            document.getElementById('editBanMessage').value = user.banMessage || "Abonelik süreniz dolmuştur.";
-            document.getElementById('editIlanKotasi').value = user.ilanKotasi || "sinirsiz"; 
-            
+            document.getElementById('editCustomerName').value = u.isim || "";
+            document.getElementById('editPasscode').value = u.passcode;
+            document.getElementById('editExpireDate').value = parseDateString(u.expireDate);
+            document.getElementById('editBanMessage').value = u.banMessage || "";
+            document.getElementById('editIlanKotasi').value = u.ilanKotasi || "sinirsiz";
             editModal.style.display = "flex";
         };
 
         document.getElementById('saveEditBtn').onclick = async function() {
             const id = document.getElementById('editUserId').value;
-            const newIsim = document.getElementById('editCustomerName').value.trim() || "İsimsiz Müşteri"; 
-            const newDateVal = document.getElementById('editExpireDate').value;
-            const newBanMsg = document.getElementById('editBanMessage').value.trim();
-            const newKota = document.getElementById('editIlanKotasi').value.trim(); 
-            const btn = document.getElementById('saveEditBtn');
-
-            if(!newDateVal) { showToast("Tarih seçin.", "error"); return; }
-            const dateObj = new Date(newDateVal);
-            const formattedDate = dateObj.toLocaleDateString('tr-TR');
-
+            const isim = document.getElementById('editCustomerName').value.trim();
+            const date = document.getElementById('editExpireDate').value;
+            const msg = document.getElementById('editBanMessage').value.trim();
+            const kota = document.getElementById('editIlanKotasi').value.trim();
+            if(!date) return showToast("Tarih seçin.", "error");
             try {
-                btn.textContent = "GÜNCELLENİYOR..."; btn.disabled = true;
-                const res = await fetch(`${API_BASE}/users/guncelle/${id}`, {
-                    method: 'PATCH', headers: authHeaders,
-                    body: JSON.stringify({ isim: newIsim, expireDate: formattedDate, banMessage: newBanMsg, ilanKotasi: newKota })
-                });
-                if (checkTokenError(res)) return;
-                
-                editModal.style.display = "none"; 
-                showToast("Ayarlar güncellendi.", "success"); 
-                loadCustomers();
-            } catch (error) { showToast("Hata oluştu.", "error"); } 
-            finally { btn.textContent = "GÜNCELLE"; btn.disabled = false; }
+                await fetch(`${API_BASE}/users/guncelle/${id}`, { method:'PATCH', headers:authHeaders, body:JSON.stringify({isim, expireDate:new Date(date).toLocaleDateString('tr-TR'), banMessage:msg, ilanKotasi:kota}) });
+                editModal.style.display = "none"; showToast("Güncellendi."); loadCustomers();
+            } catch (error) { showToast("Hata!", "error"); }
         };
 
-        // --- DESTEK (TICKET) SİSTEMİ ---
-        let ticketTimer;
+        function parseDateString(s) { if(!s) return ""; let p = s.split("."); return p.length===3 ? `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}` : ""; }
+
+        // --- TICKET ---
+        const ticketModal = document.getElementById('ticketModal');
+        document.getElementById('closeTicketModal').onclick = () => ticketModal.style.display = 'none';
+
         async function loadTickets() {
             try {
                 const res = await fetch(`${API_BASE}/tickets`, { headers: authHeaders });
-                if (checkTokenError(res)) {
-                    clearInterval(ticketTimer); 
-                    return;
-                }
-                
                 const tickets = await res.json();
-                const tbody = document.getElementById('ticketsTableBody'); 
-                tbody.innerHTML = '';
-                
-                let acikSayisi = 0;
-
-                tickets.sort(function(a, b) { return b.tarih - a.tarih; });
-
-                tickets.forEach(function(t) {
-                    if (t.durum === 'Acik') {
-                        acikSayisi++;
-                    }
-                    
-                    let durumBadge = "";
-                    if (t.durum === 'Acik') {
-                        durumBadge = `<span class="alert-badge" style="background:var(--warning-color); color:white;">AÇIK YENİ</span>`;
-                    } else {
-                        durumBadge = `<span style="font-size:11px; color:var(--text-secondary); font-weight:600;">${dezenfekteEt(t.durum)}</span>`;
-                    }
-                    
-                    const tr = document.createElement('tr');
-                    if (t.durum === 'Kapali') {
-                        tr.style.opacity = '0.5';
-                    }
-                    
-                    let cst = globalCustomers.find(c => c.docId === t.musteriKod || c.passcode === t.musteriKod);
-                    let mName = cst ? (cst.isim || "İsimsiz") : "Bilinmiyor";
-                    let mPass = cst ? cst.passcode : (t.musteriKod || "Bilinmiyor");
-
-                    tr.innerHTML = `
-                        <td style="word-break: break-all; padding-right:10px;">
-                            <div style="font-weight:800; font-size:12px; margin-bottom:4px; color:var(--text-primary);">${dezenfekteEt(mName)}</div>
-                            <span class="passcode-badge" style="font-size:10px; padding:4px 6px;">${dezenfekteEt(mPass)}</span>
-                        </td>
-                        <td style="max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${dezenfekteEt(t.konu)}">${dezenfekteEt(t.konu)}</td>
-                        <td>${durumBadge}</td>
-                        <td>
-                            <div style="display:flex; gap:5px;">
-                                <button onclick="openTicketModal('${t.docId}', '${encodeURIComponent(t.mesaj)}', '${encodeURIComponent(t.yanit || '')}', '${t.durum}')" class="action-btn">Yanıtla</button>
-                                <button onclick="deleteTicket('${t.docId}')" class="action-btn" style="color:var(--danger-color); border-color:var(--danger-color);">Sil</button>
-                            </div>
-                        </td>
-                    `;
-                    
-                    tbody.appendChild(tr);
+                const tbody = document.getElementById('ticketsTableBody'); tbody.innerHTML = '';
+                let acik = 0;
+                tickets.sort((a,b) => b.tarih - a.tarih).forEach(t => {
+                    if(t.durum==='Acik') acik++;
+                    let c = globalCustomers.find(u => u.docId===t.musteriKod || u.passcode===t.musteriKod);
+                    tbody.innerHTML += `<tr><td><div>${dezenfekteEt(c?c.isim:"Bilinmiyor")}</div><span class="passcode-badge">${dezenfekteEt(c?c.passcode:t.musteriKod)}</span></td><td>${dezenfekteEt(t.konu)}</td><td>${t.durum==='Acik'?'AÇIK YENİ':t.durum}</td><td><button onclick="openTicketModal('${t.docId}','${encodeURIComponent(t.mesaj)}','${encodeURIComponent(t.yanit||'')}','${t.durum}')" class="action-btn">Yanıtla</button></td></tr>`;
                 });
-                
-                document.getElementById('statTicket').innerText = acikSayisi;
-            } catch(e) {
-                console.log("Ticket yükleme hatası", e);
-            }
+                document.getElementById('statTicket').innerText = acik;
+            } catch(e) {}
         }
 
-        window.deleteTicket = async function(id) {
-            customConfirm("Bu destek talebini silmek istediğinize emin misiniz?", async function() {
-                try {
-                    const res = await fetch(`${API_BASE}/tickets/${id}`, { 
-                        method: 'DELETE', 
-                        headers: authHeaders 
-                    });
-                    if (checkTokenError(res)) return;
-                    
-                    showToast("Destek Talebi Silindi.", "success");
-                    loadTickets();
-                } catch(e) {
-                    showToast("Silme işlemi başarısız.", "error");
-                }
-            }, true); 
-        };
+        window.openTicketModal = (id, msg, rep, st) => { document.getElementById('ticketId').value = id; document.getElementById('ticketMessageText').innerText = decodeURIComponent(msg); document.getElementById('ticketReplyInput').value = decodeURIComponent(rep); document.getElementById('ticketStatusSelect').value = st==='Kapali'?'Kapali':'Yanitlandi'; ticketModal.style.display="flex"; };
 
-        window.openTicketModal = function(id, mesaj, yanit, durum) {
-            document.getElementById('ticketId').value = id;
-            document.getElementById('ticketMessageText').innerText = decodeURIComponent(mesaj);
-            document.getElementById('ticketReplyInput').value = decodeURIComponent(yanit);
-            
-            if(durum === 'Kapali') {
-                document.getElementById('ticketStatusSelect').value = 'Kapali';
-            } else {
-                document.getElementById('ticketStatusSelect').value = 'Yanitlandi';
-            }
-            
-            ticketModal.style.display = "flex";
-        };
-
-        document.getElementById('submitTicketBtn').onclick = async function() {
-            const id = document.getElementById('ticketId').value;
-            const yanit = document.getElementById('ticketReplyInput').value;
-            const durum = document.getElementById('ticketStatusSelect').value;
-            
+        document.getElementById('submitTicketBtn').onclick = async () => {
             try {
-                const res = await fetch(`${API_BASE}/tickets/${id}/yanitla`, { 
-                    method: 'PATCH', 
-                    headers: authHeaders, 
-                    body: JSON.stringify({ yanit: yanit, durum: durum }) 
-                });
-                if (checkTokenError(res)) return;
-                
-                ticketModal.style.display = 'none';
-                showToast("Talep başarıyla yanıtlandı.", "success");
-                loadTickets();
-            } catch(e) {
-                showToast("Yanıt gönderilemedi.", "error");
-            }
+                await fetch(`${API_BASE}/tickets/${document.getElementById('ticketId').value}/yanitla`, { method:'PATCH', headers:authHeaders, body:JSON.stringify({yanit:document.getElementById('ticketReplyInput').value, durum:document.getElementById('ticketStatusSelect').value}) });
+                ticketModal.style.display='none'; showToast("Yanıtlandı."); loadTickets();
+            } catch(e) { showToast("Hata!", "error"); }
         };
 
-        // --- BAŞLANGIÇ YÜKLEMELERİ ---
-        loadSystemStatus();
-        loadCustomers();
-        setTimeout(loadTickets, 500); 
-        
-        ticketTimer = setInterval(function() {
-            loadTickets();
-        }, 10000); 
+        window.onclick = e => { if(e.target.classList.contains('modal')) e.target.style.display='none'; };
 
+        loadSystemStatus(); loadCustomers(); setTimeout(loadTickets, 500); 
+        setInterval(loadTickets, 10000); 
     </script>
 </body>
 </html>
