@@ -6,11 +6,6 @@ const nextConfig: NextConfig = {
   },
   typescript: {
     ignoreBuildErrors: true,
-  },
-  // @ts-ignore
-  turbopack: {
-    // @ts-ignore
-    root: process.cwd()
   }
 };
 
