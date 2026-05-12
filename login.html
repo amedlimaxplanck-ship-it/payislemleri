@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Sistem Girişi | Güvenli Erişim Protokolü</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #08080a;
+            --accent: #ffffff;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        body {
+            background-color: var(--bg-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            min-height: 100dvh; 
+            color: var(--text-main);
+            overflow: hidden;
+            position: relative;
+            padding: 20px;
+        }
+
+        /* Mesh Gradient Background */
+        .mesh-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background: 
+                radial-gradient(at 0% 0%, rgba(29, 78, 216, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.1) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(59, 130, 246, 0.1) 0px, transparent 50%);
+            filter: blur(80px);
+            animation: meshMove 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes meshMove {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        .grain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            opacity: 0.04;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3BaseFilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .system-status {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-pulse {
+            width: 6px;
+            height: 6px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #10b981;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.4; transform: scale(0.9); }
+            50% { opacity: 1; transform: scale(1.1); }
+            100% { opacity: 0.4; transform: scale(0.9); }
+        }
+
+        .login-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            padding: 60px 50px;
+            border-radius: 32px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 40px 100px var(--glass-shadow);
+            width: 100%;
+            max-width: 440px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            animation: cardEntrance 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes cardEntrance {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .brand {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 13px;
+            margin-bottom: 50px;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+        }
+
+        .input-wrapper {
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            border-radius: 16px;
+            color: #fff;
+            font-size: 18px;
+            text-align: center;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 4px;
+            font-weight: 600;
+        }
+
+        .input-wrapper input:focus {
+            background: rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05);
+        }
+
+        .input-wrapper input::placeholder {
+            color: #334155;
+            letter-spacing: 1px;
+            font-weight: 400;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 18px;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: 16px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.15);
+            background: #f1f5f9;
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            background: #1e293b;
+            color: #475569;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-container {
+            margin-top: 25px;
+            padding: 14px;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            color: #fca5a5;
+            font-size: 13px;
+            font-weight: 500;
+            display: none;
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .footer-info {
+            margin-top: 40px;
+            font-size: 11px;
+            color: #475569;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .loader {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(0,0,0,0.1);
+            border-top: 2px solid #000;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        @media (max-width: 480px) {
+            .login-card { padding: 45px 30px; }
+            .brand { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mesh-gradient"></div>
+    <div class="grain"></div>
+
+    <div class="system-status">
+        <div class="status-pulse"></div>
+        <span>Güvenli Bağlantı Aktif</span>
+    </div>
+
+    <div class="login-card">
+        <div class="brand">PAYPAYY</div>
+        <p class="subtitle">Kurumsal Erişim Portalı</p>
+        
+        <div class="input-wrapper">
+            <input type="password" id="accessCode" placeholder="Giriş Anahtarı" autocomplete="off">
+        </div>
+        
+        <button id="loginBtn" class="btn-primary">
+            <span id="btnText">Oturum Aç</span>
+            <div class="loader" id="btnSpinner"></div>
+        </button>
+        
+        <div id="error-message" class="error-container">Hatalı veya süresi dolmuş kod!</div>
+
+        <div class="footer-info">
+            <span>v2.4.0</span>
+            <span>•</span>
+            <span>SSL Şifreli</span>
+            <span>•</span>
+            <span id="clock">00:00:00</span>
+        </div>
+    </div>
+
+    <script type="module">
+        // Canlı Saat
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.getElementById('clock').innerText = timeStr;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        const loginBtn = document.getElementById('loginBtn');
+        const btnText = document.getElementById('btnText');
+        const btnSpinner = document.getElementById('btnSpinner');
+        const accessCodeInput = document.getElementById('accessCode');
+        const errorMessage = document.getElementById('error-message');
+
+        function showError(msg, isBanned = false) {
+            errorMessage.textContent = msg;
+            errorMessage.style.display = 'block';
+            
+            if(isBanned) {
+                errorMessage.style.background = "rgba(239, 68, 68, 0.15)";
+                errorMessage.style.borderColor = "rgba(239, 68, 68, 0.4)";
+                errorMessage.style.color = "#ffffff";
+            } else {
+                errorMessage.style.background = "rgba(239, 68, 68, 0.08)";
+                errorMessage.style.borderColor = "rgba(239, 68, 68, 0.2)";
+                errorMessage.style.color = "#fca5a5";
+            }
+        }
+
+        loginBtn.addEventListener('click', async () => {
+            const code = accessCodeInput.value.trim();
+            errorMessage.style.display = 'none';
+            
+            if (code === "") {
+                showError("Lütfen giriş anahtarını girin.");
+                return;
+            }
+
+            // UI Loading State
+            btnText.style.opacity = '0';
+            btnSpinner.style.display = 'block';
+            loginBtn.disabled = true;
+
+            try {
+                const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+                const apiUrl = isLocal ? 'http://localhost:3000/api/login' : '/api/login';
+
+                const cevap = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: code }) 
+                });
+
+                const sonuc = await cevap.json();
+
+                if (sonuc.success) {
+                    localStorage.setItem("userId", sonuc.user.id);
+                    localStorage.setItem("userRole", sonuc.user.role);
+                    localStorage.setItem("token", sonuc.token); 
+                    
+                    // Başarılı girişte buton efekti
+                    loginBtn.style.background = "#10b981";
+                    btnText.innerText = "Giriş Başarılı";
+                    btnText.style.opacity = '1';
+                    btnSpinner.style.display = 'none';
+
+                    setTimeout(() => {
+                        if (sonuc.user.role === "god") {
+                            window.location.href = "god-panel.html"; 
+                        } else if (sonuc.user.role === "customer") {
+                            window.location.href = "musteri-panel.html";
+                        }
+                    }, 600);
+                } else {
+                    showError(sonuc.message || sonuc.hata || "Giriş başarısız. Lütfen tekrar deneyin.", sonuc.isBanned);
+                    resetButton();
+                }
+            } catch (error) {
+                console.error("Hata Detayı:", error);
+                showError("Bağlantı hatası: Sunucuya ulaşılamıyor.");
+                resetButton();
+            }
+        });
+
+        function resetButton() {
+            btnText.style.opacity = '1';
+            btnText.innerText = "Tekrar Dene";
+            btnSpinner.style.display = 'none';
+            loginBtn.disabled = false;
+        }
+
+        accessCodeInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loginBtn.click();
+        });
+
+        // Input odaklanma efekti için opsiyonel: hata mesajını gizle
+        accessCodeInput.addEventListener('input', () => {
+            errorMessage.style.display = 'none';
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
+    <title>God Panel | Yönetim Komuta Merkezi</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+        /* --- AÇIK MOD (LIGHT THEME - Varsayılan) --- */
+        :root {
+            --bg-base: #f4f4f5; 
+            --bg-surface: #ffffff; 
+            --bg-card: #fafafa; 
+            --border-subtle: rgba(0, 0, 0, 0.08);
+            --text-primary: #09090b; 
+            --text-secondary: #71717a; 
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --switch-bg: #e4e4e7;
+            --switch-knob: #ffffff;
+            --modal-overlay: rgba(255, 255, 255, 0.85);
+            --toast-bg: #09090b;
+            --toast-text: #ffffff;
+        }
+
+        /* --- KOYU MOD (DARK THEME - Şalter Açılınca) --- */
+        [data-theme="dark"] {
+            --bg-base: #000000;
+            --bg-surface: #0a0a0b;
+            --bg-card: #121214;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --switch-bg: #27272a;
+            --switch-knob: #a1a1aa;
+            --modal-overlay: rgba(0, 0, 0, 0.85);
+            --toast-bg: #ffffff;
+            --toast-text: #000000;
+        }
+
+        /* --- SİSTEM SABİTLEME --- */
+        html, body {
+            width: 100vw; 
+            max-width: 100%; 
+            min-height: 100dvh;
+            margin: 0; 
+            padding: 0; 
+            overflow-x: hidden;
+            background-color: var(--bg-base); 
+            color: var(--text-primary);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            overscroll-behavior-y: none; 
+            -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.4s, color 0.4s;
+        }
+
+        body { 
+            padding: 25px; 
+            user-select: none; 
+        }
+        
+        * { 
+            box-sizing: border-box; 
+            transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+        }
+
+        input, select, textarea { 
+            user-select: auto; 
+        }
+
+        /* --- GİRİŞ ANİMASYONLARI --- */
+        .animate-in { 
+            animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; 
+        }
+
+        .delay-1 { 
+            animation-delay: 0.1s; 
+        }
+
+        .delay-2 { 
+            animation-delay: 0.2s; 
+        }
+
+        @keyframes slideUpFade { 
+            from { opacity: 0; transform: translateY(20px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        /* --- HEADER VE STATS --- */
+        .header {
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            background: var(--bg-surface); 
+            border: 1px solid var(--border-subtle);
+            padding: 16px 20px; 
+            border-radius: 16px; 
+            margin-bottom: 24px;
+        }
+
+        .header h1 { 
+            font-size: 20px; 
+            font-weight: 800; 
+            letter-spacing: -0.5px; 
+            margin: 0;
+        }
+
+        .header h1 span { 
+            color: var(--danger-color); 
+        }
+
+        .header-controls { 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+        }
+
+        .theme-switch { 
+            position: relative; 
+            display: inline-block; 
+            width: 44px; 
+            height: 24px; 
+        }
+
+        .theme-switch input { 
+            opacity: 0; 
+            width: 0; 
+            height: 0; 
+        }
+
+        .theme-slider { 
+            position: absolute; 
+            cursor: pointer; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0; 
+            background-color: var(--switch-bg); 
+            transition: .3s; 
+            border-radius: 24px; 
+            border: 1px solid var(--border-subtle);
+        }
+
+        .theme-slider:before { 
+            position: absolute; 
+            content: ""; 
+            height: 16px; 
+            width: 16px; 
+            left: 3px; 
+            bottom: 3px; 
+            background-color: var(--switch-knob); 
+            transition: .3s; 
+            border-radius: 50%; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+
+        .theme-switch input:checked + .theme-slider { 
+            background-color: var(--text-primary); 
+            border-color: var(--text-primary);
+        }
+
+        .theme-switch input:checked + .theme-slider:before { 
+            transform: translateX(20px); 
+            background-color: var(--bg-base); 
+        }
+
+        .logout-btn {
+            background: transparent; 
+            color: var(--text-primary);
+            border: 1px solid var(--border-subtle); 
+            padding: 8px 16px;
+            border-radius: 10px; 
+            font-size: 11px; 
+            font-weight: 800;
+            text-transform: uppercase; 
+            cursor: pointer; 
+            transition: 0.2s;
+        }
+
+        .logout-btn:active { 
+            transform: scale(0.95); 
+            background: var(--danger-color); 
+            color: #ffffff;
+            border-color: var(--danger-color);
+        }
+
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 16px; 
+            margin-bottom: 24px; 
+        }
+
+        .stat-card {
+            background: var(--bg-surface); 
+            padding: 20px 10px; 
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle); 
+            text-align: center;
+        }
+
+        .stat-info h3 { 
+            font-size: 28px; 
+            font-weight: 900; 
+            margin: 0 0 2px 0; 
+        }
+
+        .stat-info p { 
+            font-size: 10px; 
+            color: var(--text-secondary); 
+            font-weight: 800; 
+            text-transform: uppercase; 
+            margin: 0;
+        }
+
+        /* --- KOMUTA MERKEZİ --- */
+        .command-center {
+            background: var(--bg-surface); 
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px; 
+            padding: 24px; 
+            margin-bottom: 24px;
+        }
+
+        .command-title { 
+            font-size: 11px; 
+            font-weight: 800; 
+            color: var(--text-secondary); 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            margin-bottom: 20px; 
+        }
+
+        .command-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .command-box { 
+            background: var(--bg-card); 
+            border: 1px solid var(--border-subtle); 
+            padding: 20px; 
+            border-radius: 14px; 
+        }
+
+        .command-box.full-width {
+            grid-column: span 2;
+        }
+
+        .command-box h3 { 
+            font-size: 14px; 
+            font-weight: 800; 
+            margin-bottom: 5px; 
+            margin-top: 0;
+        }
+
+        .command-box p { 
+            font-size: 11px; 
+            color: var(--text-secondary); 
+            margin-bottom: 15px; 
+        }
+
+        /* --- APPLE TARZI RENKLİ ŞALTERLER (Toggles) --- */
+        .switch { 
+            position: relative; 
+            display: inline-block; 
+            width: 50px; 
+            height: 28px; 
+        }
+
+        .switch input { 
+            opacity: 0; 
+            width: 0; 
+            height: 0; 
+        }
+
+        .slider { 
+            position: absolute; 
+            cursor: pointer; 
+            top: 0; left: 0; right: 0; bottom: 0; 
+            background-color: #27272a; 
+            transition: .3s; 
+            border-radius: 34px; 
+        }
+
+        .slider:before { 
+            position: absolute; 
+            content: ""; 
+            height: 22px; 
+            width: 22px; 
+            left: 3px; 
+            bottom: 3px; 
+            background-color: white; 
+            transition: .3s; 
+            border-radius: 50%; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .user-toggle .slider { 
+            background-color: var(--danger-color); 
+        }
+
+        .user-toggle input:checked + .slider { 
+            background-color: var(--success-color); 
+        }
+
+        .user-toggle input:checked + .slider:before { 
+            transform: translateX(22px); 
+        }
+
+        .lockdown-toggle .slider { 
+            background-color: var(--switch-bg); 
+            border: 1px solid var(--border-subtle);
+        }
+
+        .lockdown-toggle input:checked + .slider { 
+            background-color: var(--danger-color); 
+            border-color: var(--danger-color); 
+        }
+
+        .lockdown-toggle input:checked + .slider:before { 
+            transform: translateX(22px); 
+        }
+
+        .sorgu-toggle .slider { 
+            background-color: var(--switch-bg); 
+            border: 1px solid var(--border-subtle);
+        }
+
+        .sorgu-toggle input:checked + .slider { 
+            background-color: #3b82f6; 
+            border-color: #3b82f6; 
+        }
+
+        .sorgu-toggle input:checked + .slider:before { 
+            transform: translateX(22px); 
+        }
+
+        /* --- FORM VE INPUTLAR --- */
+        .grid-container { 
+            display: grid; 
+            grid-template-columns: 320px 1fr; 
+            gap: 24px; 
+        }
+
+        @media (max-width: 992px) { 
+            .grid-container { 
+                grid-template-columns: 1fr; 
+            } 
+            .command-grid {
+                grid-template-columns: 1fr;
+            }
+            .command-box.full-width {
+                grid-column: span 1;
+            }
+        }
+
+        .card { 
+            background: var(--bg-surface); 
+            border: 1px solid var(--border-subtle); 
+            border-radius: 16px; 
+            padding: 24px; 
+        }
+
+        .card h2 { 
+            font-size: 16px; 
+            font-weight: 800; 
+            margin-bottom: 24px; 
+            margin-top: 0;
+        }
+
+        .form-group { 
+            margin-bottom: 20px; 
+        }
+
+        .form-group label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-size: 10px; 
+            font-weight: 800; 
+            color: var(--text-secondary); 
+            text-transform: uppercase; 
+        }
+        
+        .form-group input, .form-group select, .form-group textarea, #godVoiceInput {
+            width: 100%; 
+            padding: 16px; 
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px; 
+            background: var(--bg-card); 
+            color: var(--text-primary);
+            outline: none; 
+            font-size: 16px !important; 
+            transition: 0.2s;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus, #godVoiceInput:focus { 
+            border-color: var(--text-primary); 
+        }
+
+        .btn-primary {
+            width: 100%; 
+            padding: 18px; 
+            background: var(--text-primary); 
+            color: var(--bg-base);
+            border: none; 
+            border-radius: 14px; 
+            font-size: 13px; 
+            font-weight: 800;
+            text-transform: uppercase; 
+            cursor: pointer; 
+            transition: 0.2s;
+        }
+
+        .btn-primary:active { 
+            transform: scale(0.96); 
+            opacity: 0.8; 
+        }
+
+        .btn-danger { 
+            background: var(--danger-color) !important; 
+            color: white !important; 
+        }
+
+        .btn-success { 
+            background: var(--success-color) !important; 
+            color: white !important; 
+        }
+
+        .table-responsive { 
+            overflow-x: auto; 
+            border-radius: 14px; 
+            background: var(--bg-card); 
+            border: 1px solid var(--border-subtle); 
+            margin-bottom: 24px;
+        }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            min-width: 700px; 
+        }
+
+        th, td { 
+            padding: 18px; 
+            text-align: left; 
+            border-bottom: 1px solid var(--border-subtle); 
+            font-size: 14px; 
+        }
+
+        th { 
+            font-size: 10px; 
+            font-weight: 900; 
+            color: var(--text-secondary); 
+            text-transform: uppercase; 
+            background: rgba(125,125,125,0.05); 
+        }
+
+        .passcode-badge { 
+            background: var(--bg-surface); 
+            padding: 8px 12px; 
+            border-radius: 8px; 
+            font-family: monospace; 
+            font-weight: bold; 
+            border: 1px solid var(--border-subtle); 
+            display: inline-block;
+        }
+
+        .success-badge { 
+            color: var(--success-color); 
+            font-weight: 800; 
+            font-size: 12px; 
+        }
+
+        .alert-badge { 
+            background: rgba(239, 68, 68, 0.1); 
+            color: var(--danger-color); 
+            border: 1px solid rgba(239, 68, 68, 0.3); 
+            padding: 4px 8px; 
+            border-radius: 6px; 
+            font-size: 11px; 
+            font-weight: bold; 
+            white-space: nowrap;
+        }
+
+        .action-btn { 
+            background: transparent; 
+            color: var(--text-primary); 
+            border: 1px solid var(--border-subtle); 
+            padding: 8px 12px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 11px; 
+            font-weight: 700; 
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+
+        .action-btn:active { 
+            background: var(--text-primary); 
+            color: var(--bg-base); 
+            transform: scale(0.95);
+        }
+
+        /* --- FİLO CHECKBOX --- */
+        .cust-checkbox {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: var(--text-primary);
+        }
+
+        /* MODAL */
+        .modal { 
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0; 
+            top: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: var(--modal-overlay); 
+            backdrop-filter: blur(8px); 
+            -webkit-backdrop-filter: blur(8px);
+            padding: 20px; 
+            align-items: center; 
+            justify-content: center; 
+        }
+
+        .modal-content { 
+            background: var(--bg-surface); 
+            border: 1px solid var(--border-subtle); 
+            border-radius: 20px; 
+            padding: 30px; 
+            width: 100%; 
+            max-width: 400px; 
+            position: relative; 
+            box-shadow: 0 25px 50px rgba(0,0,0,0.1); 
+            animation: modalPop 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+
+        @keyframes modalPop { 
+            0% { opacity: 0; transform: scale(0.95) translateY(20px); } 
+            100% { opacity: 1; transform: scale(1) translateY(0); } 
+        }
+
+        .close-modal { 
+            position: absolute; 
+            right: 20px; 
+            top: 20px; 
+            color: var(--text-secondary); 
+            font-size: 24px; 
+            cursor: pointer; 
+            line-height: 1; 
+        }
+
+        #toast-container { 
+            position: fixed; 
+            bottom: 30px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            z-index: 999999; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px; 
+            align-items: center; 
+            pointer-events: none;
+            width: 90%; 
+            max-width: 400px; 
+        }
+        
+        .toast { 
+            background: var(--toast-bg); 
+            color: var(--toast-text); 
+            padding: 14px 24px; 
+            border-radius: 30px; 
+            font-size: 13px; 
+            font-weight: 700; 
+            text-align: center; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
+            opacity: 0; 
+            transform: translateY(20px); 
+            transition: all 0.3s ease; 
+        }
+
+        .toast.show { 
+            opacity: 1; 
+            transform: translateY(0); 
+        }
+
+        /* YUMUŞATILMIŞ GÜVENLİK EKRANI (KICK OVERLAY) */
+        #kick-overlay {
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            z-index: 999999999; 
+            background: rgba(255, 255, 255, 0.7); 
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px); 
+            align-items: center; 
+            justify-content: center; 
+            opacity: 0; 
+            transition: opacity 0.4s ease; 
+        }
+
+        [data-theme="dark"] #kick-overlay { 
+            background: rgba(9, 9, 11, 0.85); 
+        }
+
+        .kick-card {
+            background: var(--bg-card); 
+            padding: 40px; 
+            border-radius: 20px; 
+            text-align: center; 
+            max-width: 420px; 
+            box-shadow: 0 30px 60px -12px rgba(59, 130, 246, 0.25); 
+            border: 1px solid rgba(59, 130, 246, 0.3); 
+            transform: scale(0.95); 
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+
+        .kick-card svg {
+            width: 60px;
+            height: 60px;
+            stroke: #3b82f6;
+            margin-bottom: 20px;
+            animation: pulseWarning 2s infinite;
+        }
+
+        @keyframes pulseWarning {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.5)); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .kick-card h2 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #3b82f6;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kick-card p {
+            font-size: 14px;
+            color: var(--text-main);
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .kick-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .kick-btn:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        #kick-overlay.active { 
+            display: flex; 
+            opacity: 1; 
+        }
+
+        #kick-overlay.active .kick-card { 
+            transform: scale(1); 
+        }
+
+        /* MOBİL DÜZELTMELER */
+        @media (max-width: 768px) {
+            body { 
+                padding: 15px; 
+            }
+
+            .stats-grid { 
+                gap: 10px; 
+            }
+
+            .stat-card { 
+                padding: 15px 10px; 
+            }
+
+            th:first-child, td:first-child { 
+                position: sticky; 
+                left: 0; 
+                background: var(--bg-card); 
+                z-index: 2; 
+                border-right: 1px solid var(--border-subtle); 
+            }
+            
+            .header-controls {
+                gap: 10px;
+            }
+            
+            .filo-buttons {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="kick-overlay">
+        <div class="kick-card">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <h2>Oturum Yenilendi</h2>
+            <p>Güvenliğiniz için bağlantınız yenilendi. Başka bir cihazdan giriş yapmış veya sayfayı arka planda bekletmiş olabilirsiniz.</p>
+            <button class="kick-btn" onclick="window.location.href='login.html'">Tekrar Giriş Yap</button>
+        </div>
+    </div>
+
+    <div class="header animate-in">
+        <h1>God<span>Panel</span></h1>
+        <div class="header-controls">
+            <label class="theme-switch" title="Gece/Gündüz Modu">
+                <input type="checkbox" id="themeToggle">
+                <span class="theme-slider"></span>
+            </label>
+            <button class="logout-btn" id="logoutBtn">Çıkış Yap</button>
+        </div>
+    </div>
+
+    <div class="stats-grid animate-in delay-1">
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3 id="statTotal">0</h3>
+                <p>Müşteri</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3 id="statActive">0</h3>
+                <p>Aktif</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3 id="statTicket" style="color: var(--warning-color);">0</h3>
+                <p>Destek Talebi</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="command-center animate-in delay-2">
+        <div class="command-title">Sistem Komuta Merkezi</div>
+        
+        <div class="command-grid">
+            <div class="command-box">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h3>Sistem Kilidi (Lockdown)</h3>
+                    <label class="switch lockdown-toggle">
+                        <input type="checkbox" id="globalLockdownBtn">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <p>Tüm müşterilerin işlemlerini anında dondurur.</p>
+            </div>
+
+            <div class="command-box">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h3>Sorgu Modülü (API)</h3>
+                    <label class="switch sorgu-toggle">
+                        <input type="checkbox" id="sorguToggleBtn">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <p>Müşterilerin TC/Adres vb. sorgu panelini Aktif/Pasif yapar.</p>
+            </div>
+            
+            <div class="command-box full-width">
+                <h3>Genel Duyuru (Anons)</h3>
+                <p>Paneli açık olan tüm müşterilere bildirim düşürür.</p>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <input type="text" id="godVoiceInput" placeholder="Mesajı yazın..." autocomplete="off">
+                    <button class="btn-primary" id="sendGodVoiceBtn" style="width: 120px;">Yayınla</button>
+                </div>
+            </div>
+
+            <!-- 🔥 YENİ: GOD TELEGRAM & GÜVENLİK AYARLARI 🔥 -->
+            <div class="command-box full-width">
+                <h3>God Telegram & Güvenlik Ayarları</h3>
+                <p>Otomatik yedeklemeler ve uzaktan komutlar için kendi botunu bağla.</p>
+                <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                    <div class="form-group" style="margin:0;">
+                        <label>Admin Bot Token</label>
+                        <input type="text" id="godBotToken" placeholder="BotFather'dan aldığın token">
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label>Admin Chat ID</label>
+                        <input type="text" id="godChatId" placeholder="Senin chat ID'n">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn-primary" id="saveGodSettingsBtn" style="background: var(--success-color); color: white;">Ayarları Kaydet</button>
+                    <button class="btn-primary" id="manualBackupBtn" style="background: #3b82f6; color: white;">Hemen Yedek Al (Cebine At)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid-container animate-in delay-2">
+        <div class="card" style="height: fit-content;">
+            <h2>Müşteri Oluştur</h2>
+            
+            <!-- 🔥 YENİ EKLENEN İSİM KUTUSU 🔥 -->
+            <div class="form-group">
+                <label>Takma İsim / Müşteri Adı</label>
+                <input type="text" id="newCustomerName" placeholder="Örn: Ahmet Abi (Adana)" autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label>Erişim Kodu (Şifre)</label>
+                <input type="text" id="newPasscode" placeholder="Örn: VIP-1234" autocomplete="off">
+            </div>
+            
+            <div class="form-group">
+                <label>Abonelik Süresi</label>
+                <select id="subDuration">
+                    <option value="1">1 Aylık</option>
+                    <option value="3">3 Aylık</option>
+                    <option value="6">6 Aylık</option>
+                    <option value="12">1 Yıllık</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>İlan Kotası (Paket Limiti)</label>
+                <select id="ilanKotasiSelect" onchange="toggleCustomKota(this.value)">
+                    <option value="sinirsiz">Sınırsız İlan</option>
+                    <option value="5">Maksimum 5 İlan</option>
+                    <option value="10">Maksimum 10 İlan</option>
+                    <option value="15">Maksimum 15 İlan</option>
+                    <option value="ozel">Özel Sayı Gir...</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="ozelKotaKutusu" style="display: none; margin-top: -10px;">
+                <input type="number" id="ozelKotaDegeri" placeholder="Örn: 20" min="1" autocomplete="off">
+            </div>
+            
+            <button class="btn-primary" id="addCustomerBtn">Sisteme Kaydet</button>
+        </div>
+
+        <div class="card" style="padding: 0; overflow: hidden;">
+            
+            <!-- 🔥 YENİ EKLENEN FİLO YÖNETİMİ BAŞLIĞI VE BUTONLARI 🔥 -->
+            <div style="padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); flex-wrap: wrap; gap: 15px;">
+                <h2 style="margin: 0; padding: 0;">Müşteri Veritabanı</h2>
+                <div class="filo-buttons" style="display: flex; gap: 10px;">
+                    <button class="action-btn" onclick="bulkAdd30Days()">+30 Gün Uzat</button>
+                    <button class="action-btn" style="color: #8b5cf6; border-color: rgba(139,92,246,0.3);" onclick="bulkSoftBan()">Toplu Soft-Ban</button>
+                    <button class="action-btn" style="color: var(--danger-color); border-color: var(--danger-color);" onclick="bulkDeleteCustomers()">Çöpleri Sil</button>
+                </div>
+            </div>
+
+            <!-- TİTREMEYİ ÖNLEYEN MİN-HEIGHT VE BETON TABLO KALIBI -->
+            <div class="table-responsive" style="border: none; border-radius: 0; min-height: 400px; margin-bottom: 0;">
+                <table style="table-layout: fixed; width: 100%; min-width: 900px;">
+                    <colgroup>
+                        <col style="width: 40px;">  <!-- Checkbox -->
+                        <col style="width: 100px;"> <!-- Kayıt -->
+                        <col style="width: 130px;"> <!-- Kod & İsim -->
+                        <col style="width: 150px;"> <!-- Kota & İşlem -->
+                        <col style="width: 100px;"> <!-- Bitiş -->
+                        <col style="width: 130px;"> <!-- Risk Durumu -->
+                        <col style="width: 80px;">  <!-- Erişim -->
+                        <col style="width: 220px;"> <!-- Aksiyon (Genişletildi) -->
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAllCust" onchange="toggleAllCust(this)" class="cust-checkbox"></th>
+                            <th>Kayıt</th>
+                            <th>Müşteri Bilgisi</th>
+                            <th>Kota & İşlem</th>
+                            <th>Bitiş</th>
+                            <th>Risk Durumu</th>
+                            <th>Erişim</th>
+                            <th>Aksiyon</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customerTableBody">
+                        <tr>
+                            <td colspan="8" style="text-align:center;">Veriler yükleniyor...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 style="padding: 24px 24px 0 24px;">Destek Talepleri (Tickets)</h2>
+            <div class="table-responsive" style="border: none; border-top: 1px solid var(--border-subtle); border-radius: 0; border-bottom: 0; min-height: 250px;">
+                <table style="table-layout: fixed; width: 100%; min-width: 600px;">
+                    <colgroup>
+                        <col style="width: 140px;">
+                        <col style="width: auto;">
+                        <col style="width: 120px;">
+                        <col style="width: 150px;">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>Müşteri Bilgisi</th>
+                            <th>Konu</th>
+                            <th>Durum</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ticketsTableBody">
+                        <tr>
+                            <td colspan="4" style="text-align:center;">Talepler yükleniyor...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeEditModal">&times;</span>
+            <h2 style="margin-bottom: 24px; font-size: 18px; font-weight: 800; margin-top:0;">Müşteri Ayarları</h2>
+            
+            <input type="hidden" id="editUserId">
+            
+            <!-- 🔥 YENİ EKLENEN İSİM KUTUSU (DÜZENLE) 🔥 -->
+            <div class="form-group">
+                <label>Takma İsim / Müşteri Adı</label>
+                <input type="text" id="editCustomerName" placeholder="Müşteri adını girin...">
+            </div>
+
+            <div class="form-group">
+                <label>Erişim Kodu</label>
+                <input type="text" id="editPasscode" readonly style="opacity: 0.5; pointer-events: none;">
+            </div>
+
+            <div class="form-group">
+                <label>Bitiş Tarihi</label>
+                <input type="date" id="editExpireDate">
+            </div>
+            
+            <div class="form-group">
+                <label>İlan Kotası</label>
+                <input type="text" id="editIlanKotasi" placeholder="Rakam girin veya 'sinirsiz' yazın">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 24px;">
+                <label>Ban Mesajı (Pasife Alınırsa Çıkar)</label>
+                <input type="text" id="editBanMessage" placeholder="Örn: Süreniz doldu.">
+            </div>
+
+            <button class="btn-primary" id="saveEditBtn">Güncelle</button>
+        </div>
+    </div>
+    
+    <div id="confirmModal" class="modal" style="z-index: 999999;">
+        <div class="modal-content" style="max-width: 400px; text-align: center; padding: 30px;">
+            <h3 style="margin-bottom: 10px; font-size: 18px; font-weight: 800;">Sistem Onayı</h3>
+            <p id="confirmMessage" style="color: var(--text-secondary); margin-bottom: 25px; font-size: 14px;"></p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button id="confirmYes" class="btn-primary" style="padding: 10px 20px; font-size: 14px; color: white;">Evet, Onayla</button>
+                <button id="confirmNo" class="action-btn" style="padding: 10px 20px; margin:0; font-size: 14px;">İptal</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="banModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeBanModal">&times;</span>
+            <h2 style="color: var(--danger-color); margin-top: 0;">Hesabı Yasakla (Ban)</h2>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 20px;">Kullanıcı giriş yapmaya çalıştığında bu sebebi görecektir.</p>
+            
+            <input type="hidden" id="banUserId">
+            
+            <div class="form-group">
+                <label>Ban Sebebi</label>
+                <input type="text" id="banReasonInput" placeholder="Örn: Hesap paylaşımı tespit edildi.">
+            </div>
+            
+            <button class="btn-primary btn-danger" id="submitBanBtn" style="margin-top: 10px;">Kullanıcıyı Banla</button>
+        </div>
+    </div>
+
+    <div id="ticketModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-modal" id="closeTicketModal">&times;</span>
+            <h2 style="margin-top: 0; margin-bottom: 15px;">Talep İnceleme</h2>
+            
+            <input type="hidden" id="ticketId">
+            
+            <div style="background: var(--bg-card); padding: 15px; border-radius: 10px; font-size:13px; margin-bottom: 15px; border:1px solid var(--border-subtle); max-height: 200px; overflow-y: auto; word-break: break-word;">
+                <strong style="color: var(--text-secondary); font-size: 10px;">MÜŞTERİ MESAJI:</strong><br>
+                <span id="ticketMessageText" style="display: block; margin-top: 8px; line-height: 1.6;">...</span>
+            </div>
+            
+            <div class="form-group">
+                <label>Yönetici Yanıtı (Sizin Cevabınız)</label>
+                <textarea id="ticketReplyInput" rows="4" placeholder="Bu talebe vereceğiniz yanıtı buraya yazın..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Talep Durumu</label>
+                <select id="ticketStatusSelect">
+                    <option value="Yanitlandi">Yanıtlandı Olarak İşaretle</option>
+                    <option value="Kapali">Talebi Kapat</option>
+                </select>
+            </div>
+            
+            <button class="btn-primary btn-success" id="submitTicketBtn" style="margin-top: 5px;">Yanıtı Kaydet ve Gönder</button>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script type="module">
+        // XSS Önleyici Dezenfekte Fonksiyonu
+        window.dezenfekteEt = function(str) {
+            if (str === null || str === undefined) return "";
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#x27;')
+                .replace(/\//g, '&#x2f;');
+        };
+
+        const token = localStorage.getItem("token");
+        if (!localStorage.getItem("userId") || localStorage.getItem("userRole") !== "god" || !token) {
+            window.location.href = "login.html";
+        }
+
+        const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+        const API_BASE = isLocal ? 'http://localhost:3000/api' : '/api';
+        
+        document.getElementById('logoutBtn').onclick = function() { 
+            localStorage.clear(); 
+            window.location.href = "login.html"; 
+        };
+
+        // --- TEMA MOTORU ---
+        const themeToggle = document.getElementById('themeToggle');
+        const currentTheme = localStorage.getItem('godTheme');
+        
+        if (currentTheme === 'dark' || !currentTheme) { 
+            document.documentElement.setAttribute('data-theme', 'dark'); 
+            themeToggle.checked = true; 
+        } else { 
+            document.documentElement.setAttribute('data-theme', 'light'); 
+            themeToggle.checked = false; 
+        }
+
+        themeToggle.addEventListener('change', function(e) {
+            if (e.target.checked) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('godTheme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('godTheme', 'light');
+            }
+        });
+
+        // --- TOAST BİLDİRİM MOTORU ---
+        window.showToast = function(msg, type="success") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div'); 
+            toast.className = 'toast animate-in'; 
+            toast.innerText = msg; 
+            
+            if(type === "error") {
+                toast.style.background = "var(--danger-color)";
+                toast.style.color = "white";
+            } else if (type === "info") {
+                toast.style.background = "var(--text-primary)";
+            }
+
+            container.appendChild(toast);
+            
+            setTimeout(function() { 
+                toast.classList.add('show'); 
+            }, 10);
+            
+            setTimeout(function() { 
+                toast.style.opacity = '0'; 
+                setTimeout(function() { 
+                    toast.remove(); 
+                }, 300); 
+            }, 3000);
+        };
+
+        const authHeaders = { 
+            'Content-Type': 'application/json', 
+            'Authorization': `Bearer ${token}` 
+        };
+
+        function checkTokenError(res) {
+            if (res.status === 401 || res.status === 403) {
+                document.getElementById('kick-overlay').classList.add('active');
+                document.body.style.overflow = 'hidden';
+                localStorage.clear();
+                return true;
+            }
+            return false;
+        }
+
+        window.customConfirm = function(message, callback, isDanger = false) {
+            const modal = document.getElementById('confirmModal');
+            document.getElementById('confirmMessage').innerText = message; 
+            const yesBtn = document.getElementById('confirmYes');
+            
+            if(isDanger) {
+                yesBtn.style.background = 'var(--danger-color)';
+                yesBtn.innerText = 'Evet, Sil';
+            } else {
+                yesBtn.style.background = 'var(--text-primary)';
+                yesBtn.innerText = 'Evet, Onayla';
+            }
+            
+            modal.style.display = 'flex';
+            
+            yesBtn.onclick = function() { 
+                modal.style.display = 'none'; 
+                callback(); 
+            };
+            
+            document.getElementById('confirmNo').onclick = function() { 
+                modal.style.display = 'none'; 
+            };
+        }
+
+        // --- SİSTEM ŞALTERLERİ VE GOD TELEGRAM AYARLARI ---
+        async function loadSystemStatus() {
+            try {
+                const res = await fetch(`${API_BASE}/sistem/durum?t=${Date.now()}`, { headers: authHeaders });
+                if (checkTokenError(res)) return;
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('globalLockdownBtn').checked = data.kilitDurumu === true;
+                    document.getElementById('sorguToggleBtn').checked = data.sorguAktif === true;
+                    if(data.anonsMesaji) {
+                        document.getElementById('godVoiceInput').value = data.anonsMesaji;
+                    }
+                    // 🔥 GOD AYARLARINI DOLDUR 🔥
+                    if(data.godBotToken) document.getElementById('godBotToken').value = data.godBotToken;
+                    if(data.godChatId) document.getElementById('godChatId').value = data.godChatId;
+                }
+            } catch(e) {
+                console.error("Sistem durumu çekilemedi", e);
+            }
+        }
+
+        document.getElementById('globalLockdownBtn').onchange = async function(e) {
+            try {
+                const res = await fetch(`${API_BASE}/sistem/kilit`, { 
+                    method: 'POST', 
+                    headers: authHeaders, 
+                    body: JSON.stringify({ kilitDurumu: e.target.checked }) 
+                });
+                if (checkTokenError(res)) return;
+                
+                if (e.target.checked) {
+                    showToast("Sistem Kilitlendi!", "info");
+                } else {
+                    showToast("Kilit Açıldı.", "success");
+                }
+            } catch(err) {
+                showToast("Bağlantı hatası", "error");
+            }
+        };
+
+        document.getElementById('sorguToggleBtn').onchange = async function(e) {
+            try {
+                const res = await fetch(`${API_BASE}/sistem/sorgu-toggle`, { 
+                    method: 'POST', 
+                    headers: authHeaders, 
+                    body: JSON.stringify({ aktif: e.target.checked }) 
+                });
+                if (checkTokenError(res)) return;
+                
+                if (e.target.checked) {
+                    showToast("Sorgu Paneli Aktif Edildi.", "success");
+                } else {
+                    showToast("Sorgu Paneli Bakıma Alındı.", "info");
+                }
+            } catch(err) {
+                showToast("Bağlantı hatası", "error");
+            }
+        };
+
+        document.getElementById('sendGodVoiceBtn').onclick = async function() {
+            const msg = document.getElementById('godVoiceInput').value.trim();
+            try {
+                const res = await fetch(`${API_BASE}/sistem/anons`, { 
+                    method: 'POST', 
+                    headers: authHeaders, 
+                    body: JSON.stringify({ mesaj: msg, zaman: Date.now() }) 
+                });
+                if (checkTokenError(res)) return;
+                
+                showToast("Sistem Anonsu Güncellendi.", "success");
+            } catch(err) {
+                showToast("Anons geçilemedi!", "error");
+            }
+        };
+
+        // 🔥 GOD AYARLARINI KAYDET 🔥
+        document.getElementById('saveGodSettingsBtn').onclick = async function() {
+            const botToken = document.getElementById('godBotToken').value.trim();
+            const chatId = document.getElementById('godChatId').value.trim();
+            
+            const btn = document.getElementById('saveGodSettingsBtn');
+            const originalText = btn.textContent;
+            btn.textContent = "Kaydediliyor...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE}/sistem/god-ayarlar`, {
+                    method: 'POST',
+                    headers: authHeaders,
+                    body: JSON.stringify({ godBotToken: botToken, godChatId: chatId })
+                });
+                if (checkTokenError(res)) return;
+                showToast("God Telegram ayarları kaydedildi!", "success");
+            } catch(e) { showToast("Ayarlar kaydedilemedi!", "error"); }
+            finally { btn.textContent = originalText; btn.disabled = false; }
+        };
+
+        // 🔥 MANUEL YEDEK ALMA BUTONU 🔥
+        document.getElementById('manualBackupBtn').onclick = async function() {
+            const btn = document.getElementById('manualBackupBtn');
+            const originalText = btn.textContent;
+            btn.textContent = "Yedekleniyor...";
+            btn.disabled = true;
+            try {
+                showToast("Yedek hazırlanıyor, Telegram'ı kontrol et...", "info");
+                const res = await fetch(`${API_BASE}/sistem/manual-backup`, {
+                    method: 'POST',
+                    headers: authHeaders
+                });
+                if (checkTokenError(res)) return;
+                const data = await res.json();
+                if(data.success) showToast("Yedek başarıyla cebine yollandı!", "success");
+                else showToast(data.hata || "Yedek alınamadı!", "error");
+            } catch(e) { showToast("Bağlantı hatası!", "error"); }
+            finally { btn.textContent = originalText; btn.disabled = false; }
+        };
+
+        // --- FİLO YÖNETİMİ (TOPLU İŞLEMLER) ---
+        window.toggleAllCust = function(el) {
+            document.querySelectorAll('.cust-checkbox').forEach(cb => cb.checked = el.checked);
+        };
+
+        function getSelectedCustIds() {
+            return Array.from(document.querySelectorAll('.cust-checkbox:checked')).map(cb => cb.value);
+        }
+
+        window.bulkAdd30Days = async function() {
+            const ids = getSelectedCustIds();
+            if(ids.length === 0) return showToast("Önce müşteri seçin!", "error");
+            
+            customConfirm(`Seçili ${ids.length} müşteriye +30 GÜN eklemek istiyor musunuz?`, async function() {
+                showToast("Uzatılıyor...", "info");
+                try {
+                    for(let id of ids) {
+                        const user = globalCustomers.find(u => u.docId === id);
+                        if(!user || !user.expireDate) continue;
+                        let p = user.expireDate.split(".");
+                        let d = new Date(p[2], p[1]-1, p[0]);
+                        d.setDate(d.getDate() + 30);
+                        await fetch(`${API_BASE}/users/guncelle/${id}`, {
+                            method: 'PATCH', headers: authHeaders,
+                            body: JSON.stringify({ expireDate: d.toLocaleDateString('tr-TR') })
+                        });
+                    }
+                    showToast("İşlem başarılı!", "success");
+                    loadCustomers();
+                } catch(e) { showToast("Hata!", "error"); }
+            });
+        };
+
+        window.bulkSoftBan = async function() {
+            const ids = getSelectedCustIds();
+            if(ids.length === 0) return showToast("Önce müşteri seçin!", "error");
+            
+            customConfirm(`Seçili ${ids.length} müşteriyi Soft-Ban moduna almak istiyor musunuz?`, async function() {
+                try {
+                    await Promise.all(ids.map(id => fetch(`${API_BASE}/users/guncelle/${id}`, {
+                        method: 'PATCH', headers: authHeaders, body: JSON.stringify({ isSoftBanned: true })
+                    })));
+                    showToast("Müşteriler kısıtlandı!", "success");
+                    loadCustomers();
+                } catch(e) { showToast("Hata!", "error"); }
+            });
+        };
+
+        window.bulkDeleteCustomers = async function() {
+            const ids = getSelectedCustIds();
+            if(ids.length === 0) return showToast("Önce müşteri seçin!", "error");
+            
+            customConfirm(`Seçili ${ids.length} müşteriyi SİLMEK istiyor musunuz?`, async function() {
+                try {
+                    await Promise.all(ids.map(id => fetch(`${API_BASE}/users-komple-sil/${id}`, {
+                        method: 'DELETE', headers: authHeaders
+                    })));
+                    showToast("Müşteriler silindi!", "success");
+                    loadCustomers();
+                } catch(e) { showToast("Hata!", "error"); }
+            }, true); 
+        };
+
+        // --- BİREYSEL SOFT-BAN İŞLEMİ ---
+        window.toggleSoftBan = async function(id, status) {
+            try {
+                const res = await fetch(`${API_BASE}/users/guncelle/${id}`, {
+                    method: 'PATCH', headers: authHeaders,
+                    body: JSON.stringify({ isSoftBanned: status })
+                });
+                if (checkTokenError(res)) return;
+                showToast(status ? "Soft-Ban atıldı." : "Kısıt kaldırıldı.");
+                loadCustomers();
+            } catch(e) { showToast("Hata!", "error"); }
+        };
+
+        // --- MÜŞTERİLER VE BAN İŞLEMLERİ ---
+        let globalCustomers = [];
+        
+        async function loadCustomers() {
+            try {
+                const res = await fetch(`${API_BASE}/users`, { headers: authHeaders });
+                if (checkTokenError(res)) return;
+                
+                globalCustomers = await res.json();
+                const tbody = document.getElementById('customerTableBody'); 
+                tbody.innerHTML = '';
+                
+                let total = 0, active = 0;
+                
+                globalCustomers.sort(function(x, y) {
+                    return (y.createdAt || 0) - (x.createdAt || 0);
+                });
+
+                for(let data of globalCustomers) {
+                    if (data.role === 'customer') {
+                        total++; 
+                        if(data.isActive) active++;
+                        
+                        let riskBadge = "";
+                        if (data.isBanned) {
+                            riskBadge = `<span class="alert-badge" style="background:var(--danger-color); color:white;">YASAKLI</span>`;
+                        } else if (data.isSoftBanned) {
+                            riskBadge = `<span class="alert-badge" style="background:rgba(139,92,246,0.1); color:#8b5cf6; border-color:rgba(139,92,246,0.3);">SADECE OKUMA</span>`;
+                        } else if (data.isSuspicious) {
+                            riskBadge = `<span class="alert-badge" title="${dezenfekteEt(data.suspicionReason)}">⚠️ ŞÜPHELİ IP</span>`;
+                        } else {
+                            riskBadge = `<span style="font-size:11px; color:var(--success-color); font-weight:600;">Güvenli</span>`;
+                        }
+
+                        let actionBtns = `<div style="display:flex; gap:5px;">
+                                            <button onclick="openEditModal('${data.docId}')" class="action-btn">Ayar</button>`;
+                        
+                        if (data.isBanned) {
+                            actionBtns += `<button onclick="unbanUser('${data.docId}')" class="action-btn" style="color:var(--success-color); border-color:var(--success-color);">Ban Kaldır</button>`;
+                        } else {
+                            actionBtns += `<button onclick="openBanModal('${data.docId}')" class="action-btn" style="color:var(--warning-color); border-color:var(--warning-color);">Banla</button>`;
+                        }
+                        
+                        if (data.isSoftBanned) {
+                            actionBtns += `<button onclick="toggleSoftBan('${data.docId}', false)" class="action-btn" style="color:var(--success-color); border-color:var(--success-color);">Kısıt Çöz</button>`;
+                        } else {
+                            actionBtns += `<button onclick="toggleSoftBan('${data.docId}', true)" class="action-btn" style="color:#8b5cf6; border-color:rgba(139,92,246,0.3);">Soft-Ban</button>`;
+                        }
+
+                        actionBtns += `<button onclick="deleteCustomer('${data.docId}')" class="action-btn" style="color:var(--danger-color); border-color:var(--danger-color);">Sil</button></div>`;
+
+                        const tr = document.createElement('tr');
+                        if(data.isBanned) tr.style.opacity = '0.6';
+                        
+                        let musteriAdGosterim = data.isim ? data.isim : 'İsimsiz Müşteri';
+
+                        tr.innerHTML = `
+                            <td><input type="checkbox" class="cust-checkbox" value="${data.docId}"></td>
+                            <td style="color:var(--text-secondary); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                ${dezenfekteEt(data.createdDateStr || '-')}
+                            </td>
+                            <td>
+                                <div style="font-weight:800; font-size:12px; margin-bottom:4px; color:var(--text-primary);">${dezenfekteEt(musteriAdGosterim)}</div>
+                                <span class="passcode-badge" style="font-size:10px; padding:4px 6px;">${dezenfekteEt(data.passcode)}</span>
+                            </td>
+                            <td style="font-weight:700; height:65px; vertical-align:middle;">
+                                <div id="kota-text-${data.docId}" style="min-height: 22px; display:flex; align-items:center;"><span style="color:var(--text-secondary); font-size: 11px;">Sayılıyor...</span></div>
+                                <div id="succ-${data.docId}" style="margin-top:4px; min-height: 22px; display:flex; align-items:center;"></div>
+                            </td>
+                            <td style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dezenfekteEt(data.expireDate || '-')}</td>
+                            <td>${riskBadge}</td>
+                            <td>
+                                <label class="switch user-toggle">
+                                    <input type="checkbox" onchange="toggleStatus('${data.docId}', this.checked)" ${data.isActive ? 'checked' : ''}>
+                                    <span class="slider"></span>
+                                </label>
+                            </td>
+                            <td style="white-space:nowrap;">${actionBtns}</td>
+                        `;
+                        
+                        tbody.appendChild(tr);
+                        fetchStats(data.docId, data.ilanKotasi);
+                    }
+                }
+                
+                document.getElementById('statTotal').innerText = total;
+                document.getElementById('statActive').innerText = active;
+                
+            } catch (e) {
+                document.getElementById('customerTableBody').innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--danger-color);">Bağlantı hatası.</td></tr>';
+            }
+        }
+
+        async function fetchStats(id, maxKota) {
+            try {
+                const resLogs = await fetch(`${API_BASE}/logs-getir?userId=${id}`, { headers: authHeaders });
+                if (resLogs.ok) {
+                    const logs = await resLogs.json();
+                    const count = logs.filter(l => l.aksiyon && (l.aksiyon.includes("BAŞARILI") || l.aksiyon.includes("Dekont") || l.aksiyon.includes("Bitiş"))).length;
+                    document.getElementById(`succ-${id}`).innerHTML = `<span class="success-badge">${count} İŞLEM</span>`;
+                }
+                const resIlan = await fetch(`${API_BASE}/ilanlar-getir?userId=${id}`, { headers: authHeaders });
+                if (resIlan.ok) {
+                    const ilanlar = await resIlan.json();
+                    const aktifSayi = ilanlar.length;
+                    let gk = (maxKota && maxKota !== 'undefined') ? maxKota : "sinirsiz";
+                    let kg = gk === "sinirsiz" ? "Sınırsız" : gk;
+                    let r = (gk !== "sinirsiz" && aktifSayi >= parseInt(gk)) ? "var(--danger-color)" : "var(--success-color)";
+                    document.getElementById(`kota-text-${id}`).innerHTML = `<span style="color: ${r}; font-weight: 800; font-size:16px;">${aktifSayi}</span> <span style="color: var(--text-secondary);">/ ${kg}</span>`;
+                }
+            } catch (e) { console.log("Stats error:", e); }
+        }
+
+        // --- BAN MODALI İŞLEMLERİ ---
+        const banModal = document.getElementById('banModal');
+        document.getElementById('closeBanModal').onclick = () => banModal.style.display = 'none';
+
+        window.openBanModal = function(id) {
+            document.getElementById('banUserId').value = id;
+            document.getElementById('banReasonInput').value = "Hesap paylaşımı / Çoklu cihaz tespiti.";
+            banModal.style.display = "flex";
+        };
+
+        document.getElementById('submitBanBtn').onclick = async function() {
+            const id = document.getElementById('banUserId').value;
+            const sebep = document.getElementById('banReasonInput').value;
+            try {
+                await fetch(`${API_BASE}/users/${id}/banla`, { method:'POST', headers:authHeaders, body:JSON.stringify({sebep}) });
+                banModal.style.display = 'none';
+                showToast("Kullanıcı Yasaklandı!");
+                loadCustomers();
+            } catch(e) { showToast("Banlama başarısız.", "error"); }
+        };
+
+        window.unbanUser = async function(id) {
+            customConfirm("Kullanıcının yasağını kaldırmak istediğinize emin misiniz?", async function() {
+                try {
+                    await fetch(`${API_BASE}/users/${id}/bankaldir`, { method:'POST', headers:authHeaders });
+                    showToast("Yasak Kaldırıldı.", "success");
+                    loadCustomers();
+                } catch(e) { showToast("İşlem başarısız.", "error"); }
+            });
+        };
+
+        window.deleteCustomer = async function(id) {
+            customConfirm("Müşteriyi komple silmek istediğinize emin misiniz?", async function() {
+                try {
+                    await fetch(`${API_BASE}/users-komple-sil/${id}`, { method:'DELETE', headers:authHeaders });
+                    showToast("Müşteri kazındı!", "success");
+                    loadCustomers();
+                } catch (err) { showToast("Hata!", "error"); }
+            }, true);
+        };
+
+        window.toggleStatus = async function(id, status) {
+            try {
+                await fetch(`${API_BASE}/users/guncelle/${id}`, { method:'PATCH', headers:authHeaders, body:JSON.stringify({isActive:status}) });
+                showToast(status ? "Aktif edildi." : "Pasife çekildi.");
+                loadCustomers();
+            } catch (e) { showToast("Başarısız!", "error"); }
+        };
+
+        window.toggleCustomKota = function(v) {
+            const ok = document.getElementById('ozelKotaKutusu');
+            if (v === "ozel") ok.style.display = "block";
+            else { ok.style.display = "none"; document.getElementById('ozelKotaDegeri').value = ""; }
+        }
+
+        document.getElementById('addCustomerBtn').onclick = async function() {
+            const passcode = document.getElementById('newPasscode').value.trim();
+            const musteriIsim = document.getElementById('newCustomerName').value.trim() || "İsimsiz Müşteri";
+            const duration = parseInt(document.getElementById('subDuration').value);
+            const kotaSecimi = document.getElementById('ilanKotasiSelect').value;
+            let finalKota = kotaSecimi;
+            if (kotaSecimi === "ozel") {
+                const od = document.getElementById('ozelKotaDegeri').value.trim();
+                if (!od || parseInt(od) < 1) return showToast("Özel kota girin.", "error");
+                finalKota = od;
+            }
+            if(!passcode) return showToast("Şifre girin.", "error");
+            const exp = new Date(); exp.setMonth(exp.getMonth() + duration);
+            
+            try {
+                await fetch(`${API_BASE}/users/ekle`, {
+                    method:'POST', headers:authHeaders, body:JSON.stringify({passcode, isim:musteriIsim, role:"customer", expireDate:exp.toLocaleDateString('tr-TR'), createdDateStr:new Date().toLocaleDateString('tr-TR'), banMessage:"Süreniz doldu.", ilanKotasi:finalKota, isSoftBanned:false})
+                });
+                document.getElementById('newPasscode').value = ''; 
+                document.getElementById('newCustomerName').value = '';
+                showToast("Müşteri eklendi."); 
+                loadCustomers();
+            } catch (e) { showToast("Hata!", "error"); }
+        };
+
+        // --- DÜZENLEME MODALI ---
+        const editModal = document.getElementById("editModal");
+        document.getElementById("closeEditModal").onclick = () => editModal.style.display = "none";
+        
+        window.openEditModal = function(id) {
+            const u = globalCustomers.find(user => user.docId === id);
+            if(!u) return;
+            document.getElementById('editUserId').value = id;
+            document.getElementById('editCustomerName').value = u.isim || "";
+            document.getElementById('editPasscode').value = u.passcode;
+            document.getElementById('editExpireDate').value = parseDateString(u.expireDate);
+            document.getElementById('editBanMessage').value = u.banMessage || "";
+            document.getElementById('editIlanKotasi').value = u.ilanKotasi || "sinirsiz";
+            editModal.style.display = "flex";
+        };
+
+        document.getElementById('saveEditBtn').onclick = async function() {
+            const id = document.getElementById('editUserId').value;
+            const isim = document.getElementById('editCustomerName').value.trim();
+            const date = document.getElementById('editExpireDate').value;
+            const msg = document.getElementById('editBanMessage').value.trim();
+            const kota = document.getElementById('editIlanKotasi').value.trim();
+            if(!date) return showToast("Tarih seçin.", "error");
+            try {
+                await fetch(`${API_BASE}/users/guncelle/${id}`, { method:'PATCH', headers:authHeaders, body:JSON.stringify({isim, expireDate:new Date(date).toLocaleDateString('tr-TR'), banMessage:msg, ilanKotasi:kota}) });
+                editModal.style.display = "none"; showToast("Güncellendi."); loadCustomers();
+            } catch (error) { showToast("Hata!", "error"); }
+        };
+
+        function parseDateString(s) { if(!s) return ""; let p = s.split("."); return p.length===3 ? `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}` : ""; }
+
+        // --- TICKET ---
+        const ticketModal = document.getElementById('ticketModal');
+        document.getElementById('closeTicketModal').onclick = () => ticketModal.style.display = 'none';
+
+        async function loadTickets() {
+            try {
+                const res = await fetch(`${API_BASE}/tickets`, { headers: authHeaders });
+                const tickets = await res.json();
+                const tbody = document.getElementById('ticketsTableBody'); tbody.innerHTML = '';
+                let acik = 0;
+                tickets.sort((a,b) => b.tarih - a.tarih).forEach(t => {
+                    if(t.durum==='Acik') acik++;
+                    let c = globalCustomers.find(u => u.docId===t.musteriKod || u.passcode===t.musteriKod);
+                    tbody.innerHTML += `<tr><td><div>${dezenfekteEt(c?c.isim:"Bilinmiyor")}</div><span class="passcode-badge">${dezenfekteEt(c?c.passcode:t.musteriKod)}</span></td><td>${dezenfekteEt(t.konu)}</td><td>${t.durum==='Acik'?'AÇIK YENİ':t.durum}</td><td><button onclick="openTicketModal('${t.docId}','${encodeURIComponent(t.mesaj)}','${encodeURIComponent(t.yanit||'')}','${t.durum}')" class="action-btn">Yanıtla</button></td></tr>`;
+                });
+                document.getElementById('statTicket').innerText = acik;
+            } catch(e) {}
+        }
+
+        window.openTicketModal = (id, msg, rep, st) => { document.getElementById('ticketId').value = id; document.getElementById('ticketMessageText').innerText = decodeURIComponent(msg); document.getElementById('ticketReplyInput').value = decodeURIComponent(rep); document.getElementById('ticketStatusSelect').value = st==='Kapali'?'Kapali':'Yanitlandi'; ticketModal.style.display="flex"; };
+
+        document.getElementById('submitTicketBtn').onclick = async () => {
+            try {
+                await fetch(`${API_BASE}/tickets/${document.getElementById('ticketId').value}/yanitla`, { method:'PATCH', headers:authHeaders, body:JSON.stringify({yanit:document.getElementById('ticketReplyInput').value, durum:document.getElementById('ticketStatusSelect').value}) });
+                ticketModal.style.display='none'; showToast("Yanıtlandı."); loadTickets();
+            } catch(e) { showToast("Hata!", "error"); }
+        };
+
+        window.onclick = e => { if(e.target.classList.contains('modal')) e.target.style.display='none'; };
+
+        loadSystemStatus(); loadCustomers(); setTimeout(loadTickets, 500); 
+        setInterval(loadTickets, 10000); 
+    </script>
+</body>
+</html>
