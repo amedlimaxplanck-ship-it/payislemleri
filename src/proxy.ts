@@ -1,10 +1,9 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/request';
-import { jwtVerify } from 'jose'; // Using jose for edge compatibility in middleware
+import { NextRequest, NextResponse } from 'next/server';
+import { jwtVerify } from 'jose';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'SuperGizliAnahtar2026');
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     const token = request.cookies.get('token')?.value;
     const { pathname } = request.nextUrl;
 
