@@ -4,311 +4,298 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>Sistem Girişi | Güvenli Erişim Protokolü</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-dark: #08080a;
+            --accent: #ffffff;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: rgba(0, 0, 0, 0.4);
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Outfit', sans-serif;
         }
         
         body {
-            background-color: #050505;
+            background-color: var(--bg-dark);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             min-height: 100dvh; 
-            color: #f8fafc;
-            overflow-x: hidden; 
+            color: var(--text-main);
+            overflow: hidden;
             position: relative;
             padding: 20px;
         }
 
-        .glow-blob {
-            position: fixed; 
-            border-radius: 50%;
-            filter: blur(120px);
+        /* Mesh Gradient Background */
+        .mesh-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background: 
+                radial-gradient(at 0% 0%, rgba(29, 78, 216, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.1) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(59, 130, 246, 0.1) 0px, transparent 50%);
+            filter: blur(80px);
+            animation: meshMove 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes meshMove {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        .grain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             z-index: 1;
-            opacity: 0.4;
-            animation: floatGlow 25s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0.04;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3BaseFilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
 
-        .glow-1 {
-            width: 500px; height: 500px;
-            background: #1e3a8a; 
-            top: -150px; left: -200px;
-        }
-
-        .glow-2 {
-            width: 450px; height: 450px;
-            background: #4c1d95; 
-            bottom: -150px; right: -150px;
-            animation-delay: -7s;
-        }
-
-        @keyframes floatGlow {
-            0% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(60px, 40px) scale(1.1); }
-            100% { transform: translate(-40px, -60px) scale(0.9); }
-        }
-
-        .constellation {
+        .system-status {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-            background-size: 50px 50px;
-            z-index: 2;
-            opacity: 0.1;
-            animation: moveNetwork 60s linear infinite;
-        }
-
-        @keyframes moveNetwork {
-            from { background-position: 0 0; }
-            to { background-position: 500px 500px; }
-        }
-
-        .system-clock {
-            position: fixed;
-            top: 25px;
-            right: 25px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 12px;
-            color: #475569;
-            letter-spacing: 1px;
-            text-align: right;
+            top: 30px;
+            left: 30px;
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+            text-transform: uppercase;
             z-index: 20;
-            line-height: 1.6;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .system-clock span.secure { color: #10b981; font-weight: bold; }
-        .system-clock span.time { color: #f8fafc; font-weight: bold; }
-
-        .status-dot {
-            display: inline-block;
-            width: 7px;
-            height: 7px;
-            background-color: #10b981;
+        .status-pulse {
+            width: 6px;
+            height: 6px;
+            background: #10b981;
             border-radius: 50%;
-            margin-right: 8px;
             box-shadow: 0 0 10px #10b981;
             animation: pulse 2s infinite;
-            vertical-align: middle;
         }
 
         @keyframes pulse {
-            0% { transform: scale(0.95); opacity: 0.5; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-            100% { transform: scale(0.95); opacity: 0.5; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+            0% { opacity: 0.4; transform: scale(0.9); }
+            50% { opacity: 1; transform: scale(1.1); }
+            100% { opacity: 0.4; transform: scale(0.9); }
         }
 
-        .login-container {
-            background-color: rgba(15, 23, 42, 0.4);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            padding: 55px 45px;
-            border-radius: 20px;
-            box-shadow: 0 30px 70px rgba(0,0,0,0.7);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-top: 1px solid rgba(255, 255, 255, 0.12);
+        .login-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            padding: 60px 50px;
+            border-radius: 32px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 40px 100px var(--glass-shadow);
             width: 100%;
-            max-width: 420px;
+            max-width: 440px;
             text-align: center;
             position: relative;
             z-index: 10;
-            animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: cardEntrance 1s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+        @keyframes cardEntrance {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        .login-container h2 {
-            color: #f1f5f9;
-            margin-bottom: 5px;
-            font-size: 20px;
-            font-weight: 500;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+        .brand {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .login-container p {
-            color: #64748b;
-            margin-bottom: 45px;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 3px;
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 13px;
+            margin-bottom: 50px;
+            font-weight: 300;
+            letter-spacing: 0.5px;
         }
 
-        .input-group {
-            margin-bottom: 35px;
-            text-align: left;
+        .input-wrapper {
+            margin-bottom: 30px;
             position: relative;
         }
 
-        .input-badge {
-            position: absolute;
-            top: -24px;
-            right: 0;
-            font-size: 10px;
-            color: #334155;
-            font-family: 'Courier New', Courier, monospace;
-            letter-spacing: 1.5px;
-        }
-
-        .input-group input {
+        .input-wrapper input {
             width: 100%;
-            padding: 18px;
-            background-color: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 12px;
-            color: #fff; 
-            font-size: 24px; 
-            outline: none;
-            transition: all 0.3s;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            border-radius: 16px;
+            color: #fff;
+            font-size: 18px;
             text-align: center;
-            letter-spacing: 12px; 
-            font-family: 'Courier New', Courier, monospace;
-            font-weight: bold;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
-        }
-
-        .input-group input:focus {
-            border-color: #3b82f6;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 0 25px rgba(59, 130, 246, 0.2);
-            background-color: rgba(0, 0, 0, 0.6);
-        }
-
-        .input-group input::placeholder {
-            color: #2a3042;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             letter-spacing: 4px;
-            font-size: 14px;
-            font-weight: normal;
+            font-weight: 600;
         }
 
-        button {
+        .input-wrapper input:focus {
+            background: rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05);
+        }
+
+        .input-wrapper input::placeholder {
+            color: #334155;
+            letter-spacing: 1px;
+            font-weight: 400;
+            font-size: 14px;
+        }
+
+        .btn-primary {
             width: 100%;
             padding: 18px;
-            background: #f1f5f9;
-            color: #0f172a; 
+            background: var(--accent);
+            color: #000;
             border: none;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
+            border-radius: 16px;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 58px;
+            gap: 10px;
         }
 
-        button:hover {
-            background: #ffffff;
+        .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.15);
+            background: #f1f5f9;
         }
 
-        button:disabled {
-            background: #334155;
-            color: #94a3b8;
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            background: #1e293b;
+            color: #475569;
             cursor: not-allowed;
             transform: none;
-            box-shadow: none;
         }
 
-        .spinner {
-            border: 3px solid rgba(15, 23, 42, 0.1);
-            border-top: 3px solid #0f172a;
+        .error-container {
+            margin-top: 25px;
+            padding: 14px;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            color: #fca5a5;
+            font-size: 13px;
+            font-weight: 500;
+            display: none;
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .footer-info {
+            margin-top: 40px;
+            font-size: 11px;
+            color: #475569;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .loader {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(0,0,0,0.1);
+            border-top: 2px solid #000;
             border-radius: 50%;
-            width: 22px;
-            height: 22px;
             animation: spin 0.8s linear infinite;
             display: none;
         }
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        #error-message {
-            background-color: rgba(220, 38, 38, 0.12);
-            color: #fca5a5;
-            border: 1px solid rgba(220, 38, 38, 0.2);
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 25px;
-            font-size: 13px;
-            display: none;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            white-space: pre-wrap; /* 🔥 YENİ: Alt satıra geçmeleri okur 🔥 */
-            animation: shake 0.4s;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25%, 75% { transform: translateX(-5px); }
-            50% { transform: translateX(5px); }
-        }
-
-        .security-footer {
-            margin-top: 35px;
-            font-size: 10px;
-            color: #475569;
-            font-family: 'Courier New', Courier, monospace;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
         @media (max-width: 480px) {
-            .login-container { padding: 40px 30px; }
-            .system-clock { top: 15px; right: 15px; font-size: 10px; }
+            .login-card { padding: 45px 30px; }
+            .brand { font-size: 24px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="glow-blob glow-1"></div>
-    <div class="glow-blob glow-2"></div>
-    
-    <div class="constellation"></div>
+    <div class="mesh-gradient"></div>
+    <div class="grain"></div>
 
-    <div class="system-clock">
-        <span class="secure"><span class="status-dot"></span> SECURE_SESSION</span><br>
-        SYS_TIME: <span id="clock" class="time">...</span><br>
-        NODE: <span style="color:#64748b;">RELAY-X19</span>
+    <div class="system-status">
+        <div class="status-pulse"></div>
+        <span>Güvenli Bağlantı Aktif</span>
     </div>
 
-    <div class="login-container">
-        <h2>Güvenli Erişim</h2>
-        <p>Protokol Doğrulaması</p>
+    <div class="login-card">
+        <div class="brand">PAYPAYY</div>
+        <p class="subtitle">Kurumsal Erişim Portalı</p>
         
-        <div class="input-group">
-            <span class="input-badge">PROTOCOL_V5</span>
-            <input type="password" id="accessCode" placeholder="GİZLİ ANAHTAR" autocomplete="off">
+        <div class="input-wrapper">
+            <input type="password" id="accessCode" placeholder="Giriş Anahtarı" autocomplete="off">
         </div>
         
-        <button id="loginBtn">
-            <span id="btnText">Doğrulama Başlat</span>
-            <div class="spinner" id="btnSpinner"></div>
+        <button id="loginBtn" class="btn-primary">
+            <span id="btnText">Oturum Aç</span>
+            <div class="loader" id="btnSpinner"></div>
         </button>
         
-        <div id="error-message">Hatalı veya süresi dolmuş kod!</div>
+        <div id="error-message" class="error-container">Hatalı veya süresi dolmuş kod!</div>
 
-        <div class="security-footer">
-            [ AES-256 | TLS 1.3 | ZERO_TRUST ]
+        <div class="footer-info">
+            <span>v2.4.0</span>
+            <span>•</span>
+            <span>SSL Şifreli</span>
+            <span>•</span>
+            <span id="clock">00:00:00</span>
         </div>
     </div>
 
     <script type="module">
-        // Canlı Saat Fonksiyonu
+        // Canlı Saat
         function updateClock() {
             const now = new Date();
-            const timeStr = now.toLocaleTimeString('tr-TR');
-            const dateStr = now.toLocaleDateString('tr-TR');
-            document.getElementById('clock').innerText = dateStr + " " + timeStr;
+            const timeStr = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.getElementById('clock').innerText = timeStr;
         }
         setInterval(updateClock, 1000);
         updateClock();
@@ -319,19 +306,19 @@
         const accessCodeInput = document.getElementById('accessCode');
         const errorMessage = document.getElementById('error-message');
 
-        // 🔥 YENİ: Ban mesajlarını daha tehditkar gösteren fonksiyon 🔥
         function showError(msg, isBanned = false) {
             errorMessage.textContent = msg;
+            errorMessage.style.display = 'block';
+            
             if(isBanned) {
-                errorMessage.style.backgroundColor = "rgba(220, 38, 38, 0.25)";
-                errorMessage.style.border = "1px solid rgba(220, 38, 38, 0.6)";
-                errorMessage.style.color = "#fef2f2";
+                errorMessage.style.background = "rgba(239, 68, 68, 0.15)";
+                errorMessage.style.borderColor = "rgba(239, 68, 68, 0.4)";
+                errorMessage.style.color = "#ffffff";
             } else {
-                errorMessage.style.backgroundColor = "rgba(220, 38, 38, 0.12)";
-                errorMessage.style.border = "1px solid rgba(220, 38, 38, 0.2)";
+                errorMessage.style.background = "rgba(239, 68, 68, 0.08)";
+                errorMessage.style.borderColor = "rgba(239, 68, 68, 0.2)";
                 errorMessage.style.color = "#fca5a5";
             }
-            errorMessage.style.display = 'block';
         }
 
         loginBtn.addEventListener('click', async () => {
@@ -339,16 +326,16 @@
             errorMessage.style.display = 'none';
             
             if (code === "") {
-                showError("Lütfen güvenlik anahtarını girin.");
+                showError("Lütfen giriş anahtarını girin.");
                 return;
             }
 
-            btnText.style.display = 'none';
+            // UI Loading State
+            btnText.style.opacity = '0';
             btnSpinner.style.display = 'block';
             loginBtn.disabled = true;
 
             try {
-                // Vercel linkin: Eğer yerelde çalışıyorsan localhost'a, değilse direkt /api rotasına atar
                 const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
                 const apiUrl = isLocal ? 'http://localhost:3000/api/login' : '/api/login';
 
@@ -365,36 +352,44 @@
                     localStorage.setItem("userRole", sonuc.user.role);
                     localStorage.setItem("token", sonuc.token); 
                     
-                    if (sonuc.user.role === "god") {
-                        window.location.href = "god-panel.html"; 
-                    } else if (sonuc.user.role === "customer") {
-                        if (sonuc.user.isActive === true) {
-                            window.location.href = "musteri-panel.html"; 
-                        } else {
-                            // Eski usul pasife alınmışsa çıkacak standart mesaj
-                            showError(sonuc.user.banMessage || "Abonelik süreniz dolmuş veya askıya alınmıştır.");
+                    // Başarılı girişte buton efekti
+                    loginBtn.style.background = "#10b981";
+                    btnText.innerText = "Giriş Başarılı";
+                    btnText.style.opacity = '1';
+                    btnSpinner.style.display = 'none';
+
+                    setTimeout(() => {
+                        if (sonuc.user.role === "god") {
+                            window.location.href = "god-panel.html"; 
+                        } else if (sonuc.user.role === "customer") {
+                            window.location.href = "musteri-panel.html";
                         }
-                    } else {
-                        showError("Sistem hatası: Bu şifrenin yetkisi tanımlanmamış.");
-                    }
+                    }, 600);
                 } else {
-                    // 🔥 YENİ: Ban mesajlarını ve hataları ayıklama 🔥
-                    showError(sonuc.message || sonuc.hata || "Giriş başarısız. Şifreyi kontrol edin.", sonuc.isBanned);
+                    showError(sonuc.message || sonuc.hata || "Giriş başarısız. Lütfen tekrar deneyin.", sonuc.isBanned);
+                    resetButton();
                 }
             } catch (error) {
                 console.error("Hata Detayı:", error);
-                showError("Sunucu bağlantı hatası. Vercel uykuda veya internet yok.");
-            } finally {
-                btnText.style.display = 'block';
-                btnText.innerText = "Tekrar Dene";
-                btnSpinner.style.display = 'none';
-                loginBtn.disabled = false;
+                showError("Bağlantı hatası: Sunucuya ulaşılamıyor.");
+                resetButton();
             }
         });
 
-        // Enter tuşuyla girebilme
-        accessCodeInput.addEventListener('keypress', function (e) {
+        function resetButton() {
+            btnText.style.opacity = '1';
+            btnText.innerText = "Tekrar Dene";
+            btnSpinner.style.display = 'none';
+            loginBtn.disabled = false;
+        }
+
+        accessCodeInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') loginBtn.click();
+        });
+
+        // Input odaklanma efekti için opsiyonel: hata mesajını gizle
+        accessCodeInput.addEventListener('input', () => {
+            errorMessage.style.display = 'none';
         });
     </script>
 
