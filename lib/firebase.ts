@@ -10,8 +10,16 @@ const firebaseConfig = {
     appId: process.env.FIREBASE_APP_ID
 };
 
-// Singleton pattern to prevent multiple initializations in development
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// Singleton pattern to prevent multiple initializations
+let app;
+try {
+    app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+} catch (error) {
+    console.error("Firebase init error:", error);
+    // Provide a dummy app or let it fail gracefully
+    app = getApps().length > 0 ? getApp() : null;
+}
+
+const db = app ? getFirestore(app) : null;
 
 export { db };
