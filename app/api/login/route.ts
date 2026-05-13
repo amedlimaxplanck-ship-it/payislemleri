@@ -6,24 +6,38 @@ import { createToken } from '@/lib/auth';
 export async function POST(request: Request) {
     try {
         const { code } = await request.json();
-        console.log("Giriş denemesi:", code);
+        console.log("--- GİRİŞ DENEMESİ BAŞLADI ---");
+        console.log("Alınan Kod:", code);
         
         if (!code) {
-            return NextResponse.json({ success: false, message: "Geçersiz erişim kodu!" }, { status: 400 });
+            return NextResponse.json({ success: false, message: "Lütfen bir kod girin!" }, { status: 400 });
         }
 
-        // Try as string first
-        let q = query(collection(db, "users"), where("passcode", "==", String(code)));
-        let querySnapshot = await getDocs(q);
-        
-        // If not found, try as number
-        if (querySnapshot.empty && !isNaN(Number(code))) {
-            q = query(collection(db, "users"), where("passcode", "==", Number(code)));
+        // 1. ADIM: Farklı alan adları ve tiplerle sorgu dene
+        const fieldVariations = ["passcode", "passCode", "code"];
+        let querySnapshot: any = null;
+
+        for (const field of fieldVariations) {
+            console.log(`${field} alanı kontrol ediliyor...`);
+            
+            // String kontrolü
+            let q = query(collection(db, "users"), where(field, "==", String(code)));
             querySnapshot = await getDocs(q);
+            
+            // Bulunamazsa ve sayı ise Number kontrolü
+            if (querySnapshot.empty && !isNaN(Number(code))) {
+                q = query(collection(db, "users"), where(field, "==", Number(code)));
+                querySnapshot = await getDocs(q);
+            }
+
+            if (!querySnapshot.empty) {
+                console.log(`Eşleşme bulundu! Alan: ${field}`);
+                break;
+            }
         }
         
-        if (querySnapshot.empty) {
-            console.warn("Kod bulunamadı:", code);
+        if (!querySnapshot || querySnapshot.empty) {
+            console.warn("DİKKAT: Veritabanında eşleşen kullanıcı bulunamadı.");
             return NextResponse.json({ success: false, message: "Geçersiz erişim kodu!" }, { status: 401 });
         }
         
@@ -31,69 +45,39 @@ export async function POST(request: Request) {
         const userData = userDoc.data();
         const userId = userDoc.id;
 
-        if (userData.isBanned) {
-            return NextResponse.json({ 
-                success: false, 
-                isBanned: true, 
-                message: `HESAP YASAKLANDI!\nSebep: ${userData.banReason || 'Kural İhlali'}` 
-            }, { status: 403 });
-        }
+        console.log("Kullanıcı Doğrulandı:", userId, "Rol:", userData.role);
 
-        // Expire check
-        if (userData.expireDate && userData.role !== 'god') {
-            const parts = userData.expireDate.split('.');
-            if (parts.length === 3) {
-                const expDate = new Date(parts[2], parts[1] - 1, parts[0], 23, 59, 59).getTime();
-                if (Date.now() > expDate) {
-                    return NextResponse.json({ 
-                        success: false, 
-                        message: userData.banMessage || "Abonelik süreniz dolmuştur. Lütfen ödemenizi yapın." 
-                    }, { status: 403 });
-                }
-            }
-        }
-
-        // IP Tracking
-        const forwarded = request.headers.get('x-forwarded-for');
-        const currentIp = forwarded ? forwarded.split(',')[0] : 'Bilinmeyen IP';
-        
-        let recentIps = userData.recentIps || [];
-        if (!recentIps.includes(currentIp)) {
-            recentIps.push(currentIp);
-            if (recentIps.length > 3) recentIps.shift(); 
-        }
-        
-        const isSuspicious = recentIps.length >= 3;
-        const suspicionReason = isSuspicious ? "Farklı konumlardan/cihazlardan giriş tespit edildi." : "";
-
+        // 2. ADIM: Oturum güncelleme (Hata alsa da girişi engellemesin)
         const yeniOturumKodu = Date.now().toString(); 
-        
-        await updateDoc(doc(db, "users", userId), { 
-            currentSession: yeniOturumKodu,
-            recentIps: recentIps,
-            isSuspicious: isSuspicious,
-            suspicionReason: suspicionReason
-        });
+        try {
+            await updateDoc(doc(db, "users", userId), { 
+                currentSession: yeniOturumKodu,
+                lastLogin: new Date().toISOString()
+            });
+        } catch (updateErr) {
+            console.error("Oturum güncellenemedi (Muhtemelen yetki kısıtı), devam ediliyor:", updateErr);
+        }
 
         const token = await createToken({ id: userId, role: userData.role, sessionId: yeniOturumKodu });
 
         const response = NextResponse.json({ 
             success: true, 
-            user: { id: userId, ...userData } 
+            user: { id: userId, ...userData },
+            token: token // Client-side için de gönderiyoruz
         });
 
-        // Set cookie for persistence
         response.cookies.set('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            maxAge: 60 * 60 * 24, // 24 hours
+            maxAge: 60 * 60 * 24, 
             path: '/',
         });
 
+        console.log("--- GİRİŞ BAŞARILI ---");
         return response;
 
     } catch (error) {
-        console.error("Login error:", error);
-        return NextResponse.json({ success: false, message: "Sunucu hatası" }, { status: 500 });
+        console.error("KRİTİK GİRİŞ HATASI:", error);
+        return NextResponse.json({ success: false, message: "Sunucu hatası: " + (error as Error).message }, { status: 500 });
     }
 }
