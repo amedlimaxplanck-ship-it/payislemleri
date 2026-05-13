@@ -6,7 +6,8 @@ import { cookies } from 'next/headers';
 
 export async function GET() {
     try {
-        const token = cookies().get('token')?.value;
+        const cookieStore = await cookies();
+        const token = cookieStore.get('token')?.value;
         const decoded = token ? verifyToken(token) : null;
         
         if (!decoded) return NextResponse.json({ hata: "Yetkisiz" }, { status: 401 });
