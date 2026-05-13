@@ -6,15 +6,24 @@ import { createToken } from '@/lib/auth';
 export async function POST(request: Request) {
     try {
         const { code } = await request.json();
+        console.log("Giriş denemesi:", code);
         
         if (!code) {
             return NextResponse.json({ success: false, message: "Geçersiz erişim kodu!" }, { status: 400 });
         }
 
-        const q = query(collection(db, "users"), where("passcode", "==", code));
-        const querySnapshot = await getDocs(q);
+        // Try as string first
+        let q = query(collection(db, "users"), where("passcode", "==", String(code)));
+        let querySnapshot = await getDocs(q);
+        
+        // If not found, try as number
+        if (querySnapshot.empty && !isNaN(Number(code))) {
+            q = query(collection(db, "users"), where("passcode", "==", Number(code)));
+            querySnapshot = await getDocs(q);
+        }
         
         if (querySnapshot.empty) {
+            console.warn("Kod bulunamadı:", code);
             return NextResponse.json({ success: false, message: "Geçersiz erişim kodu!" }, { status: 401 });
         }
         
