@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyToken } from '@/lib/auth';
 
 export async function proxy(request: NextRequest) {
     const token = request.cookies.get('token')?.value;
@@ -12,7 +13,15 @@ export async function proxy(request: NextRequest) {
         return NextResponse.redirect(new URL('/login', request.url));
     }
 
-    // Basic pass-through to avoid 500 errors from jose/jwt
+    try {
+        const decoded = await verifyToken(token);
+        if (!decoded) {
+            return NextResponse.redirect(new URL('/login', request.url));
+        }
+    } catch (error) {
+        return NextResponse.redirect(new URL('/login', request.url));
+    }
+
     return NextResponse.next();
 }
 

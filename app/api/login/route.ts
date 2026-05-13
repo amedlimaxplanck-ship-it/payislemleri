@@ -66,7 +66,7 @@ export async function POST(request: Request) {
             suspicionReason: suspicionReason
         });
 
-        const token = createToken({ id: userId, role: userData.role, sessionId: yeniOturumKodu });
+        const token = await createToken({ id: userId, role: userData.role, sessionId: yeniOturumKodu });
 
         const response = NextResponse.json({ 
             success: true, 
