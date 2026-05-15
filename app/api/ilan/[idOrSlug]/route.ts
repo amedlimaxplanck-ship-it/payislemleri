@@ -11,10 +11,20 @@ export async function GET(request: Request, { params }: { params: { idOrSlug: st
         let doc = await adminDb.collection('ilanlar').doc(idOrSlug).get();
         
         if (!doc.exists) {
-            // Try by slug
-            const snap = await adminDb.collection('ilanlar').where('slug', '==', idOrSlug).limit(1).get();
+            // Try by linkUzantisi (used in musteri-panel) or slug
+            const snap = await adminDb.collection('ilanlar')
+                .where('linkUzantisi', '==', idOrSlug)
+                .limit(1)
+                .get();
+            
             if (!snap.empty) {
                 doc = snap.docs[0];
+            } else {
+                // Fallback to legacy 'slug' field if any
+                const snap2 = await adminDb.collection('ilanlar').where('slug', '==', idOrSlug).limit(1).get();
+                if (!snap2.empty) {
+                    doc = snap2.docs[0];
+                }
             }
         }
 

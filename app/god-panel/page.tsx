@@ -19,6 +19,7 @@ export default function GodPanel() {
     const [theme, setTheme] = useState('dark');
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [isKickActive, setIsKickActive] = useState(false);
+    const [toasts, setToasts] = useState<any[]>([]);
     
     // Modals
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -38,6 +39,13 @@ export default function GodPanel() {
     const [newCust, setNewCust] = useState({ name: '', passcode: '', duration: '1', kota: 'sinirsiz', ozelKota: '' });
 
     const router = useRouter();
+
+    const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success', title?: string) => {
+        const id = Math.random().toString(36).substr(2, 9);
+        const newToast = { id, message, type, title: title || (type === 'success' ? 'BAŞARILI' : type === 'error' ? 'HATA' : 'BİLGİ') };
+        setToasts(prev => [...prev, newToast]);
+        setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3500);
+    };
 
     useEffect(() => {
         const savedTheme = localStorage.getItem('godTheme') || 'dark';
@@ -223,14 +231,20 @@ export default function GodPanel() {
                 createdDateStr: new Date().toLocaleDateString('tr-TR'),
                 banMessage: "Süreniz doldu.",
                 ilanKotasi: finalKota,
-                isSoftBanned: false
-            })
+    const handleAddCustomer = async (e: any) => {
+        e.preventDefault();
+        const res = await fetch('/api/users/ekle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newCust)
         });
-        if (checkTokenError(res)) return;
         if (res.ok) {
-            showToast("Müşteri eklendi.");
+            showToast("Müşteri başarıyla oluşturuldu.");
             setNewCust({ name: '', passcode: '', duration: '1', kota: 'sinirsiz', ozelKota: '' });
             loadCustomers();
+        } else {
+            const err = await res.json();
+            showToast(err.message || "Hata oluştu", "error");
         }
     };
 
@@ -363,6 +377,14 @@ export default function GodPanel() {
 
     return (
         <div className="god-body">
+            <div className="toast-container">
+                {toasts.map(t => (
+                    <div key={t.id} className={`toast toast-${t.type}`}>
+                        <strong>{t.title}</strong>
+                        <p>{t.message}</p>
+                    </div>
+                ))}
+            </div>
             {isKickActive && (
                 <div id="kick-overlay" className="active">
                     <div className="kick-card">
@@ -386,8 +408,12 @@ export default function GodPanel() {
                         <span className="theme-slider"></span>
                     </label>
                     <button className="logout-btn" onClick={async () => {
-                        await fetch('/api/logout', { method: 'POST' });
-                        router.push('/login');
+                        const handleLogout = async () => {
+                            await fetch('/api/logout', { method: 'POST' });
+                            router.push('/login');
+                            showToast("Güvenli çıkış yapıldı.");
+                        };
+                        handleLogout();
                     }}>Çıkış Yap</button>
                 </div>
             </div>
@@ -922,6 +948,39 @@ export default function GodPanel() {
                     .command-grid { grid-template-columns: 1fr; }
                     .command-box.full-width { grid-column: span 1; }
                 }
+            `}</style>
+            {/* Toast Container */}
+            <div className="toast-container">
+                {toasts.map(t => (
+                    <div key={t.id} className={`toast ${t.type}`}>
+                        <div className="toast-icon">
+                            {t.type === 'success' && '✅'}
+                            {t.type === 'error' && '❌'}
+                            {t.type === 'info' && 'ℹ️'}
+                        </div>
+                        <div className="toast-content">
+                            <strong>{t.title}</strong>
+                            <p>{t.message}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+            
+            <style jsx global>{`
+                .toast-container { position: fixed; top: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; }
+                .toast { 
+                    background: #fff; border-radius: 12px; padding: 12px 18px; display: flex; align-items: center; gap: 12px;
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.1); min-width: 280px; max-width: 380px; 
+                    animation: toastIn 0.3s ease-out forwards; border-left: 5px solid transparent;
+                }
+                [data-theme='dark'] .toast { background: #1e293b; color: #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+                .toast.success { border-left-color: #10b981; }
+                .toast.error { border-left-color: #ef4444; }
+                .toast.info { border-left-color: #3b82f6; }
+                .toast-icon { font-size: 20px; }
+                .toast-content strong { display: block; font-size: 13px; font-weight: 800; text-transform: uppercase; margin-bottom: 2px; }
+                .toast-content p { font-size: 13px; opacity: 0.8; margin: 0; }
+                @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
             `}</style>
         </div>
     );

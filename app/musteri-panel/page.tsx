@@ -465,8 +465,8 @@ export default function MusteriPanel() {
                                                 <td>
                                                     {!user?.isSoftBanned ? (
                                                         <div className="link-group">
-                                                            <button className="link-badge sahibinden" onClick={() => handleCopy(`https://payislemleri-sahibinden.vercel.app/${ilan.linkUzantisi || ilan.docId}`, 'Sahibinden')}>SHB</button>
-                                                            <button className="link-badge ptt" onClick={() => handleCopy(`https://payislemlerim-pttavm.vercel.app/${ilan.linkUzantisi || ilan.docId}`, 'PttAVM')}>PTT</button>
+                                                            <button className="link-badge sahibinden" onClick={() => handleCopy(`${window.location.origin}/ilan/${ilan.linkUzantisi || ilan.docId}`, 'Sahibinden')}>SHB</button>
+                                                            <button className="link-badge ptt" onClick={() => handleCopy(`${window.location.origin}/item/${ilan.linkUzantisi || ilan.docId}`, 'PttAVM')}>PTT</button>
                                                         </div>
                                                     ) : <span className="locked-badge">🔒 Kilitli</span>}
                                                 </td>
