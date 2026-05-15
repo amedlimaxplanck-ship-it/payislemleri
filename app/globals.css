@@ -1,68 +1,83 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
-
 :root {
-  --bg-dark: #050507;
-  --bg-card: rgba(10, 10, 15, 0.7);
-  --accent: #ffffff;
-  --text-main: #f8fafc;
-  --text-dim: #64748b;
-  --border: rgba(255, 255, 255, 0.08);
-  --glow: rgba(255, 255, 255, 0.03);
+    --bg-body: #f0f2f5;
+    --bg-card: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --table-header: #f8fafc;
+    --input-bg: #ffffff;
+    --modal-bg: rgba(15, 23, 42, 0.4);
+    --primary-glow: rgba(0, 123, 255, 0.2);
+    --god-glow: rgba(79, 70, 229, 0.25);
+    --danger-color: #ef4444;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+[data-theme="dark"] {
+    --bg-body: #000000;
+    --bg-card: #0a0a0b;
+    --text-main: #f8fafc;
+    --text-muted: #a1a1aa;
+    --border-color: #1a1a1a;
+    --table-header: #000000;
+    --input-bg: #0a0a0b;
+    --modal-bg: rgba(0, 0, 0, 0.85);
+    --primary-glow: rgba(0, 123, 255, 0.4);
+    --god-glow: rgba(79, 70, 229, 0.3);
 }
 
-body {
-  background-color: var(--bg-dark);
-  color: var(--text-main);
-  font-family: 'Outfit', sans-serif;
-  overflow: hidden;
-  -webkit-font-smoothing: antialiased;
+* { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+    transition: background-color 0.3s, border-color 0.3s, color 0.3s, box-shadow 0.3s; 
 }
 
-/* Teknik Arka Plan Efektleri */
-.tech-grid {
-  position: fixed;
-  inset: 0;
-  background-image: 
-    linear-gradient(var(--border) 1px, transparent 1px),
-    linear-gradient(90deg, var(--border) 1px, transparent 1px);
-  background-size: 50px 50px;
-  mask-image: radial-gradient(circle at center, black, transparent 80%);
-  opacity: 0.15;
-  pointer-events: none;
-  z-index: 0;
+body { 
+    background-color: var(--bg-body); 
+    color: var(--text-main); 
+    line-height: 1.5; 
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
 }
 
-.scanline {
-  position: fixed;
-  inset: 0;
-  background: linear-gradient(
-    to bottom,
-    transparent 50%,
-    rgba(0, 0, 0, 0.1) 50%
-  );
-  background-size: 100% 4px;
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0.1;
+/* Custom Scrollbar */
+::-webkit-scrollbar { 
+    width: 8px; 
+    height: 8px; 
 }
 
-.mesh {
-  position: fixed;
-  inset: 0;
-  background: 
-    radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.05) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.05) 0px, transparent 50%);
-  filter: blur(100px);
-  z-index: 0;
+::-webkit-scrollbar-track { 
+    background: transparent; 
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
+::-webkit-scrollbar-thumb { 
+    background: #cbd5e1; 
+    border-radius: 10px; 
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb { 
+    background: #1a1a1a; 
+}
+
+/* Animations */
+@keyframes slideUp { 
+    from { opacity: 0; transform: translateY(10px); } 
+    to { opacity: 1; transform: translateY(0); } 
+}
+
+@keyframes modalPop { 
+    0% { opacity: 0; transform: scale(0.95) translateY(20px); } 
+    100% { opacity: 1; transform: scale(1) translateY(0); } 
+}
+
+@keyframes pulseWarning {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.02); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-slide-up {
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }

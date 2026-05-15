@@ -5,44 +5,52 @@ import { useRouter } from 'next/navigation';
 
 export default function GodPanel() {
     const [stats, setStats] = useState({ total: 0, active: 0, tickets: 0 });
-    const [system, setSystem] = useState({ kilitDurumu: false, sorguAktif: false, anonsMesaji: '', godBotToken: '', godChatId: '' });
+    const [system, setSystem] = useState({ kilitDurumu: false, sorguAktif: false, anonsMesaji: '' });
     const [users, setUsers] = useState<any[]>([]);
-    const [tickets, setTickets] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [theme, setTheme] = useState('light');
+    const [kick, setKick] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
         fetchData();
-        const interval = setInterval(fetchData, 30000);
+        const savedTheme = localStorage.getItem('god_theme') || 'dark';
+        setTheme(savedTheme);
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        const interval = setInterval(fetchData, 10000);
         return () => clearInterval(interval);
     }, []);
 
     const fetchData = async () => {
         try {
-            const [statusRes, usersRes, ticketsRes] = await Promise.all([
+            const [statusRes, usersRes] = await Promise.all([
                 fetch('/api/sistem/durum'),
-                fetch('/api/users'),
-                fetch('/api/tickets')
+                fetch('/api/users')
             ]);
 
             if (statusRes.status === 401) return router.push('/login');
 
             const statusData = await statusRes.json();
             const usersData = await usersRes.json();
-            const ticketsData = await ticketsRes.json();
 
             setSystem(statusData);
             setUsers(usersData);
-            setTickets(ticketsData);
 
             const activeCount = usersData.filter((u: any) => u.isActive && !u.isBanned).length;
-            const openTickets = ticketsData.filter((t: any) => t.durum === 'Acik').length;
-            setStats({ total: usersData.length, active: activeCount, tickets: openTickets });
+            setStats({ total: usersData.length, active: activeCount, tickets: 0 });
             
             setLoading(false);
         } catch (error) {
             console.error("Data fetch error", error);
         }
+    };
+
+    const toggleTheme = () => {
+        const newTheme = theme === 'light' ? 'dark' : 'light';
+        setTheme(newTheme);
+        localStorage.setItem('god_theme', newTheme);
+        document.documentElement.setAttribute('data-theme', newTheme);
     };
 
     const handleToggleLockdown = async (val: boolean) => {
@@ -53,217 +61,206 @@ export default function GodPanel() {
         setSystem({ ...system, kilitDurumu: val });
     };
 
-    const handleLogout = async () => {
+    const handleLogout = () => {
         document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         router.push('/login');
     };
 
     if (loading) return (
         <div className="loading-screen">
-            <div className="shimmer"></div>
-            <p>ERİŞİM_YETKİSİ_DOĞRULANIYOR...</p>
+            <div className="spinner"></div>
+            <p>ROOT_ERİŞİMİ_DOĞRULANIYOR...</p>
             <style jsx>{`
-                .loading-screen { height: 100vh; background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #ef4444; font-family: monospace; }
-                .shimmer { width: 100px; height: 2px; background: #111; position: relative; overflow: hidden; margin-bottom: 20px; }
-                .shimmer::after { content: ''; position: absolute; inset: 0; background: #ef4444; animation: slide 1.5s infinite; }
-                @keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+                .loading-screen { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000; color: #ef4444; font-family: monospace; }
+                .spinner { width: 30px; height: 30px; border: 2px solid #111; border-top: 2px solid #ef4444; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
+                @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
             `}</style>
         </div>
     );
 
     return (
-        <div className="god-interface">
-            <div className="cyber-grid"></div>
-            <div className="scanline-effect"></div>
-
-            <main className="god-content">
-                <header className="god-header">
-                    <div className="logo-area">
-                        <div className="hazard-box">!</div>
-                        <div className="title-stack">
-                            <h1>GOD_COMMAND_CENTER</h1>
-                            <div className="system-path">ROOT://SECURE/ADMIN/PANEL</div>
-                        </div>
-                    </div>
-                    <div className="global-actions">
-                        <div className="clock">{new Date().toLocaleTimeString()}</div>
-                        <button className="danger-btn" onClick={handleLogout}>SİSTEMİ_KAPAT</button>
-                    </div>
-                </header>
-
-                <div className="top-stats">
-                    <div className="stat-box blue">
-                        <span className="label">TOPLAM_USER</span>
-                        <div className="value">{stats.total}</div>
-                    </div>
-                    <div className="stat-box green">
-                        <span className="label">AKTİF_OTURUM</span>
-                        <div className="value">{stats.active}</div>
-                    </div>
-                    <div className="stat-box red">
-                        <span className="label">AÇIK_TALEPLER</span>
-                        <div className="value">{stats.tickets}</div>
-                    </div>
-                    <div className="stat-box amber">
-                        <span className="label">SİSTEM_GÜVENLİĞİ</span>
-                        <div className="value">{system.kilitDurumu ? 'KRİTİK' : 'STABİL'}</div>
-                    </div>
+        <div className="god-wrapper animate-slide-up">
+            {/* Header */}
+            <header className="header">
+                <h1>God<span>Panel</span></h1>
+                <div className="header-controls">
+                    <label className="theme-switch">
+                        <input type="checkbox" checked={theme === 'dark'} onChange={toggleTheme} />
+                        <span className="theme-slider"></span>
+                    </label>
+                    <button className="logout-btn" onClick={handleLogout}>GÜVENLİ ÇIKIŞ</button>
                 </div>
+            </header>
 
-                <div className="main-layout">
-                    {/* Control Section */}
-                    <aside className="controls-side">
-                        <div className="glass-panel control-card">
-                            <h3>SİSTEM_KONTROLLERİ</h3>
-                            <div className="control-item">
-                                <div className="info">
-                                    <span className="name">Global Lockdown</span>
-                                    <span className="desc">Tüm erişimi anında keser</span>
-                                </div>
-                                <label className="switch">
-                                    <input type="checkbox" checked={system.kilitDurumu} onChange={(e) => handleToggleLockdown(e.target.checked)} />
-                                    <span className="slider"></span>
-                                </label>
-                            </div>
-                            <div className="control-item">
-                                <div className="info">
-                                    <span className="name">Sorgu Sistemi</span>
-                                    <span className="desc">Müşteri arama motoru</span>
-                                </div>
-                                <span className={`status-led ${system.sorguAktif ? 'on' : 'off'}`}></span>
-                            </div>
+            {/* Stats Grid */}
+            <div className="stats-grid">
+                <div className="stat-card">
+                    <h3>{stats.total}</h3>
+                    <p>MÜŞTERİ</p>
+                </div>
+                <div className="stat-card">
+                    <h3>{stats.active}</h3>
+                    <p>AKTİF</p>
+                </div>
+                <div className="stat-card warning">
+                    <h3>{stats.tickets}</h3>
+                    <p>DESTEK TALEBİ</p>
+                </div>
+            </div>
+
+            {/* Command Center */}
+            <div className="command-center">
+                <div className="command-title">SİSTEM KOMUTA MERKEZİ</div>
+                <div className="command-grid">
+                    <div className="command-box">
+                        <div className="command-header">
+                            <h3>Sistem Kilidi (Lockdown)</h3>
+                            <label className="switch lockdown-toggle">
+                                <input type="checkbox" checked={system.kilitDurumu} onChange={(e) => handleToggleLockdown(e.target.checked)} />
+                                <span className="slider"></span>
+                            </label>
                         </div>
+                        <p>Tüm müşterilerin işlemlerini anında dondurur.</p>
+                    </div>
 
-                        <div className="glass-panel alert-card">
-                            <h3>HIZLI_EYLEM</h3>
-                            <button className="action-button">+ YENİ MÜŞTERİ TANIMLA</button>
-                            <button className="action-button outline">SİSTEM LOGLARINI İNCELE</button>
+                    <div className="command-box">
+                        <div className="command-header">
+                            <h3>Sorgu Modülü (API)</h3>
+                            <label className="switch sorgu-toggle">
+                                <input type="checkbox" checked={system.sorguAktif} disabled />
+                                <span className="slider"></span>
+                            </label>
                         </div>
-                    </aside>
+                        <p>Müşteri sorgu panelini Aktif/Pasif yapar.</p>
+                    </div>
 
-                    {/* Table Section */}
-                    <div className="data-area">
-                        <div className="glass-panel table-panel">
-                            <div className="table-header">
-                                <h2>MÜŞTERİ_VERİTABANI</h2>
-                                <input type="text" placeholder="FİLTRELE (KOD/İSİM)..." className="search-input" />
-                            </div>
-                            <div className="table-scroll">
-                                <table className="cyber-table">
-                                    <thead>
-                                        <tr>
-                                            <th>#ID</th>
-                                            <th>KOD</th>
-                                            <th>KULLANICI_İSMİ</th>
-                                            <th>BİTİŞ_TARİHİ</th>
-                                            <th>DURUM</th>
-                                            <th>EYLEM</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {users.map((u, index) => (
-                                            <tr key={u.docId}>
-                                                <td><span className="index">{String(index + 1).padStart(2, '0')}</span></td>
-                                                <td><code className="pass-code">{u.passcode}</code></td>
-                                                <td className="user-name">{u.isim || 'BELİRTİLMEMİŞ'}</td>
-                                                <td className="date">{u.expireDate || 'SÜRESİZ'}</td>
-                                                <td>
-                                                    <span className={`status-pill ${u.isBanned ? 'banned' : u.isActive ? 'active' : 'idle'}`}>
-                                                        {u.isBanned ? 'YASAKLI' : u.isActive ? 'AKTİF' : 'PASİF'}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <div className="row-actions">
-                                                        <button className="row-btn">Düzenle</button>
-                                                        <button className="row-btn red">Banla</button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                    <div className="command-box full-width">
+                        <h3>Genel Duyuru (Anons)</h3>
+                        <div className="announcement-input">
+                            <input type="text" placeholder="Tüm müşterilere gidecek mesajı yazın..." value={system.anonsMesaji} readOnly />
+                            <button className="btn-primary">GÖNDER</button>
                         </div>
                     </div>
                 </div>
-            </main>
+            </div>
+
+            {/* User Management */}
+            <div className="grid-container">
+                <aside className="card user-form">
+                    <h2>YENİ MÜŞTERİ EKLE</h2>
+                    <div className="form-group">
+                        <label>Müşteri İsmi</label>
+                        <input type="text" placeholder="Örn: Ahmet Yılmaz" />
+                    </div>
+                    <div className="form-group">
+                        <label>Giriş Anahtarı</label>
+                        <input type="text" placeholder="Otomatik oluşturulur" />
+                    </div>
+                    <button className="btn-primary success">MÜŞTERİ TANIMLA</button>
+                </aside>
+
+                <div className="card table-card">
+                    <h2>MÜŞTERİ VERİTABANI</h2>
+                    <div className="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>KOD</th>
+                                    <th>KULLANICI</th>
+                                    <th>BİTİŞ</th>
+                                    <th>DURUM</th>
+                                    <th>İŞLEMLER</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {users.map(u => (
+                                    <tr key={u.docId}>
+                                        <td><span className="passcode-badge">{u.passcode}</span></td>
+                                        <td>{u.isim || 'Belirtilmemiş'}</td>
+                                        <td>{u.expireDate || 'Süresiz'}</td>
+                                        <td>
+                                            <span className={u.isBanned ? 'alert-badge' : 'success-badge'}>
+                                                {u.isBanned ? 'YASAKLI' : 'AKTİF'}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button className="action-btn">DÜZENLE</button>
+                                            <button className="action-btn danger">BANLA</button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
             <style jsx>{`
-                .god-interface { min-height: 100vh; background: #000; color: #fff; font-family: 'JetBrains Mono', monospace; position: relative; overflow-x: hidden; }
-                .cyber-grid { position: fixed; inset: 0; background-image: radial-gradient(#111 1px, transparent 1px); background-size: 30px 30px; pointer-events: none; z-index: 1; }
-                .scanline-effect { position: fixed; inset: 0; background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.5) 51%); background-size: 100% 4px; pointer-events: none; z-index: 2; opacity: 0.1; }
+                .god-wrapper { max-width: 1400px; margin: 0 auto; padding: 25px; }
                 
-                .god-content { position: relative; z-index: 3; max-width: 1500px; margin: 0 auto; padding: 40px; }
+                .header { display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); border: 1px solid var(--border-color); padding: 16px 20px; border-radius: 16px; margin-bottom: 24px; }
+                .header h1 { font-size: 20px; font-weight: 800; }
+                .header h1 span { color: var(--danger-color); }
                 
-                .god-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 50px; border-bottom: 1px solid #111; padding-bottom: 20px; }
-                .logo-area { display: flex; gap: 20px; align-items: center; }
-                .hazard-box { width: 45px; height: 45px; background: #ef4444; color: #000; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 900; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
-                .title-stack h1 { font-size: 1.2rem; letter-spacing: 3px; font-weight: 900; margin: 0; }
-                .system-path { font-size: 0.7rem; color: #444; margin-top: 5px; }
+                .header-controls { display: flex; align-items: center; gap: 15px; }
+                .theme-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+                .theme-switch input { opacity: 0; width: 0; height: 0; }
+                .theme-slider { position: absolute; cursor: pointer; inset: 0; background-color: var(--border-color); transition: .3s; border-radius: 24px; border: 1px solid var(--border-color); }
+                .theme-slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+                input:checked + .theme-slider { background-color: var(--text-main); border-color: var(--text-main); }
+                input:checked + .theme-slider:before { transform: translateX(20px); background-color: var(--bg-body); }
+                
+                .logout-btn { background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 10px; font-size: 11px; font-weight: 800; cursor: pointer; }
 
-                .global-actions { display: flex; align-items: center; gap: 30px; }
-                .clock { font-size: 1.1rem; font-weight: bold; color: #333; letter-spacing: 2px; }
-                .danger-btn { background: #111; border: 1px solid #333; color: #ef4444; padding: 10px 20px; font-size: 0.8rem; font-weight: bold; cursor: pointer; transition: all 0.3s; }
-                .danger-btn:hover { background: #ef4444; color: #000; border-color: #ef4444; box-shadow: 0 0 20px rgba(239,68,68,0.4); }
+                .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+                .stat-card { background: var(--bg-card); padding: 20px 10px; border-radius: 16px; border: 1px solid var(--border-color); text-align: center; }
+                .stat-card h3 { font-size: 28px; font-weight: 900; margin-bottom: 2px; }
+                .stat-card p { font-size: 10px; color: var(--text-muted); font-weight: 800; text-transform: uppercase; }
+                .stat-card.warning h3 { color: var(--warning-color); }
 
-                .top-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 40px; }
-                .stat-box { background: #050505; border: 1px solid #111; padding: 25px; position: relative; transition: all 0.3s; }
-                .stat-box:hover { border-color: currentColor; }
-                .stat-box .label { font-size: 0.7rem; color: #555; display: block; margin-bottom: 10px; font-weight: bold; }
-                .stat-box .value { font-size: 2.2rem; font-weight: 900; }
-                .stat-box.blue { color: #3b82f6; }
-                .stat-box.green { color: #22c55e; }
-                .stat-box.red { color: #ef4444; }
-                .stat-box.amber { color: #f59e0b; }
+                .command-center { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+                .command-title { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
+                .command-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+                .command-box { background: var(--bg-body); border: 1px solid var(--border-color); padding: 20px; border-radius: 14px; }
+                .command-box.full-width { grid-column: span 2; }
+                .command-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+                .command-box h3 { font-size: 14px; font-weight: 800; margin: 0; }
+                .command-box p { font-size: 11px; color: var(--text-muted); }
 
-                .main-layout { display: grid; grid-template-columns: 350px 1fr; gap: 30px; }
-                .glass-panel { background: rgba(10, 10, 10, 0.8); border: 1px solid #111; border-radius: 4px; padding: 25px; }
-                
-                .control-card h3, .alert-card h3, .table-header h2 { font-size: 0.85rem; color: #666; letter-spacing: 2px; margin-bottom: 25px; font-weight: bold; }
-                
-                .control-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #111; }
-                .control-item:last-child { border: none; }
-                .control-item .info .name { display: block; font-size: 0.95rem; font-weight: bold; }
-                .control-item .info .desc { font-size: 0.7rem; color: #444; }
-                
-                .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
+                .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
                 .switch input { opacity: 0; width: 0; height: 0; }
-                .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #222; transition: .4s; border-radius: 20px; }
-                .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: #555; transition: .4s; border-radius: 50%; }
-                input:checked + .slider { background-color: #ef4444; }
-                input:checked + .slider:before { transform: translateX(22px); background-color: #fff; }
+                .slider { position: absolute; cursor: pointer; inset: 0; background-color: #27272a; transition: .3s; border-radius: 34px; }
+                .slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+                .lockdown-toggle input:checked + .slider { background-color: var(--danger-color); }
+                .sorgu-toggle input:checked + .slider { background-color: #3b82f6; }
+                .switch input:checked + .slider:before { transform: translateX(22px); }
+
+                .grid-container { display: grid; grid-template-columns: 320px 1fr; gap: 24px; }
+                .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; }
+                .card h2 { font-size: 16px; font-weight: 800; margin-bottom: 24px; }
+
+                .form-group { margin-bottom: 20px; }
+                .form-group label { display: block; font-size: 10px; font-weight: 800; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; }
+                .form-group input { width: 100%; padding: 16px; border: 1px solid var(--border-color); border-radius: 12px; background: var(--bg-body); color: var(--text-main); font-size: 16px; outline: none; }
                 
-                .status-led { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 5px rgba(0,0,0,0.5); }
-                .status-led.on { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
-                .status-led.off { background: #333; }
+                .btn-primary { width: 100%; padding: 18px; background: var(--text-main); color: var(--bg-body); border: none; border-radius: 14px; font-size: 13px; font-weight: 800; text-transform: uppercase; cursor: pointer; }
+                .btn-primary.success { background: var(--success-color); color: white; }
 
-                .action-button { width: 100%; padding: 15px; margin-bottom: 10px; background: #fff; color: #000; border: none; font-weight: 900; font-size: 0.8rem; cursor: pointer; }
-                .action-button.outline { background: transparent; border: 1px solid #222; color: #fff; }
-
-                .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-                .search-input { background: #050505; border: 1px solid #111; padding: 10px 20px; color: #fff; font-family: inherit; font-size: 0.8rem; width: 300px; }
+                .table-responsive { overflow-x: auto; border-radius: 14px; border: 1px solid var(--border-color); }
+                table { width: 100%; border-collapse: collapse; min-width: 600px; }
+                th { padding: 18px; text-align: left; background: rgba(125,125,125,0.05); color: var(--text-muted); font-size: 10px; font-weight: 900; text-transform: uppercase; }
+                td { padding: 18px; border-bottom: 1px solid var(--border-color); font-size: 14px; }
                 
-                .table-scroll { overflow-x: auto; }
-                .cyber-table { width: 100%; border-collapse: collapse; min-width: 800px; }
-                .cyber-table th { text-align: left; padding: 15px; font-size: 0.7rem; color: #444; border-bottom: 2px solid #111; }
-                .cyber-table td { padding: 15px; border-bottom: 1px solid #080808; font-size: 0.9rem; }
-                
-                .index { color: #333; font-weight: bold; }
-                .pass-code { background: #111; color: #3b82f6; padding: 3px 8px; border-radius: 3px; font-size: 0.85rem; }
-                .user-name { font-weight: bold; color: #ccc; }
-                .status-pill { font-size: 0.65rem; padding: 3px 8px; font-weight: 900; }
-                .status-pill.active { color: #22c55e; background: rgba(34,197,94,0.05); }
-                .status-pill.banned { color: #ef4444; background: rgba(239,68,68,0.05); }
-                .status-pill.idle { color: #666; }
+                .passcode-badge { background: var(--bg-body); padding: 8px 12px; border-radius: 8px; font-family: monospace; font-weight: bold; border: 1px solid var(--border-color); }
+                .success-badge { color: var(--success-color); font-weight: 800; font-size: 12px; }
+                .alert-badge { color: var(--danger-color); font-weight: 800; font-size: 12px; background: rgba(239, 68, 68, 0.1); padding: 4px 8px; border-radius: 6px; }
 
-                .row-actions { display: flex; gap: 10px; }
-                .row-btn { background: #111; border: 1px solid #222; color: #666; padding: 5px 10px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; }
-                .row-btn:hover { background: #fff; color: #000; border-color: #fff; }
-                .row-btn.red:hover { background: #ef4444; border-color: #ef4444; }
+                .action-btn { background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 11px; font-weight: 700; margin-right: 5px; }
+                .action-btn.danger { color: var(--danger-color); }
 
-                @media (max-width: 1200px) {
-                    .top-stats { grid-template-columns: repeat(2, 1fr); }
-                    .main-layout { grid-template-columns: 1fr; }
+                @media (max-width: 992px) {
+                    .grid-container { grid-template-columns: 1fr; }
+                    .command-grid { grid-template-columns: 1fr; }
                 }
             `}</style>
         </div>
