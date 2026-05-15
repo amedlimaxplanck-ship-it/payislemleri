@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { adminAuth, adminFirestore } from '@/lib/firebase-admin';
+import { adminAuth, adminDb } from '@/lib/firebase-admin';
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
     try {
@@ -12,7 +12,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
         }
 
         const updates = await request.json();
-        const userRef = adminFirestore.collection('users').doc(params.id);
+        const userRef = adminDb.collection('users').doc(params.id);
         
         await userRef.set(updates, { merge: true });
 

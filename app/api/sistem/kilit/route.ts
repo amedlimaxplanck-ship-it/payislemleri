@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { adminAuth, adminFirestore } from '@/lib/firebase-admin';
+import { adminAuth, adminDb } from '@/lib/firebase-admin';
 
 async function verifyGod(request: Request) {
     const token = request.headers.get('Authorization')?.split('Bearer ')[1];
@@ -15,6 +15,6 @@ export async function POST(request: Request) {
     if (!god) return NextResponse.json({ status: 'error', message: 'Unauthorized' }, { status: 403 });
 
     const { kilitDurumu } = await request.json();
-    await adminFirestore.collection('ayarlar').doc('sistem').set({ kilitDurumu }, { merge: true });
+    await adminDb.collection('ayarlar').doc('sistem').set({ kilitDurumu }, { merge: true });
     return NextResponse.json({ success: true });
 }

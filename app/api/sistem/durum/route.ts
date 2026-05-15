@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { adminAuth, adminFirestore } from '@/lib/firebase-admin';
+import { adminAuth, adminDb } from '@/lib/firebase-admin';
 
 export async function GET(request: Request) {
     try {
@@ -9,7 +9,7 @@ export async function GET(request: Request) {
         const decodedToken = await adminAuth.verifyIdToken(token);
         if (decodedToken.role !== 'god') return NextResponse.json({ status: 'error', message: 'Unauthorized' }, { status: 403 });
 
-        const systemDoc = await adminFirestore.collection('ayarlar').doc('sistem').get();
+        const systemDoc = await adminDb.collection('ayarlar').doc('sistem').get();
         if (!systemDoc.exists) {
             return NextResponse.json({
                 kilitDurumu: false,
