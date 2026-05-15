@@ -37,9 +37,11 @@ export default function MusteriPanel() {
         docId: '', urunAdi: '', saticiAdi: '', saticiTel: '', sehir: '',
         kategoriAgaci: '', fiyat: '', hesapTarihi: '', iban: '',
         odemeYontemi: 'Havale / EFT', urunAciklamasi: '',
-        dinamikOzellikler: [], resimler: [], anaResim: '', linkUzantisi: ''
+        dinamikOzellikler: [], resimler: [], anaResim: '', linkUzantisi: '',
+        sablon: 'sablon1'
     });
-    const [bulkForm, setBulkForm] = useState({ saticiAdi: '', saticiTel: '', iban: '' });
+    const [selectedImages, setSelectedImages] = useState<File[]>([]);
+    const [bulkForm, setBulkForm] = useState({ saticiAdi: '', saticiTel: '', iban: '', sablon: '' });
     const [ticketForm, setTicketForm] = useState({ konu: 'Sistem Hatası / Bug', mesaj: '' });
     const [viewingTicket, setViewingTicket] = useState<any>(null);
     const [selectedAdIds, setSelectedAdIds] = useState<string[]>([]);
@@ -59,6 +61,23 @@ export default function MusteriPanel() {
         let str = text;
         for(let key in trMap) str = str.replace(new RegExp(key, 'g'), trMap[key]);
         return str.toLowerCase().replace(/[^-a-zA-Z0-9\s]+/ig, '').replace(/\s/gi, "-").replace(/-+/g, "-");
+    };
+
+    const uploadToImgBB = async (file: File) => {
+        const API_KEY = '67035f8b9e6e88932c021111663f706e'; // Re-using from legacy or standard key
+        const formData = new FormData();
+        formData.append('image', file);
+        try {
+            const res = await fetch(`https://api.imgbb.com/1/upload?key=${API_KEY}`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            return data.data.url;
+        } catch (e) {
+            console.error("ImgBB Upload Error:", e);
+            return null;
+        }
     };
 
     const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success', title?: string) => {
@@ -148,6 +167,7 @@ export default function MusteriPanel() {
     };
 
     const handleDeleteIlan = (id: string) => {
+        if (user?.isSoftBanned) return showToast("Soft-Ban kısıtlaması nedeniyle ilan silemezsiniz.", "error");
         setConfirmConfig({
             message: "Bu ilanı sistemden tamamen silmek üzeresiniz. Onaylıyor musunuz?",
             onConfirm: async () => {
@@ -163,6 +183,7 @@ export default function MusteriPanel() {
     };
 
     const handleToggleIlan = async (id: string, currentStatus: string) => {
+        if (user?.isSoftBanned) return showToast("Soft-Ban kısıtlaması nedeniyle durum değiştiremezsiniz.", "error");
         const newStatus = currentStatus === 'aktif' ? 'pasif' : 'aktif';
         const res = await fetch(`/api/ilan-guncelle/${id}`, {
             method: 'PATCH',
@@ -175,6 +196,7 @@ export default function MusteriPanel() {
     };
 
     const handleCloneIlan = async (id: string) => {
+        if (user?.isSoftBanned) return showToast("Soft-Ban kısıtlaması nedeniyle ilan klonlayamazsınız.", "error");
         const ilan = ilanlar.find(i => i.docId === id);
         if (!ilan) return;
         
@@ -199,11 +221,13 @@ export default function MusteriPanel() {
     };
 
     const handleBulkUpdate = async () => {
+        if (user?.isSoftBanned) return showToast("Soft-Ban kısıtlaması nedeniyle işlem yapamazsınız.", "error");
         if (selectedAdIds.length === 0) return showToast("Lütfen ilan seçin.", 'error');
         const payload: any = {};
         if (bulkForm.saticiAdi) payload.saticiAdi = bulkForm.saticiAdi;
         if (bulkForm.saticiTel) payload.saticiTel = bulkForm.saticiTel;
         if (bulkForm.iban) payload.iban = bulkForm.iban;
+        if (bulkForm.sablon) payload.sablon = bulkForm.sablon;
 
         if (Object.keys(payload).length === 0) return showToast("En az bir alan doldurun.", 'error');
 
@@ -216,41 +240,72 @@ export default function MusteriPanel() {
         
         showToast("Toplu güncelleme başarılı!");
         setIsBulkModalOpen(false);
+        setBulkForm({ saticiAdi: '', saticiTel: '', iban: '', sablon: '' });
         setSelectedAdIds([]);
         loadData(true);
     };
 
     const handleIlanSubmit = async (e: any) => {
         e.preventDefault();
+        if (user?.isSoftBanned) return showToast("Soft-Ban kısıtlaması nedeniyle ilan oluşturamazsınız.", "error");
+        
+        const isEditing = !!ilanForm.docId;
+        if (!isEditing && selectedImages.length === 0) return showToast("Lütfen en az bir resim seçin.", "error");
+
         const btn = e.target.querySelector('button[type="submit"]');
         btn.disabled = true;
         const originalText = btn.innerText;
-        btn.innerText = "Kaydediliyor...";
+        btn.innerText = "İşleniyor...";
 
-        const isEditing = !!ilanForm.docId;
-        const method = isEditing ? 'PATCH' : 'POST';
-        const url = isEditing ? `/api/ilan-guncelle/${ilanForm.docId}` : '/api/ilan-ekle';
+        try {
+            let finalResimler = [...(ilanForm.resimler || [])];
+            let finalAnaResim = ilanForm.anaResim;
 
-        const payload = { ...ilanForm, olusturanMusteri: user.id };
-        if (!isEditing) payload.durum = 'aktif';
+            if (selectedImages.length > 0) {
+                btn.innerText = "Resimler Yükleniyor...";
+                const uploadedUrls = await Promise.all(selectedImages.map(file => uploadToImgBB(file)));
+                const validUrls = uploadedUrls.filter(u => u !== null);
+                if (isEditing) {
+                    finalResimler = [...validUrls, ...finalResimler];
+                } else {
+                    finalResimler = validUrls;
+                }
+                finalAnaResim = finalResimler[0];
+            }
 
-        const res = await fetch(url, {
-            method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+            const method = isEditing ? 'PATCH' : 'POST';
+            const url = isEditing ? `/api/ilan-guncelle/${ilanForm.docId}` : '/api/ilan-ekle';
 
-        if (checkTokenError(res)) return;
-        if (res.ok) {
-            showToast(isEditing ? "Güncellendi." : "İlan oluşturuldu.");
-            setIsIlanModalOpen(false);
-            loadData(true);
-        } else {
-            const err = await res.json();
-            showToast(err.message || "Bir hata oluştu.", "error");
+            const payload = { 
+                ...ilanForm, 
+                olusturanMusteri: user.id,
+                resimler: finalResimler,
+                anaResim: finalAnaResim
+            };
+            if (!isEditing) payload.durum = 'aktif';
+
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (checkTokenError(res)) return;
+            if (res.ok) {
+                showToast(isEditing ? "İlan başarıyla güncellendi." : "Yeni ilan başarıyla oluşturuldu.");
+                setIsIlanModalOpen(false);
+                setSelectedImages([]);
+                loadData(true);
+            } else {
+                const err = await res.json();
+                showToast(err.message || "Bir hata oluştu.", "error");
+            }
+        } catch (err) {
+            showToast("İşlem sırasında bir hata oluştu.", "error");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = originalText;
         }
-        btn.disabled = false;
-        btn.innerText = originalText;
     };
 
     const handleTicketSubmit = async () => {
@@ -430,7 +485,14 @@ export default function MusteriPanel() {
                                 {!user?.isSoftBanned && (
                                     <>
                                         <button className="btn-primary" onClick={() => {
-                                            setIlanForm({ docId: '', urunAdi: '', saticiAdi: '', saticiTel: '', sehir: '', kategoriAgaci: '', fiyat: '', hesapTarihi: '', iban: '', odemeYontemi: 'Havale / EFT', urunAciklamasi: '', dinamikOzellikler: [], resimler: [], anaResim: '', linkUzantisi: '' });
+                                            setIlanForm({ 
+                                                docId: '', urunAdi: '', saticiAdi: '', saticiTel: '', sehir: '', 
+                                                kategoriAgaci: '', fiyat: '', hesapTarihi: '', iban: '', 
+                                                odemeYontemi: 'Havale / EFT', urunAciklamasi: '', 
+                                                dinamikOzellikler: [], resimler: [], anaResim: '', 
+                                                linkUzantisi: '', sablon: 'sablon1' 
+                                            });
+                                            setSelectedImages([]);
                                             setIsIlanModalOpen(true);
                                         }}>
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -482,7 +544,14 @@ export default function MusteriPanel() {
                                                 <td>
                                                     {!user?.isSoftBanned && (
                                                         <div className="row-actions">
-                                                            <button className="icon-btn" onClick={() => { setIlanForm(ilan); setIsIlanModalOpen(true); }} title="Düzenle">✏️</button>
+                                                            <button className="icon-btn" onClick={() => { 
+                                                                setIlanForm({
+                                                                    ...ilan,
+                                                                    sablon: ilan.sablon || 'sablon1'
+                                                                }); 
+                                                                setSelectedImages([]);
+                                                                setIsIlanModalOpen(true); 
+                                                            }} title="Düzenle">✏️</button>
                                                             <button className="icon-btn" onClick={() => handleCloneIlan(ilan.docId)} title="Klonla">📋</button>
                                                             <button className="icon-btn danger" onClick={() => handleDeleteIlan(ilan.docId)} title="Sil">🗑️</button>
                                                         </div>
@@ -756,19 +825,77 @@ export default function MusteriPanel() {
                                 <div className="form-group"><label>Satıcı Adı Soyadı</label><input type="text" required value={ilanForm.saticiAdi} onChange={e => setIlanForm({ ...ilanForm, saticiAdi: e.target.value })} /></div>
                                 <div className="form-group"><label>Satıcı Telefon</label><input type="text" required value={ilanForm.saticiTel} onChange={e => setIlanForm({ ...ilanForm, saticiTel: e.target.value })} /></div>
                                 <div className="form-group"><label>Şehir / İlçe</label><input type="text" required value={ilanForm.sehir} onChange={e => setIlanForm({ ...ilanForm, sehir: e.target.value })} /></div>
+                                <div className="form-group"><label>Görünüm Şablonu</label>
+                                    <select value={ilanForm.sablon} onChange={e => setIlanForm({ ...ilanForm, sablon: e.target.value })}>
+                                        <option value="sablon1">Sahibinden (Sarı)</option>
+                                        <option value="sablon2">PttAVM (Mavi)</option>
+                                    </select>
+                                </div>
                                 <div className="form-group"><label>Fiyat (TL)</label><input type="number" required value={ilanForm.fiyat} onChange={e => setIlanForm({ ...ilanForm, fiyat: e.target.value })} /></div>
-                                <div className="form-group"><label>IBAN</label><input type="text" required value={ilanForm.iban} onChange={e => setIlanForm({ ...ilanForm, iban: e.target.value })} /></div>
+                                <div className="form-group"><label>Hesap Tarihi</label><input type="text" placeholder="Örn: 10 Ocak 2024" value={ilanForm.hesapTarihi} onChange={e => setIlanForm({ ...ilanForm, hesapTarihi: e.target.value })} /></div>
+                                <div className="form-group"><label>Ödeme Yöntemi</label>
+                                    <select value={ilanForm.odemeYontemi} onChange={e => setIlanForm({ ...ilanForm, odemeYontemi: e.target.value })}>
+                                        <option value="Havale / EFT">Havale / EFT</option>
+                                        <option value="Kredi Kartı">Kredi Kartı</option>
+                                        <option value="Param Güvende">Param Güvende</option>
+                                    </select>
+                                </div>
+                                <div className="form-group"><label>IBAN - İsim Soyisim</label><input type="text" placeholder="TR... - Ad Soyad" required value={ilanForm.iban} onChange={e => setIlanForm({ ...ilanForm, iban: e.target.value })} /></div>
                                 <div className="form-group"><label>Kategori Ağacı</label><input type="text" value={ilanForm.kategoriAgaci} onChange={e => setIlanForm({ ...ilanForm, kategoriAgaci: e.target.value })} /></div>
                             </div>
-                            <div className="form-group">
+                            
+                            <div className="form-group" style={{ marginTop: '15px' }}>
+                                <label>Dinamik Özellikler</label>
+                                <div className="ozellikler-list">
+                                    {(ilanForm.dinamikOzellikler || []).map((oz: any, idx: number) => (
+                                        <div key={idx} className="ozellik-row">
+                                            <input type="text" placeholder="Özellik" value={oz.anahtar} onChange={e => {
+                                                const newOz = [...ilanForm.dinamikOzellikler];
+                                                newOz[idx].anahtar = e.target.value;
+                                                setIlanForm({ ...ilanForm, dinamikOzellikler: newOz });
+                                            }} />
+                                            <input type="text" placeholder="Değer" value={oz.deger} onChange={e => {
+                                                const newOz = [...ilanForm.dinamikOzellikler];
+                                                newOz[idx].deger = e.target.value;
+                                                setIlanForm({ ...ilanForm, dinamikOzellikler: newOz });
+                                            }} />
+                                            <button type="button" className="icon-btn danger" onClick={() => {
+                                                const newOz = ilanForm.dinamikOzellikler.filter((_: any, i: number) => i !== idx);
+                                                setIlanForm({ ...ilanForm, dinamikOzellikler: newOz });
+                                            }}>×</button>
+                                        </div>
+                                    ))}
+                                    <button type="button" className="btn-outline" style={{ width: '100%', borderStyle: 'dashed', marginTop: '5px' }} onClick={() => {
+                                        setIlanForm({ ...ilanForm, dinamikOzellikler: [...(ilanForm.dinamikOzellikler || []), { anahtar: '', deger: '' }] });
+                                    }}>+ Yeni Özellik Satırı Ekle</button>
+                                </div>
+                            </div>
+
+                            <div className="form-group" style={{ marginTop: '15px' }}>
                                 <label>Ürün Açıklaması</label>
                                 <textarea rows={3} value={ilanForm.urunAciklamasi} onChange={e => setIlanForm({ ...ilanForm, urunAciklamasi: e.target.value })}></textarea>
                             </div>
-                            <div className="form-group">
-                                <label>İlan Resim URL (Virgülle ayırın veya bir tane girin)</label>
-                                <input type="text" placeholder="https://i.ibb.co/..." value={ilanForm.anaResim} onChange={e => setIlanForm({ ...ilanForm, anaResim: e.target.value, resimler: [e.target.value] })} />
+                            <div className="form-group" style={{ marginTop: '15px' }}>
+                                <label>Ürün Resimleri</label>
+                                <input type="file" multiple accept="image/*" onChange={e => setSelectedImages(Array.from(e.target.files || []))} />
+                                <div className="resim-onizleme-liste">
+                                    {ilanForm.resimler?.map((img: string, idx: number) => (
+                                        <div key={idx} className="onizleme-item">
+                                            <img src={img} alt="" />
+                                            <button type="button" onClick={() => {
+                                                const newRes = ilanForm.resimler.filter((_: any, i: number) => i !== idx);
+                                                setIlanForm({ ...ilanForm, resimler: newRes, anaResim: newRes[0] || '' });
+                                            }}>×</button>
+                                        </div>
+                                    ))}
+                                    {selectedImages.map((file, idx) => (
+                                        <div key={`new-${idx}`} className="onizleme-item new">
+                                            <span>Yeni: {file.name}</span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                            <button type="submit" className="btn-primary w-full">Kaydet</button>
+                            <button type="submit" className="btn-primary w-full">İlanı Kaydet</button>
                         </form>
                     </div>
                 </div>
@@ -782,6 +909,13 @@ export default function MusteriPanel() {
                         <div className="form-group"><label>Yeni Satıcı Adı</label><input type="text" value={bulkForm.saticiAdi} onChange={e => setBulkForm({ ...bulkForm, saticiAdi: e.target.value })} /></div>
                         <div className="form-group"><label>Yeni Satıcı Tel</label><input type="text" value={bulkForm.saticiTel} onChange={e => setBulkForm({ ...bulkForm, saticiTel: e.target.value })} /></div>
                         <div className="form-group"><label>Yeni IBAN</label><input type="text" value={bulkForm.iban} onChange={e => setBulkForm({ ...bulkForm, iban: e.target.value })} /></div>
+                        <div className="form-group"><label>Yeni Şablon</label>
+                            <select value={bulkForm.sablon} onChange={e => setBulkForm({ ...bulkForm, sablon: e.target.value })}>
+                                <option value="">Değiştirme</option>
+                                <option value="sablon1">Sahibinden (Sarı)</option>
+                                <option value="sablon2">PttAVM (Mavi)</option>
+                            </select>
+                        </div>
                         <button className="btn-primary w-full" onClick={handleBulkUpdate}>Seçili İlanlara Uygula</button>
                     </div>
                 </div>
@@ -1060,6 +1194,19 @@ export default function MusteriPanel() {
                 /* Toast Animations */
                 #toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 999999; display: flex; flex-direction: column; gap: 15px; pointer-events: none; }
                 .toast { min-width: 300px; background: var(--bg-card); border-left: 5px solid; padding: 16px 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); color: var(--text-main); font-weight: 600; font-size: 14px; animation: toastIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) both; border: 1px solid var(--border-color); }
+                .toast.success { border-left-color: var(--success); }
+                .toast.error { border-left-color: var(--danger); }
+                .toast.info { border-left-color: var(--accent); }
+                .toast-title { display: block; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 4px; }
+                @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+                .ozellik-row { display: flex; gap: 10px; margin-bottom: 8px; }
+                .ozellik-row input { flex: 1; }
+                .resim-onizleme-liste { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+                .onizleme-item { position: relative; width: 80px; height: 80px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); }
+                .onizleme-item img { width: 100%; height: 100%; object-fit: cover; }
+                .onizleme-item button { position: absolute; top: 2px; right: 2px; background: var(--danger); color: #fff; border: none; border-radius: 4px; width: 18px; height: 18px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+                .onizleme-item.new { background: rgba(59, 130, 246, 0.1); border: 1px dashed var(--accent); display: flex; align-items: center; justify-content: center; padding: 5px; font-size: 9px; text-align: center; }
             `}</style>
         </div>
     );
