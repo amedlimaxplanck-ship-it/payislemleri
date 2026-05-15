@@ -1,26 +1,27 @@
 import { NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebase-admin';
+import { adminAuth, adminFirestore } from '@/lib/firebase-admin';
 
-export const dynamic = 'force-dynamic';
-
-export async function GET() {
+export async function GET(request: Request) {
     try {
-        const snap = await adminDb.collection('settings').doc('global').get();
-        if (snap.exists) {
-            const veri = snap.data() || {};
+        const token = request.headers.get('Authorization')?.split('Bearer ')[1];
+        if (!token) return NextResponse.json({ status: 'error', message: 'No token' }, { status: 401 });
+
+        const decodedToken = await adminAuth.verifyIdToken(token);
+        if (decodedToken.role !== 'god') return NextResponse.json({ status: 'error', message: 'Unauthorized' }, { status: 403 });
+
+        const systemDoc = await adminFirestore.collection('ayarlar').doc('sistem').get();
+        if (!systemDoc.exists) {
             return NextResponse.json({
-                kilitDurumu: veri.kilitDurumu || false,
-                anonsMesaji: veri.anonsMesaji || null,
-                anonsZamani: veri.anonsZamani || 0,
-                sorguAktif: veri.sorguAktif || false,
-                godBotToken: veri.godBotToken || "",
-                godChatId: veri.godChatId || ""
+                kilitDurumu: false,
+                sorguAktif: false,
+                anonsMesaji: '',
+                godBotToken: '',
+                godChatId: ''
             });
-        } else {
-            return NextResponse.json({ kilitDurumu: false, anonsMesaji: null, anonsZamani: 0, sorguAktif: false });
         }
-    } catch (error) {
-        console.error("[SISTEM-ADMIN] Hata:", error);
-        return NextResponse.json({ hata: "Durum çekilemedi" }, { status: 500 });
+
+        return NextResponse.json(systemDoc.data());
+    } catch (error: any) {
+        return NextResponse.json({ status: 'error', message: error.message }, { status: 500 });
     }
 }

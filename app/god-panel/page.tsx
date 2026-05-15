@@ -5,263 +5,259 @@ import { useRouter } from 'next/navigation';
 
 export default function GodPanel() {
     const [stats, setStats] = useState({ total: 0, active: 0, tickets: 0 });
-    const [system, setSystem] = useState({ kilitDurumu: false, sorguAktif: false, anonsMesaji: '' });
-    const [users, setUsers] = useState<any[]>([]);
+    const [customers, setCustomers] = useState<any[]>([]);
+    const [tickets, setTickets] = useState<any[]>([]);
+    const [system, setSystem] = useState({ kilitDurumu: false, sorguAktif: false, anonsMesaji: '', godBotToken: '', godChatId: '' });
+    const [activeTab, setActiveTab] = useState('dashboard');
     const [loading, setLoading] = useState(true);
-    const [theme, setTheme] = useState('light');
-    const [kick, setKick] = useState(false);
+    const [theme, setTheme] = useState('dark');
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const router = useRouter();
 
     useEffect(() => {
-        fetchData();
-        const savedTheme = localStorage.getItem('god_theme') || 'dark';
-        setTheme(savedTheme);
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        
-        const interval = setInterval(fetchData, 10000);
+        fetchInitialData();
+        const interval = setInterval(refreshData, 30000);
         return () => clearInterval(interval);
     }, []);
 
-    const fetchData = async () => {
+    const fetchInitialData = async () => {
+        const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+        if (!token) return router.push('/login');
+
         try {
-            const [statusRes, usersRes] = await Promise.all([
-                fetch('/api/sistem/durum'),
-                fetch('/api/users')
+            const [usersRes, systemRes, ticketsRes] = await Promise.all([
+                fetch('/api/users', { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch('/api/sistem/durum', { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch('/api/tickets', { headers: { 'Authorization': `Bearer ${token}` } })
             ]);
 
-            if (statusRes.status === 401) return router.push('/login');
+            if (usersRes.status === 401 || usersRes.status === 403) return router.push('/login');
 
-            const statusData = await statusRes.json();
-            const usersData = await usersRes.json();
-
-            setSystem(statusData);
-            setUsers(usersData);
-
-            const activeCount = usersData.filter((u: any) => u.isActive && !u.isBanned).length;
-            setStats({ total: usersData.length, active: activeCount, tickets: 0 });
+            const users = await usersRes.json();
+            setCustomers(users.filter((u: any) => u.role === 'customer'));
+            setSystem(await systemRes.json());
+            setTickets(await ticketsRes.json());
             
+            setStats({
+                total: users.length,
+                active: users.filter((u: any) => u.isActive).length,
+                tickets: (await ticketsRes.json()).filter((t: any) => t.durum === 'Acik').length
+            });
+
+            setTheme(localStorage.getItem('god_theme') || 'dark');
             setLoading(false);
         } catch (error) {
-            console.error("Data fetch error", error);
+            console.error("Fetch error", error);
         }
     };
 
-    const toggleTheme = () => {
-        const newTheme = theme === 'light' ? 'dark' : 'light';
-        setTheme(newTheme);
-        localStorage.setItem('god_theme', newTheme);
-        document.documentElement.setAttribute('data-theme', newTheme);
+    const refreshData = async () => {
+        const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+        if (!token) return;
+        const res = await fetch('/api/users', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.ok) {
+            const users = await res.json();
+            setCustomers(users.filter((u: any) => u.role === 'customer'));
+        }
     };
 
-    const handleToggleLockdown = async (val: boolean) => {
+    const handleLockdown = async (val: boolean) => {
+        const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
         await fetch('/api/sistem/kilit', {
             method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ kilitDurumu: val })
         });
         setSystem({ ...system, kilitDurumu: val });
     };
 
-    const handleLogout = () => {
-        document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        router.push('/login');
+    const handleBulkAction = async (action: string) => {
+        if (selectedIds.length === 0) return alert("Seçim yapın!");
+        const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+        
+        if (action === 'delete') {
+            if (!confirm("Seçili kullanıcıları SİLMEK istiyor musunuz?")) return;
+            await Promise.all(selectedIds.map(id => fetch(`/api/users-komple-sil/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } })));
+        } else if (action === 'softban') {
+            await Promise.all(selectedIds.map(id => fetch(`/api/users/guncelle/${id}`, { method: 'PATCH', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ isSoftBanned: true }) })));
+        }
+        
+        setSelectedIds([]);
+        fetchInitialData();
     };
 
-    if (loading) return (
-        <div className="loading-screen">
-            <div className="spinner"></div>
-            <p>ROOT_ERİŞİMİ_DOĞRULANIYOR...</p>
-            <style jsx>{`
-                .loading-screen { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000; color: #ef4444; font-family: monospace; }
-                .spinner { width: 30px; height: 30px; border: 2px solid #111; border-top: 2px solid #ef4444; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
-                @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-            `}</style>
-        </div>
-    );
+    if (loading) return <div className="loading">YÜKLENİYOR...</div>;
 
     return (
-        <div className="god-wrapper animate-slide-up">
-            {/* Header */}
+        <div className="god-wrapper">
             <header className="header">
-                <h1>God<span>Panel</span></h1>
-                <div className="header-controls">
-                    <label className="theme-switch">
-                        <input type="checkbox" checked={theme === 'dark'} onChange={toggleTheme} />
-                        <span className="theme-slider"></span>
-                    </label>
-                    <button className="logout-btn" onClick={handleLogout}>GÜVENLİ ÇIKIŞ</button>
+                <div className="header-left">
+                    <div className="hazard-logo">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="#fbbf24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+                    </div>
+                    <h1>COMMAND<span>CENTER</span></h1>
+                </div>
+                <div className="header-right">
+                    <button className="logout-btn" onClick={() => router.push('/login')}>GÜVENLİ ÇIKIŞ</button>
                 </div>
             </header>
 
-            {/* Stats Grid */}
-            <div className="stats-grid">
-                <div className="stat-card">
-                    <h3>{stats.total}</h3>
-                    <p>MÜŞTERİ</p>
+            <div className="stats-row">
+                <div className="stat-box">
+                    <span>TOPLAM FİLO</span>
+                    <h2>{stats.total}</h2>
                 </div>
-                <div className="stat-card">
-                    <h3>{stats.active}</h3>
-                    <p>AKTİF</p>
+                <div className="stat-box">
+                    <span>AKTİF GÜÇ</span>
+                    <h2>{stats.active}</h2>
                 </div>
-                <div className="stat-card warning">
-                    <h3>{stats.tickets}</h3>
-                    <p>DESTEK TALEBİ</p>
-                </div>
-            </div>
-
-            {/* Command Center */}
-            <div className="command-center">
-                <div className="command-title">SİSTEM KOMUTA MERKEZİ</div>
-                <div className="command-grid">
-                    <div className="command-box">
-                        <div className="command-header">
-                            <h3>Sistem Kilidi (Lockdown)</h3>
-                            <label className="switch lockdown-toggle">
-                                <input type="checkbox" checked={system.kilitDurumu} onChange={(e) => handleToggleLockdown(e.target.checked)} />
-                                <span className="slider"></span>
-                            </label>
-                        </div>
-                        <p>Tüm müşterilerin işlemlerini anında dondurur.</p>
-                    </div>
-
-                    <div className="command-box">
-                        <div className="command-header">
-                            <h3>Sorgu Modülü (API)</h3>
-                            <label className="switch sorgu-toggle">
-                                <input type="checkbox" checked={system.sorguAktif} disabled />
-                                <span className="slider"></span>
-                            </label>
-                        </div>
-                        <p>Müşteri sorgu panelini Aktif/Pasif yapar.</p>
-                    </div>
-
-                    <div className="command-box full-width">
-                        <h3>Genel Duyuru (Anons)</h3>
-                        <div className="announcement-input">
-                            <input type="text" placeholder="Tüm müşterilere gidecek mesajı yazın..." value={system.anonsMesaji} readOnly />
-                            <button className="btn-primary">GÖNDER</button>
-                        </div>
-                    </div>
+                <div className="stat-box warning">
+                    <span>AÇIK TALEPLER</span>
+                    <h2>{stats.tickets}</h2>
                 </div>
             </div>
 
-            {/* User Management */}
-            <div className="grid-container">
-                <aside className="card user-form">
-                    <h2>YENİ MÜŞTERİ EKLE</h2>
-                    <div className="form-group">
-                        <label>Müşteri İsmi</label>
-                        <input type="text" placeholder="Örn: Ahmet Yılmaz" />
-                    </div>
-                    <div className="form-group">
-                        <label>Giriş Anahtarı</label>
-                        <input type="text" placeholder="Otomatik oluşturulur" />
-                    </div>
-                    <button className="btn-primary success">MÜŞTERİ TANIMLA</button>
+            <div className="main-grid">
+                <aside className="sidebar">
+                    <button className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>DASHBOARD</button>
+                    <button className={`nav-item ${activeTab === 'customers' ? 'active' : ''}`} onClick={() => setActiveTab('customers')}>MÜŞTERİ YÖNETİMİ</button>
+                    <button className={`nav-item ${activeTab === 'tickets' ? 'active' : ''}`} onClick={() => setActiveTab('tickets')}>DESTEK MERKEZİ</button>
+                    <button className={`nav-item ${activeTab['settings'] ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>SİSTEM AYARLARI</button>
                 </aside>
 
-                <div className="card table-card">
-                    <h2>MÜŞTERİ VERİTABANI</h2>
-                    <div className="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>KOD</th>
-                                    <th>KULLANICI</th>
-                                    <th>BİTİŞ</th>
-                                    <th>DURUM</th>
-                                    <th>İŞLEMLER</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {users.map(u => (
-                                    <tr key={u.docId}>
-                                        <td><span className="passcode-badge">{u.passcode}</span></td>
-                                        <td>{u.isim || 'Belirtilmemiş'}</td>
-                                        <td>{u.expireDate || 'Süresiz'}</td>
-                                        <td>
-                                            <span className={u.isBanned ? 'alert-badge' : 'success-badge'}>
-                                                {u.isBanned ? 'YASAKLI' : 'AKTİF'}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <button className="action-btn">DÜZENLE</button>
-                                            <button className="action-btn danger">BANLA</button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <main className="content">
+                    {activeTab === 'dashboard' && (
+                        <div className="dashboard-view">
+                            <div className="system-switches">
+                                <div className="switch-card">
+                                    <div className="switch-info">
+                                        <h3>GLOBAL LOCKDOWN</h3>
+                                        <p>Tüm sistem erişimini anında dondurur.</p>
+                                    </div>
+                                    <label className="switch danger">
+                                        <input type="checkbox" checked={system.kilitDurumu} onChange={(e) => handleLockdown(e.target.checked)} />
+                                        <span className="slider"></span>
+                                    </label>
+                                </div>
+                                
+                                <div className="switch-card">
+                                    <div className="switch-info">
+                                        <h3>SORGU PANELİ</h3>
+                                        <p>Müşteriler için sorgu servisini aç/kapat.</p>
+                                    </div>
+                                    <label className="switch">
+                                        <input type="checkbox" checked={system.sorguAktif} onChange={(e) => setSystem({...system, sorguAktif: e.target.checked})} />
+                                        <span className="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="announcement-box">
+                                <h3>SİSTEM ANONSU</h3>
+                                <textarea 
+                                    placeholder="Tüm müşterilere görünecek mesaj..." 
+                                    value={system.anonsMesaji} 
+                                    onChange={(e) => setSystem({...system, anonsMesaji: e.target.value})}
+                                />
+                                <button className="btn-save">ANONSU YAYINLA</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'customers' && (
+                        <div className="customers-view">
+                            <div className="bulk-actions">
+                                <button className="btn-bulk" onClick={() => handleBulkAction('softban')}>SOFT-BAN AT</button>
+                                <button className="btn-bulk danger" onClick={() => handleBulkAction('delete')}>SİL</button>
+                            </div>
+                            <div className="table-wrapper">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th><input type="checkbox" onChange={(e) => setSelectedIds(e.target.checked ? customers.map(c => c.docId) : [])} /></th>
+                                            <th>MÜŞTERİ</th>
+                                            <th>GEÇERLİLİK</th>
+                                            <th>DURUM</th>
+                                            <th>İŞLEM</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {customers.map(c => (
+                                            <tr key={c.docId}>
+                                                <td><input type="checkbox" checked={selectedIds.includes(c.docId)} onChange={() => setSelectedIds(prev => prev.includes(c.docId) ? prev.filter(id => id !== c.docId) : [...prev, c.docId])} /></td>
+                                                <td>
+                                                    <div className="cust-name">{c.isim || 'İsimsiz'}</div>
+                                                    <div className="cust-code">{c.passcode}</div>
+                                                </td>
+                                                <td>{c.expireDate}</td>
+                                                <td><span className={`badge ${c.isSoftBanned ? 'warning' : (c.isActive ? 'success' : 'muted')}`}>{c.isSoftBanned ? 'SOFTBAN' : (c.isActive ? 'AKTİF' : 'PASİF')}</span></td>
+                                                <td><button className="btn-action">DÜZENLE</button></td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                </main>
             </div>
 
             <style jsx>{`
-                .god-wrapper { max-width: 1400px; margin: 0 auto; padding: 25px; }
-                
-                .header { display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); border: 1px solid var(--border-color); padding: 16px 20px; border-radius: 16px; margin-bottom: 24px; }
-                .header h1 { font-size: 20px; font-weight: 800; }
-                .header h1 span { color: var(--danger-color); }
-                
-                .header-controls { display: flex; align-items: center; gap: 15px; }
-                .theme-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
-                .theme-switch input { opacity: 0; width: 0; height: 0; }
-                .theme-slider { position: absolute; cursor: pointer; inset: 0; background-color: var(--border-color); transition: .3s; border-radius: 24px; border: 1px solid var(--border-color); }
-                .theme-slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
-                input:checked + .theme-slider { background-color: var(--text-main); border-color: var(--text-main); }
-                input:checked + .theme-slider:before { transform: translateX(20px); background-color: var(--bg-body); }
-                
-                .logout-btn { background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 10px; font-size: 11px; font-weight: 800; cursor: pointer; }
+                .god-wrapper { background: #000; min-height: 100vh; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; }
+                .header { padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #111; }
+                .header-left { display: flex; align-items: center; gap: 15px; }
+                .hazard-logo { background: rgba(251, 191, 36, 0.1); padding: 8px; border-radius: 10px; border: 1px solid rgba(251, 191, 36, 0.2); }
+                h1 { font-size: 18px; font-weight: 900; letter-spacing: 1px; }
+                h1 span { color: #fbbf24; }
 
-                .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
-                .stat-card { background: var(--bg-card); padding: 20px 10px; border-radius: 16px; border: 1px solid var(--border-color); text-align: center; }
-                .stat-card h3 { font-size: 28px; font-weight: 900; margin-bottom: 2px; }
-                .stat-card p { font-size: 10px; color: var(--text-muted); font-weight: 800; text-transform: uppercase; }
-                .stat-card.warning h3 { color: var(--warning-color); }
+                .logout-btn { background: #111; border: 1px solid #222; color: #666; padding: 8px 16px; border-radius: 8px; font-size: 10px; font-weight: 800; cursor: pointer; }
 
-                .command-center { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
-                .command-title { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
-                .command-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-                .command-box { background: var(--bg-body); border: 1px solid var(--border-color); padding: 20px; border-radius: 14px; }
-                .command-box.full-width { grid-column: span 2; }
-                .command-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-                .command-box h3 { font-size: 14px; font-weight: 800; margin: 0; }
-                .command-box p { font-size: 11px; color: var(--text-muted); }
+                .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 20px 40px; }
+                .stat-box { background: #050505; border: 1px solid #111; padding: 20px; border-radius: 16px; }
+                .stat-box span { font-size: 10px; color: #666; font-weight: 800; letter-spacing: 1px; }
+                .stat-box h2 { font-size: 32px; font-weight: 900; margin-top: 5px; }
+                .stat-box.warning h2 { color: #f87171; }
 
-                .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+                .main-grid { display: grid; grid-template-columns: 240px 1fr; gap: 40px; padding: 0 40px 40px 40px; }
+                .sidebar { display: flex; flex-direction: column; gap: 8px; }
+                .nav-item { background: transparent; border: 1px solid transparent; color: #666; text-align: left; padding: 12px 20px; border-radius: 12px; cursor: pointer; font-size: 11px; font-weight: 800; transition: 0.2s; }
+                .nav-item.active { background: #111; color: #fff; border-color: #222; }
+
+                .content { background: #050505; border: 1px solid #111; border-radius: 24px; padding: 30px; }
+                
+                .system-switches { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+                .switch-card { background: #0a0a0a; border: 1px solid #111; padding: 20px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; }
+                .switch-info h3 { font-size: 14px; font-weight: 900; }
+                .switch-info p { font-size: 11px; color: #666; margin-top: 4px; }
+
+                .announcement-box { background: #0a0a0a; border: 1px solid #111; padding: 20px; border-radius: 16px; }
+                .announcement-box h3 { font-size: 14px; font-weight: 900; margin-bottom: 15px; }
+                textarea { width: 100%; background: #000; border: 1px solid #111; border-radius: 12px; padding: 15px; color: #fff; font-size: 13px; height: 100px; resize: none; margin-bottom: 15px; }
+                .btn-save { background: #fff; color: #000; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 900; font-size: 11px; cursor: pointer; }
+
+                .bulk-actions { display: flex; gap: 10px; margin-bottom: 20px; }
+                .btn-bulk { background: #111; border: 1px solid #222; color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 10px; font-weight: 800; cursor: pointer; }
+                .btn-bulk.danger { color: #f87171; border-color: rgba(248, 113, 113, 0.2); }
+
+                table { width: 100%; border-collapse: collapse; }
+                th { text-align: left; padding: 15px; font-size: 10px; color: #666; border-bottom: 1px solid #111; }
+                td { padding: 15px; border-bottom: 1px solid #111; font-size: 12px; }
+                .cust-name { font-weight: 800; }
+                .cust-code { font-size: 10px; color: #666; margin-top: 2px; }
+                .badge { padding: 4px 8px; border-radius: 6px; font-size: 9px; font-weight: 900; }
+                .badge.success { background: rgba(52, 211, 153, 0.1); color: #34d399; }
+                .badge.warning { background: rgba(251, 191, 36, 0.1); color: #fbbf24; }
+                .badge.muted { background: #111; color: #666; }
+
+                .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
                 .switch input { opacity: 0; width: 0; height: 0; }
-                .slider { position: absolute; cursor: pointer; inset: 0; background-color: #27272a; transition: .3s; border-radius: 34px; }
-                .slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
-                .lockdown-toggle input:checked + .slider { background-color: var(--danger-color); }
-                .sorgu-toggle input:checked + .slider { background-color: #3b82f6; }
-                .switch input:checked + .slider:before { transform: translateX(22px); }
+                .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #222; transition: .4s; border-radius: 24px; }
+                .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: #fff; transition: .4s; border-radius: 50%; }
+                input:checked + .slider { background-color: #3b82f6; }
+                input:checked + .slider.danger { background-color: #ef4444; }
+                input:checked + .slider:before { transform: translateX(20px); }
 
-                .grid-container { display: grid; grid-template-columns: 320px 1fr; gap: 24px; }
-                .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; }
-                .card h2 { font-size: 16px; font-weight: 800; margin-bottom: 24px; }
-
-                .form-group { margin-bottom: 20px; }
-                .form-group label { display: block; font-size: 10px; font-weight: 800; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; }
-                .form-group input { width: 100%; padding: 16px; border: 1px solid var(--border-color); border-radius: 12px; background: var(--bg-body); color: var(--text-main); font-size: 16px; outline: none; }
-                
-                .btn-primary { width: 100%; padding: 18px; background: var(--text-main); color: var(--bg-body); border: none; border-radius: 14px; font-size: 13px; font-weight: 800; text-transform: uppercase; cursor: pointer; }
-                .btn-primary.success { background: var(--success-color); color: white; }
-
-                .table-responsive { overflow-x: auto; border-radius: 14px; border: 1px solid var(--border-color); }
-                table { width: 100%; border-collapse: collapse; min-width: 600px; }
-                th { padding: 18px; text-align: left; background: rgba(125,125,125,0.05); color: var(--text-muted); font-size: 10px; font-weight: 900; text-transform: uppercase; }
-                td { padding: 18px; border-bottom: 1px solid var(--border-color); font-size: 14px; }
-                
-                .passcode-badge { background: var(--bg-body); padding: 8px 12px; border-radius: 8px; font-family: monospace; font-weight: bold; border: 1px solid var(--border-color); }
-                .success-badge { color: var(--success-color); font-weight: 800; font-size: 12px; }
-                .alert-badge { color: var(--danger-color); font-weight: 800; font-size: 12px; background: rgba(239, 68, 68, 0.1); padding: 4px 8px; border-radius: 6px; }
-
-                .action-btn { background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 11px; font-weight: 700; margin-right: 5px; }
-                .action-btn.danger { color: var(--danger-color); }
-
-                @media (max-width: 992px) {
-                    .grid-container { grid-template-columns: 1fr; }
-                    .command-grid { grid-template-columns: 1fr; }
-                }
+                .loading { height: 100vh; background: #000; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; letter-spacing: 2px; }
             `}</style>
         </div>
     );

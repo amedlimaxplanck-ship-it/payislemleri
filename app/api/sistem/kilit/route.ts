@@ -1,13 +1,20 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { adminAuth, adminFirestore } from '@/lib/firebase-admin';
+
+async function verifyGod(request: Request) {
+    const token = request.headers.get('Authorization')?.split('Bearer ')[1];
+    if (!token) return null;
+    try {
+        const decodedToken = await adminAuth.verifyIdToken(token);
+        return decodedToken.role === 'god' ? decodedToken : null;
+    } catch { return null; }
+}
 
 export async function POST(request: Request) {
-    try {
-        const { kilitDurumu } = await request.json();
-        await setDoc(doc(db, "settings", "global"), { kilitDurumu }, { merge: true });
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        return NextResponse.json({ hata: "Kilit ayarlanamadı" }, { status: 500 });
-    }
+    const god = await verifyGod(request);
+    if (!god) return NextResponse.json({ status: 'error', message: 'Unauthorized' }, { status: 403 });
+
+    const { kilitDurumu } = await request.json();
+    await adminFirestore.collection('ayarlar').doc('sistem').set({ kilitDurumu }, { merge: true });
+    return NextResponse.json({ success: true });
 }
