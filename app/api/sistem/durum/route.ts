@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { adminDb } from '@/lib/firebase-admin';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {
-        const snap = await getDoc(doc(db, "settings", "global"));
-        if (snap.exists()) {
-            const veri = snap.data();
+        const snap = await adminDb.collection('settings').doc('global').get();
+        if (snap.exists) {
+            const veri = snap.data() || {};
             return NextResponse.json({
                 kilitDurumu: veri.kilitDurumu || false,
                 anonsMesaji: veri.anonsMesaji || null,
@@ -19,6 +20,7 @@ export async function GET() {
             return NextResponse.json({ kilitDurumu: false, anonsMesaji: null, anonsZamani: 0, sorguAktif: false });
         }
     } catch (error) {
+        console.error("[SISTEM-ADMIN] Hata:", error);
         return NextResponse.json({ hata: "Durum çekilemedi" }, { status: 500 });
     }
 }

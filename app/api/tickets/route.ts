@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
+import { adminDb } from '@/lib/firebase-admin';
 import { verifyToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {
@@ -12,13 +13,18 @@ export async function GET() {
         
         if (!decoded) return NextResponse.json({ hata: "Yetkisiz" }, { status: 401 });
 
-        let q = decoded.role === 'god' 
-            ? query(collection(db, "tickets")) 
-            : query(collection(db, "tickets"), where("musteriId", "==", decoded.id));
+        let collectionRef = adminDb.collection('tickets');
+        let snap;
+
+        if (decoded.role === 'god') {
+            snap = await collectionRef.get();
+        } else {
+            snap = await collectionRef.where("musteriId", "==", decoded.id).get();
+        }
             
-        const snap = await getDocs(q);
         return NextResponse.json(snap.docs.map(doc => ({ docId: doc.id, ...doc.data() })));
     } catch (e) {
+        console.error("[TICKETS-ADMIN] GET Hata:", e);
         return NextResponse.json({ hata: "Biletler çekilemedi" }, { status: 500 });
     }
 }
@@ -31,7 +37,7 @@ export async function POST(request: Request) {
         if (!decoded) return NextResponse.json({ hata: "Yetkisiz" }, { status: 401 });
 
         const body = await request.json();
-        await addDoc(collection(db, "tickets"), {
+        await adminDb.collection('tickets').add({
             musteriId: decoded.id,
             musteriKod: body.musteriKod,
             konu: body.konu,
@@ -42,6 +48,7 @@ export async function POST(request: Request) {
         });
         return NextResponse.json({ success: true });
     } catch (e) {
+        console.error("[TICKETS-ADMIN] POST Hata:", e);
         return NextResponse.json({ hata: "Talep açılamadı" }, { status: 500 });
     }
 }

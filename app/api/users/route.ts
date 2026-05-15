@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/firebase';
-import { collection, query, getDocs, addDoc } from 'firebase/firestore';
+import { adminDb } from '@/lib/firebase-admin';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {
-        const q = query(collection(db, "users"));
-        const snapshot = await getDocs(q);
+        const snapshot = await adminDb.collection('users').get();
         const users = snapshot.docs.map(doc => ({ docId: doc.id, ...doc.data() }));
         return NextResponse.json(users);
     } catch (error) {
+        console.error("[USERS-ADMIN] GET Hata:", error);
         return NextResponse.json({ hata: "Müşteriler getirilemedi" }, { status: 500 });
     }
 }
@@ -16,7 +17,7 @@ export async function GET() {
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const docRef = await addDoc(collection(db, "users"), {
+        const docRef = await adminDb.collection('users').add({
             ...body,
             createdAt: new Date().getTime(),
             isActive: true,
@@ -29,6 +30,7 @@ export async function POST(request: Request) {
         });
         return NextResponse.json({ success: true, id: docRef.id });
     } catch (error) {
+        console.error("[USERS-ADMIN] POST Hata:", error);
         return NextResponse.json({ hata: "Ekleme başarısız" }, { status: 500 });
     }
 }
