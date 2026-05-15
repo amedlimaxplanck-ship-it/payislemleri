@@ -4,35 +4,18 @@ import { collection, getDocs, limit, query } from 'firebase/firestore';
 
 export async function GET() {
     try {
-        const configTest = {
-            apiKey: process.env.FIREBASE_API_KEY ? "OK (Set)" : "MISSING",
-            projectId: process.env.FIREBASE_PROJECT_ID || "MISSING",
-            appId: process.env.FIREBASE_APP_ID ? "OK (Set)" : "MISSING"
-        };
-
-        const collectionsTested = ["users", "settings", "ilanlar"];
-        const results: any = {};
-
-        for (const col of collectionsTested) {
-            try {
-                const testSnap = await getDocs(query(collection(db, col), limit(1)));
-                results[col] = testSnap.empty ? "Empty" : "Found Data";
-            } catch (e) {
-                results[col] = "Error: " + (e as Error).message;
-            }
-        }
+        // Fotoğrafta gördüğüm spesifik bir ID'yi deniyorum
+        const knownId = "4YulWm6bAAp4gN8Tuu2y";
+        const userRef = doc(db, "users", knownId);
+        const userSnap = await getDoc(userRef);
 
         return NextResponse.json({ 
             status: "ok", 
-            config: configTest,
-            collectionStatus: results,
-            message: results["users"] === "Found Data" ? "Veritabanı erişimi tam yetkiyle sağlandı." : "Bağlantı sağlandı ama 'users' boş görünüyor."
+            knownUserFound: userSnap.exists() ? "YES! Found it." : "NO! Still not seeing it.",
+            userData: userSnap.exists() ? { isim: userSnap.data().isim, role: userSnap.data().role } : null,
+            message: "Spesifik ID sorgusu tamamlandı."
         });
     } catch (error) {
-        return NextResponse.json({ 
-            status: "error", 
-            message: (error as Error).message,
-            configCheck: process.env.FIREBASE_PROJECT_ID ? "Env Var Var" : "Env Var Yok"
-        });
+        return NextResponse.json({ status: "error", message: (error as Error).message });
     }
 }
