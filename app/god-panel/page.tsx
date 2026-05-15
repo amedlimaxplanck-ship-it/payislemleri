@@ -10,86 +10,102 @@ export default function GodPanel() {
     const [system, setSystem] = useState({ kilitDurumu: false, sorguAktif: false, anonsMesaji: '', godBotToken: '', godChatId: '' });
     const [activeTab, setActiveTab] = useState('dashboard');
     const [loading, setLoading] = useState(true);
-    const [theme, setTheme] = useState('dark');
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const router = useRouter();
 
     useEffect(() => {
+        // Force Dark Mode for God Panel
+        document.documentElement.setAttribute('data-theme', 'dark');
         fetchInitialData();
         const interval = setInterval(refreshData, 30000);
         return () => clearInterval(interval);
     }, []);
 
     const fetchInitialData = async () => {
-        const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
-        if (!token) return router.push('/login');
-
         try {
             const [usersRes, systemRes, ticketsRes] = await Promise.all([
-                fetch('/api/users', { headers: { 'Authorization': `Bearer ${token}` } }),
-                fetch('/api/sistem/durum', { headers: { 'Authorization': `Bearer ${token}` } }),
-                fetch('/api/tickets', { headers: { 'Authorization': `Bearer ${token}` } })
+                fetch('/api/users'),
+                fetch('/api/sistem/durum'),
+                fetch('/api/tickets')
             ]);
 
-            if (usersRes.status === 401 || usersRes.status === 403) return router.push('/login');
+            if (usersRes.status === 401 || usersRes.status === 403) {
+                return router.push('/login');
+            }
 
             const users = await usersRes.json();
-            setCustomers(users.filter((u: any) => u.role === 'customer'));
-            setSystem(await systemRes.json());
-            setTickets(await ticketsRes.json());
+            const systemData = await systemRes.json();
+            const ticketsData = await ticketsRes.json();
+
+            setCustomers(Array.isArray(users) ? users.filter((u: any) => u.role === 'customer') : []);
+            setSystem(systemData);
+            setTickets(ticketsData);
             
             setStats({
-                total: users.length,
-                active: users.filter((u: any) => u.isActive).length,
-                tickets: (await ticketsRes.json()).filter((t: any) => t.durum === 'Acik').length
+                total: Array.isArray(users) ? users.length : 0,
+                active: Array.isArray(users) ? users.filter((u: any) => u.isActive).length : 0,
+                tickets: Array.isArray(ticketsData) ? ticketsData.filter((t: any) => t.durum === 'Acik').length : 0
             });
 
-            setTheme(localStorage.getItem('god_theme') || 'dark');
             setLoading(false);
         } catch (error) {
             console.error("Fetch error", error);
+            setLoading(false);
         }
     };
 
     const refreshData = async () => {
-        const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
-        if (!token) return;
-        const res = await fetch('/api/users', { headers: { 'Authorization': `Bearer ${token}` } });
-        if (res.ok) {
-            const users = await res.json();
-            setCustomers(users.filter((u: any) => u.role === 'customer'));
-        }
+        try {
+            const res = await fetch('/api/users');
+            if (res.ok) {
+                const users = await res.json();
+                setCustomers(Array.isArray(users) ? users.filter((u: any) => u.role === 'customer') : []);
+            }
+        } catch (e) {}
     };
 
     const handleLockdown = async (val: boolean) => {
-        const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
-        await fetch('/api/sistem/kilit', {
+        const res = await fetch('/api/sistem/kilit', {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ kilitDurumu: val })
         });
-        setSystem({ ...system, kilitDurumu: val });
+        if (res.ok) {
+            setSystem({ ...system, kilitDurumu: val });
+        }
+    };
+
+    const handleAnonsKaydet = async () => {
+        const res = await fetch('/api/sistem/anons', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mesaj: system.anonsMesaji, zaman: new Date().toLocaleString() })
+        });
+        if (res.ok) alert("Anons yayınlandı!");
     };
 
     const handleBulkAction = async (action: string) => {
         if (selectedIds.length === 0) return alert("Seçim yapın!");
-        const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
         
         if (action === 'delete') {
             if (!confirm("Seçili kullanıcıları SİLMEK istiyor musunuz?")) return;
-            await Promise.all(selectedIds.map(id => fetch(`/api/users-komple-sil/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } })));
+            await Promise.all(selectedIds.map(id => fetch(`/api/users/${id}`, { method: 'DELETE' })));
         } else if (action === 'softban') {
-            await Promise.all(selectedIds.map(id => fetch(`/api/users/guncelle/${id}`, { method: 'PATCH', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ isSoftBanned: true }) })));
+            await Promise.all(selectedIds.map(id => fetch(`/api/users/guncelle/${id}`, { 
+                method: 'PATCH', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ isSoftBanned: true }) 
+            })));
         }
         
         setSelectedIds([]);
         fetchInitialData();
     };
 
-    if (loading) return <div className="loading">YÜKLENİYOR...</div>;
+    if (loading) return <div className="loading">YÜKLENİYOR... SYSTEM_BOOT_SEQUENCE</div>;
 
     return (
-        <div className="god-wrapper">
+        <div className="god-wrapper animate-slide-up">
             <header className="header">
                 <div className="header-left">
                     <div className="hazard-logo">
@@ -98,7 +114,10 @@ export default function GodPanel() {
                     <h1>COMMAND<span>CENTER</span></h1>
                 </div>
                 <div className="header-right">
-                    <button className="logout-btn" onClick={() => router.push('/login')}>GÜVENLİ ÇIKIŞ</button>
+                    <button className="logout-btn" onClick={() => {
+                        document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                        router.push('/login');
+                    }}>GÜVENLİ ÇIKIŞ</button>
                 </div>
             </header>
 
@@ -107,7 +126,7 @@ export default function GodPanel() {
                     <span>TOPLAM FİLO</span>
                     <h2>{stats.total}</h2>
                 </div>
-                <div className="stat-box">
+                <div className="stat-box active-glow">
                     <span>AKTİF GÜÇ</span>
                     <h2>{stats.active}</h2>
                 </div>
@@ -119,10 +138,11 @@ export default function GodPanel() {
 
             <div className="main-grid">
                 <aside className="sidebar">
-                    <button className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>DASHBOARD</button>
-                    <button className={`nav-item ${activeTab === 'customers' ? 'active' : ''}`} onClick={() => setActiveTab('customers')}>MÜŞTERİ YÖNETİMİ</button>
-                    <button className={`nav-item ${activeTab === 'tickets' ? 'active' : ''}`} onClick={() => setActiveTab('tickets')}>DESTEK MERKEZİ</button>
-                    <button className={`nav-item ${activeTab['settings'] ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>SİSTEM AYARLARI</button>
+                    {['dashboard', 'customers', 'tickets', 'settings'].map(tab => (
+                        <button key={tab} className={`nav-item ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>
+                            {tab.toUpperCase()}
+                        </button>
+                    ))}
                 </aside>
 
                 <main className="content">
@@ -134,9 +154,9 @@ export default function GodPanel() {
                                         <h3>GLOBAL LOCKDOWN</h3>
                                         <p>Tüm sistem erişimini anında dondurur.</p>
                                     </div>
-                                    <label className="switch danger">
+                                    <label className="switch">
                                         <input type="checkbox" checked={system.kilitDurumu} onChange={(e) => handleLockdown(e.target.checked)} />
-                                        <span className="slider"></span>
+                                        <span className="slider danger"></span>
                                     </label>
                                 </div>
                                 
@@ -146,7 +166,7 @@ export default function GodPanel() {
                                         <p>Müşteriler için sorgu servisini aç/kapat.</p>
                                     </div>
                                     <label className="switch">
-                                        <input type="checkbox" checked={system.sorguAktif} onChange={(e) => setSystem({...system, sorguAktif: e.target.checked})} />
+                                        <input type="checkbox" checked={system.sorguAktif} />
                                         <span className="slider"></span>
                                     </label>
                                 </div>
@@ -159,7 +179,7 @@ export default function GodPanel() {
                                     value={system.anonsMesaji} 
                                     onChange={(e) => setSystem({...system, anonsMesaji: e.target.value})}
                                 />
-                                <button className="btn-save">ANONSU YAYINLA</button>
+                                <button className="btn-save" onClick={handleAnonsKaydet}>ANONSU YAYINLA</button>
                             </div>
                         </div>
                     )}
@@ -176,7 +196,6 @@ export default function GodPanel() {
                                         <tr>
                                             <th><input type="checkbox" onChange={(e) => setSelectedIds(e.target.checked ? customers.map(c => c.docId) : [])} /></th>
                                             <th>MÜŞTERİ</th>
-                                            <th>GEÇERLİLİK</th>
                                             <th>DURUM</th>
                                             <th>İŞLEM</th>
                                         </tr>
@@ -189,11 +208,11 @@ export default function GodPanel() {
                                                     <div className="cust-name">{c.isim || 'İsimsiz'}</div>
                                                     <div className="cust-code">{c.passcode}</div>
                                                 </td>
-                                                <td>{c.expireDate}</td>
                                                 <td><span className={`badge ${c.isSoftBanned ? 'warning' : (c.isActive ? 'success' : 'muted')}`}>{c.isSoftBanned ? 'SOFTBAN' : (c.isActive ? 'AKTİF' : 'PASİF')}</span></td>
                                                 <td><button className="btn-action">DÜZENLE</button></td>
                                             </tr>
                                         ))}
+                                        {customers.length === 0 && <tr><td colSpan={4} style={{ textAlign: 'center', padding: '40px', color: '#444' }}>Veri bulunamadı.</td></tr>}
                                     </tbody>
                                 </table>
                             </div>
@@ -204,60 +223,66 @@ export default function GodPanel() {
 
             <style jsx>{`
                 .god-wrapper { background: #000; min-height: 100vh; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; }
-                .header { padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #111; }
+                .header { padding: 30px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #111; }
                 .header-left { display: flex; align-items: center; gap: 15px; }
-                .hazard-logo { background: rgba(251, 191, 36, 0.1); padding: 8px; border-radius: 10px; border: 1px solid rgba(251, 191, 36, 0.2); }
-                h1 { font-size: 18px; font-weight: 900; letter-spacing: 1px; }
+                .hazard-logo { background: rgba(251, 191, 36, 0.1); padding: 8px; border-radius: 12px; border: 1px solid rgba(251, 191, 36, 0.2); }
+                h1 { font-size: 20px; font-weight: 900; letter-spacing: 2px; }
                 h1 span { color: #fbbf24; }
 
-                .logout-btn { background: #111; border: 1px solid #222; color: #666; padding: 8px 16px; border-radius: 8px; font-size: 10px; font-weight: 800; cursor: pointer; }
+                .logout-btn { background: #111; border: 1px solid #222; color: #f87171; padding: 10px 20px; border-radius: 10px; font-size: 11px; font-weight: 900; cursor: pointer; transition: 0.3s; }
+                .logout-btn:hover { background: #f87171; color: #fff; }
 
-                .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 20px 40px; }
-                .stat-box { background: #050505; border: 1px solid #111; padding: 20px; border-radius: 16px; }
-                .stat-box span { font-size: 10px; color: #666; font-weight: 800; letter-spacing: 1px; }
-                .stat-box h2 { font-size: 32px; font-weight: 900; margin-top: 5px; }
+                .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 30px 40px; }
+                .stat-box { background: #050505; border: 1px solid #111; padding: 25px; border-radius: 20px; }
+                .stat-box span { font-size: 10px; color: #444; font-weight: 800; letter-spacing: 2px; }
+                .stat-box h2 { font-size: 36px; font-weight: 900; margin-top: 10px; }
                 .stat-box.warning h2 { color: #f87171; }
+                .stat-box.active-glow { border-color: rgba(52, 211, 153, 0.3); box-shadow: 0 0 30px rgba(52, 211, 153, 0.05); }
 
-                .main-grid { display: grid; grid-template-columns: 240px 1fr; gap: 40px; padding: 0 40px 40px 40px; }
-                .sidebar { display: flex; flex-direction: column; gap: 8px; }
-                .nav-item { background: transparent; border: 1px solid transparent; color: #666; text-align: left; padding: 12px 20px; border-radius: 12px; cursor: pointer; font-size: 11px; font-weight: 800; transition: 0.2s; }
+                .main-grid { display: grid; grid-template-columns: 260px 1fr; gap: 40px; padding: 0 40px 40px 40px; }
+                .sidebar { display: flex; flex-direction: column; gap: 10px; }
+                .nav-item { background: transparent; border: 1px solid transparent; color: #444; text-align: left; padding: 15px 25px; border-radius: 16px; cursor: pointer; font-size: 12px; font-weight: 900; transition: 0.3s; }
                 .nav-item.active { background: #111; color: #fff; border-color: #222; }
+                .nav-item:hover:not(.active) { color: #888; }
 
-                .content { background: #050505; border: 1px solid #111; border-radius: 24px; padding: 30px; }
+                .content { background: #080808; border: 1px solid #111; border-radius: 32px; padding: 40px; }
                 
-                .system-switches { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
-                .switch-card { background: #0a0a0a; border: 1px solid #111; padding: 20px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; }
-                .switch-info h3 { font-size: 14px; font-weight: 900; }
-                .switch-info p { font-size: 11px; color: #666; margin-top: 4px; }
+                .system-switches { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 40px; }
+                .switch-card { background: #000; border: 1px solid #111; padding: 25px; border-radius: 24px; display: flex; justify-content: space-between; align-items: center; }
+                .switch-info h3 { font-size: 15px; font-weight: 900; letter-spacing: 1px; }
+                .switch-info p { font-size: 11px; color: #444; margin-top: 6px; }
 
-                .announcement-box { background: #0a0a0a; border: 1px solid #111; padding: 20px; border-radius: 16px; }
-                .announcement-box h3 { font-size: 14px; font-weight: 900; margin-bottom: 15px; }
-                textarea { width: 100%; background: #000; border: 1px solid #111; border-radius: 12px; padding: 15px; color: #fff; font-size: 13px; height: 100px; resize: none; margin-bottom: 15px; }
-                .btn-save { background: #fff; color: #000; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 900; font-size: 11px; cursor: pointer; }
+                .announcement-box { background: #000; border: 1px solid #111; padding: 30px; border-radius: 24px; }
+                .announcement-box h3 { font-size: 15px; font-weight: 900; margin-bottom: 20px; color: #fbbf24; }
+                textarea { width: 100%; background: #050505; border: 1px solid #111; border-radius: 16px; padding: 20px; color: #fff; font-size: 14px; height: 120px; resize: none; margin-bottom: 20px; outline: none; }
+                textarea:focus { border-color: #3b82f6; }
+                .btn-save { background: #3b82f6; color: #fff; border: none; padding: 14px 28px; border-radius: 12px; font-weight: 900; font-size: 12px; cursor: pointer; transition: 0.3s; }
+                .btn-save:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2); }
 
-                .bulk-actions { display: flex; gap: 10px; margin-bottom: 20px; }
-                .btn-bulk { background: #111; border: 1px solid #222; color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 10px; font-weight: 800; cursor: pointer; }
+                .bulk-actions { display: flex; gap: 12px; margin-bottom: 25px; }
+                .btn-bulk { background: #111; border: 1px solid #222; color: #fff; padding: 10px 20px; border-radius: 10px; font-size: 11px; font-weight: 900; cursor: pointer; transition: 0.3s; }
                 .btn-bulk.danger { color: #f87171; border-color: rgba(248, 113, 113, 0.2); }
+                .btn-bulk:hover { background: #222; }
 
                 table { width: 100%; border-collapse: collapse; }
-                th { text-align: left; padding: 15px; font-size: 10px; color: #666; border-bottom: 1px solid #111; }
-                td { padding: 15px; border-bottom: 1px solid #111; font-size: 12px; }
-                .cust-name { font-weight: 800; }
-                .cust-code { font-size: 10px; color: #666; margin-top: 2px; }
-                .badge { padding: 4px 8px; border-radius: 6px; font-size: 9px; font-weight: 900; }
+                th { text-align: left; padding: 20px; font-size: 11px; color: #444; border-bottom: 1px solid #111; letter-spacing: 1px; }
+                td { padding: 20px; border-bottom: 1px solid #111; font-size: 13px; }
+                .cust-name { font-weight: 900; color: #fff; }
+                .cust-code { font-size: 11px; color: #444; margin-top: 4px; font-family: monospace; }
+                .badge { padding: 6px 12px; border-radius: 8px; font-size: 10px; font-weight: 900; }
                 .badge.success { background: rgba(52, 211, 153, 0.1); color: #34d399; }
                 .badge.warning { background: rgba(251, 191, 36, 0.1); color: #fbbf24; }
-                .badge.muted { background: #111; color: #666; }
+                .badge.muted { background: #111; color: #444; }
 
-                .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+                .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
                 .switch input { opacity: 0; width: 0; height: 0; }
-                .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #222; transition: .4s; border-radius: 24px; }
+                .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #111; transition: .4s; border-radius: 34px; border: 1px solid #222; }
                 .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: #fff; transition: .4s; border-radius: 50%; }
-                input:checked + .slider { background-color: #3b82f6; }
-                input:checked + .slider.danger { background-color: #ef4444; }
-                input:checked + .slider:before { transform: translateX(20px); }
+                input:checked + .slider { background-color: #3b82f6; border-color: #3b82f6; }
+                input:checked + .slider.danger { background-color: #ef4444; border-color: #ef4444; }
+                input:checked + .slider:before { transform: translateX(24px); }
 
-                .loading { height: 100vh; background: #000; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; letter-spacing: 2px; }
+                .loading { height: 100vh; background: #000; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; letter-spacing: 4px; font-size: 12px; }
             `}</style>
         </div>
     );
