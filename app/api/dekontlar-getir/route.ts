@@ -14,16 +14,17 @@ export async function GET(request: Request) {
         const decodedToken = await verifyToken(token);
         if (!decodedToken) return NextResponse.json({ status: 'error', message: 'Invalid token' }, { status: 401 });
 
-        const userDoc = await adminDb.collection('users').doc(decodedToken.id).get();
-        if (!userDoc.exists) {
-            return NextResponse.json({ status: 'error', message: 'User not found' }, { status: 404 });
+        const { searchParams } = new URL(request.url);
+        let userId = searchParams.get('userId');
+
+        if (decodedToken.role !== 'god') {
+            userId = decodedToken.id;
         }
 
-        const userData = userDoc.data();
-        return NextResponse.json({ 
-            id: userDoc.id, 
-            ...userData 
-        });
+        if (!userId) return NextResponse.json({ status: 'error', message: 'UserId gerekli' }, { status: 400 });
+
+        const snap = await adminDb.collection('dekontlar').where('olusturanMusteri', '==', userId).get();
+        return NextResponse.json(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     } catch (error: any) {
         return NextResponse.json({ status: 'error', message: error.message }, { status: 500 });
     }

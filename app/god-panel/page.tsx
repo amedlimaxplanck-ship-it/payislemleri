@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { JakartaSans } from '@/lib/fonts';
 import { useRouter } from 'next/navigation';
 
 export default function GodPanel() {
@@ -139,6 +140,17 @@ export default function GodPanel() {
         document.documentElement.setAttribute('data-theme', newTheme);
     };
 
+    const [toasts, setToasts] = useState<any[]>([]);
+    
+    const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success', title?: string) => {
+        const id = Math.random().toString(36).substr(2, 9);
+        const newToast = { id, message, type, title: title || (type === 'success' ? 'BAŞARILI' : type === 'error' ? 'HATA' : 'BİLGİ') };
+        setToasts(prev => [...prev, newToast]);
+        setTimeout(() => {
+            setToasts(prev => prev.filter(t => t.id !== id));
+        }, 3500);
+    };
+
     const handleLockdown = async (checked: boolean) => {
         const res = await fetch(`/api/sistem/kilit`, { 
             method: 'POST', 
@@ -147,7 +159,7 @@ export default function GodPanel() {
         });
         if (checkTokenError(res)) return;
         setSystem({ ...system, kilitDurumu: checked });
-        alert(checked ? "Sistem Kilitlendi!" : "Kilit Açıldı.");
+        showToast(checked ? "Sistem Kilitlendi!" : "Kilit Açıldı.", checked ? 'error' : 'success');
     };
 
     const handleSorguToggle = async (checked: boolean) => {
@@ -158,7 +170,7 @@ export default function GodPanel() {
         });
         if (checkTokenError(res)) return;
         setSystem({ ...system, sorguAktif: checked });
-        alert(checked ? "Sorgu Paneli Aktif Edildi." : "Sorgu Paneli Bakıma Alındı.");
+        showToast(checked ? "Sorgu Paneli Aktif Edildi." : "Sorgu Paneli Bakıma Alındı.", checked ? 'success' : 'info');
     };
 
     const handleSendAnons = async () => {
@@ -168,7 +180,7 @@ export default function GodPanel() {
             body: JSON.stringify({ mesaj: system.anonsMesaji, zaman: Date.now() }) 
         });
         if (checkTokenError(res)) return;
-        alert("Sistem Anonsu Güncellendi.");
+        showToast("Sistem Anonsu Güncellendi.");
     };
 
     const handleSaveGodSettings = async () => {
@@ -178,22 +190,22 @@ export default function GodPanel() {
             body: JSON.stringify({ godBotToken: system.godBotToken, godChatId: system.godChatId })
         });
         if (checkTokenError(res)) return;
-        alert("God Telegram ayarları kaydedildi!");
+        showToast("God Telegram ayarları kaydedildi!");
     };
 
     const handleManualBackup = async () => {
-        alert("Yedek hazırlanıyor, Telegram'ı kontrol et...");
+        showToast("Yedek hazırlanıyor, Telegram'ı kontrol et...", 'info');
         const res = await fetch(`/api/sistem/manual-backup`, { method: 'POST' });
         if (checkTokenError(res)) return;
-        alert("Yedek başarıyla cebine yollandı!");
+        showToast("Yedek başarıyla cebine yollandı!");
     };
 
     const handleAddCustomer = async () => {
-        if (!newCust.passcode) return alert("Şifre girin.");
+        if (!newCust.passcode) return showToast("Şifre girin.", 'error');
         
         let finalKota = newCust.kota;
         if (newCust.kota === 'ozel') {
-            if (!newCust.ozelKota) return alert("Özel kota girin.");
+            if (!newCust.ozelKota) return showToast("Özel kota girin.", 'error');
             finalKota = newCust.ozelKota;
         }
 
@@ -216,14 +228,14 @@ export default function GodPanel() {
         });
         if (checkTokenError(res)) return;
         if (res.ok) {
-            alert("Müşteri eklendi.");
+            showToast("Müşteri eklendi.");
             setNewCust({ name: '', passcode: '', duration: '1', kota: 'sinirsiz', ozelKota: '' });
             loadCustomers();
         }
     };
 
     const handleBulkAction = async (action: string) => {
-        if (selectedIds.length === 0) return alert("Önce müşteri seçin!");
+        if (selectedIds.length === 0) return showToast("Önce müşteri seçin!", 'error');
         
         if (action === 'extend') {
             if (!confirm(`Seçili ${selectedIds.length} müşteriye +30 GÜN eklemek istiyor musunuz?`)) return;
@@ -231,7 +243,7 @@ export default function GodPanel() {
                 const user = customers.find(u => u.docId === id);
                 if (!user) continue;
                 let parts = user.expireDate.split(".");
-                let d = new Date(parts[2], parts[1]-1, parts[0]);
+                let d = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
                 d.setDate(d.getDate() + 30);
                 await fetch(`/api/users/guncelle/${id}`, {
                     method: 'PATCH',
@@ -239,7 +251,7 @@ export default function GodPanel() {
                     body: JSON.stringify({ expireDate: d.toLocaleDateString('tr-TR') })
                 });
             }
-            alert("İşlem başarılı!");
+            showToast("İşlem başarılı!");
         } else if (action === 'softban') {
             if (!confirm(`Seçili ${selectedIds.length} müşteriyi Soft-Ban moduna almak istiyor musunuz?`)) return;
             await Promise.all(selectedIds.map(id => fetch(`/api/users/guncelle/${id}`, {
@@ -247,11 +259,11 @@ export default function GodPanel() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ isSoftBanned: true })
             })));
-            alert("Müşteriler kısıtlandı!");
+            showToast("Müşteriler kısıtlandı!");
         } else if (action === 'delete') {
             if (!confirm(`Seçili ${selectedIds.length} müşteriyi SİLMEK istiyor musunuz?`)) return;
             await Promise.all(selectedIds.map(id => fetch(`/api/users-komple-sil/${id}`, { method: 'DELETE' })));
-            alert("Müşteriler silindi!");
+            showToast("Müşteriler silindi!", 'error');
         }
         
         setSelectedIds([]);
@@ -272,7 +284,7 @@ export default function GodPanel() {
         });
         if (res.ok) {
             setIsEditModalOpen(false);
-            alert("Güncellendi.");
+            showToast("Güncellendi.");
             loadCustomers();
         }
     };
@@ -285,7 +297,7 @@ export default function GodPanel() {
         });
         if (res.ok) {
             setIsBanModalOpen(false);
-            alert("Kullanıcı Yasaklandı!");
+            showToast("Kullanıcı Yasaklandı!", 'error');
             loadCustomers();
         }
     };
@@ -294,7 +306,7 @@ export default function GodPanel() {
         if (!confirm("Kullanıcının yasağını kaldırmak istediğinize emin misiniz?")) return;
         const res = await fetch(`/api/users/${id}/bankaldir`, { method: 'POST' });
         if (res.ok) {
-            alert("Yasak Kaldırıldı.");
+            showToast("Yasak Kaldırıldı.", 'success');
             loadCustomers();
         }
     };
@@ -303,7 +315,7 @@ export default function GodPanel() {
         if (!confirm("Müşteriyi komple silmek istediğinize emin misiniz?")) return;
         const res = await fetch(`/api/users-komple-sil/${id}`, { method: 'DELETE' });
         if (res.ok) {
-            alert("Müşteri kazındı!");
+            showToast("Müşteri kazındı!", 'error');
             loadCustomers();
         }
     };
@@ -314,6 +326,7 @@ export default function GodPanel() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ isActive: active })
         });
+        showToast(active ? "Aktif edildi." : "Pasife çekildi.", active ? 'success' : 'info');
         loadCustomers();
     };
 
@@ -323,7 +336,7 @@ export default function GodPanel() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ isSoftBanned: status })
         });
-        alert(status ? "Soft-Ban atıldı." : "Kısıt kaldırıldı.");
+        showToast(status ? "Soft-Ban atıldı." : "Kısıt kaldırıldı.", status ? 'error' : 'success');
         loadCustomers();
     };
 
@@ -335,7 +348,7 @@ export default function GodPanel() {
         });
         if (res.ok) {
             setIsTicketModalOpen(false);
-            alert("Yanıtlandı.");
+            showToast("Yanıtlandı.");
             loadTickets();
         }
     };
@@ -717,7 +730,33 @@ export default function GodPanel() {
                 </div>
             )}
 
+            <div id="toast-container">
+                {toasts.map(t => (
+                    <div key={t.id} className={`toast ${t.type} show`}>
+                        <span className="toast-title">{t.title}</span>
+                        <span>{t.message}</span>
+                    </div>
+                ))}
+            </div>
+
             <style jsx global>{`
+                #toast-container { 
+                    position: fixed; bottom: 30px; right: 30px; z-index: 999999; 
+                    display: flex; flex-direction: column; gap: 15px; pointer-events: none; 
+                }
+                .toast { 
+                    min-width: 300px; background: var(--bg-surface); border-left: 5px solid; 
+                    padding: 16px 20px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+                    color: var(--text-primary); font-weight: 600; font-size: 14px; 
+                    animation: toastIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) both;
+                    border: 1px solid var(--border-subtle); 
+                }
+                @keyframes toastIn { from { opacity: 0; transform: translateX(120%); } to { opacity: 1; transform: translateX(0); } }
+                .toast.success { border-left-color: var(--success-color); }
+                .toast.error { border-left-color: var(--danger-color); }
+                .toast.info { border-left-color: #3b82f6; }
+                .toast-title { font-size: 11px; text-transform: uppercase; font-weight: 800; opacity: 0.6; margin-bottom: 4px; display: block; letter-spacing: 0.5px; }
+
                 :root {
                     --bg-base: #f4f4f5; 
                     --bg-surface: #ffffff; 
