@@ -385,8 +385,8 @@ export default function GodPanel() {
                         <input type="checkbox" checked={theme === 'dark'} onChange={handleThemeToggle} />
                         <span className="theme-slider"></span>
                     </label>
-                    <button className="logout-btn" onClick={() => {
-                        document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    <button className="logout-btn" onClick={async () => {
+                        await fetch('/api/logout', { method: 'POST' });
                         router.push('/login');
                     }}>Çıkış Yap</button>
                 </div>

@@ -78,17 +78,11 @@ export default function MusteriPanel() {
     };
 
     const loadData = async (silent = false) => {
-        const token = localStorage.getItem('token');
-        const userId = localStorage.getItem('userId');
-        if (!token || !userId) return router.push('/login');
-
         try {
-            const headers = { 'Authorization': `Bearer ${token}` };
-            
             // User & System Status
             const [uRes, sRes] = await Promise.all([
-                fetch('/api/profilim', { headers }),
-                fetch('/api/sistem/durum', { headers })
+                fetch('/api/profilim'),
+                fetch('/api/sistem/durum')
             ]);
             
             if (checkTokenError(uRes)) return;
@@ -100,10 +94,10 @@ export default function MusteriPanel() {
 
             // Main Data
             const [iRes, dRes, lRes, tRes] = await Promise.all([
-                fetch(`/api/ilanlar-getir?userId=${userData.id}`, { headers }),
-                fetch(`/api/dekontlar-getir?userId=${userData.id}`, { headers }),
-                fetch(`/api/logs-getir?userId=${userData.id}`, { headers }),
-                fetch('/api/tickets', { headers })
+                fetch(`/api/ilanlar-getir?userId=${userData.id}`),
+                fetch(`/api/dekontlar-getir?userId=${userData.id}`),
+                fetch(`/api/logs-getir?userId=${userData.id}`),
+                fetch('/api/tickets')
             ]);
 
             if (iRes.ok) {
@@ -137,7 +131,11 @@ export default function MusteriPanel() {
     }, []);
 
     // Handlers
-    const handleLogout = () => { localStorage.clear(); router.push('/login'); };
+    const handleLogout = async () => {
+        await fetch('/api/logout', { method: 'POST' });
+        localStorage.clear();
+        router.push('/login');
+    };
     const toggleTheme = () => {
         const newTheme = theme === 'light' ? 'dark' : 'light';
         setTheme(newTheme);
@@ -154,8 +152,7 @@ export default function MusteriPanel() {
             message: "Bu ilanı sistemden tamamen silmek üzeresiniz. Onaylıyor musunuz?",
             onConfirm: async () => {
                 const res = await fetch(`/api/ilan-sil/${id}`, { 
-                    method: 'DELETE', 
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } 
+                    method: 'DELETE'
                 });
                 if (checkTokenError(res)) return;
                 showToast("İlan silindi.", "success");
@@ -169,7 +166,7 @@ export default function MusteriPanel() {
         const newStatus = currentStatus === 'aktif' ? 'pasif' : 'aktif';
         const res = await fetch(`/api/ilan-guncelle/${id}`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ durum: newStatus })
         });
         if (checkTokenError(res)) return;
@@ -193,7 +190,7 @@ export default function MusteriPanel() {
 
         const res = await fetch(`/api/ilan-ekle`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(clone)
         });
         if (checkTokenError(res)) return;
@@ -213,7 +210,7 @@ export default function MusteriPanel() {
         showToast(`${selectedAdIds.length} ilan güncelleniyor...`, 'info');
         await Promise.all(selectedAdIds.map(id => fetch(`/api/ilan-guncelle/${id}`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         })));
         
@@ -239,7 +236,7 @@ export default function MusteriPanel() {
 
         const res = await fetch(url, {
             method,
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
 
@@ -260,7 +257,7 @@ export default function MusteriPanel() {
         if (!ticketForm.mesaj) return showToast("Lütfen mesaj yazın.", 'error');
         const res = await fetch('/api/tickets', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ...ticketForm, musteriId: user.id, musteriIsim: user.isim, tarih: Date.now(), durum: 'Acik' })
         });
         if (checkTokenError(res)) return;
@@ -272,7 +269,7 @@ export default function MusteriPanel() {
     const handleSaveAyarlar = async () => {
         const res = await fetch(`/api/users/guncelle/${user.id}`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ tgBotToken: tgSettings.botToken, tgChatId: tgSettings.chatId })
         });
         if (checkTokenError(res)) return;
