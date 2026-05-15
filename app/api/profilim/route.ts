@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { adminDb } from '@/lib/firebase-admin';
 import { verifyToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
 
@@ -12,8 +11,8 @@ export async function GET() {
         
         if (!decoded) return NextResponse.json({ hata: "Yetkisiz" }, { status: 401 });
 
-        const userSnap = await getDoc(doc(db, "users", decoded.id));
-        if (userSnap.exists()) {
+        const userSnap = await adminDb.collection('users').doc(decoded.id).get();
+        if (userSnap.exists) {
             const data = userSnap.data();
             return NextResponse.json({ 
                 success: true, 
@@ -24,6 +23,7 @@ export async function GET() {
             return NextResponse.json({ hata: "Kullanıcı bulunamadı" }, { status: 404 });
         }
     } catch (error) {
+        console.error("[PROFILE-ADMIN] Hata:", error);
         return NextResponse.json({ hata: "Sunucu hatası" }, { status: 500 });
     }
 }

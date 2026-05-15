@@ -1,21 +1,22 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/firebase';
-import { collection, getDocs, limit, query } from 'firebase/firestore';
+import { adminDb } from '@/lib/firebase-admin';
 
 export async function GET() {
     try {
-        // Fotoğrafta gördüğüm spesifik bir ID'yi deniyorum
-        const knownId = "4YulWm6bAAp4gN8Tuu2y";
-        const userRef = doc(db, "users", knownId);
-        const userSnap = await getDoc(userRef);
-
+        const usersSnap = await adminDb.collection('users').limit(1).get();
+        
         return NextResponse.json({ 
             status: "ok", 
-            knownUserFound: userSnap.exists() ? "YES! Found it." : "NO! Still not seeing it.",
-            userData: userSnap.exists() ? { isim: userSnap.data().isim, role: userSnap.data().role } : null,
-            message: "Spesifik ID sorgusu tamamlandı."
+            adminSDK: "Connected",
+            usersCollection: usersSnap.empty ? "Empty" : "Found Data",
+            firstUser: !usersSnap.empty ? { id: usersSnap.docs[0].id, data: usersSnap.docs[0].data() } : null,
+            message: "Admin SDK başarıyla test edildi."
         });
     } catch (error) {
-        return NextResponse.json({ status: "error", message: (error as Error).message });
+        return NextResponse.json({ 
+            status: "error", 
+            message: (error as Error).message,
+            stack: (error as Error).stack
+        });
     }
 }

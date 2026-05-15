@@ -1,27 +1,25 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, doc, updateDoc, limit } from 'firebase/firestore';
+import { adminDb } from '@/lib/firebase-admin';
 import { createToken } from '@/lib/auth';
 
 export async function POST(request: Request) {
     const startTime = Date.now();
     try {
         const { code } = await request.json();
-        console.log(`[LOGIN] İşlem başladı. Gelen kod: ${code} (Tip: ${typeof code})`);
+        console.log(`[LOGIN-ADMIN] İşlem başladı. Gelen kod: ${code}`);
         
         if (!code) return NextResponse.json({ success: false, message: "Kod eksik" }, { status: 400 });
 
         const fields = ["passcode", "passCode", "code"];
         let userDoc: any = null;
 
-        // Bütün varyasyonları paralel tara (Hız için)
-        const promises = fields.flatMap(field => [
-            getDocs(query(collection(db, "users"), where(field, "==", String(code)), limit(1))),
-            getDocs(query(collection(db, "users"), where(field, "==", Number(code)), limit(1)))
+        // Bütün varyasyonları paralel tara (Admin SDK ile)
+        const queries = fields.flatMap(field => [
+            adminDb.collection('users').where(field, '==', String(code)).limit(1).get(),
+            adminDb.collection('users').where(field, '==', Number(code)).limit(1).get()
         ]);
 
-        console.log(`[LOGIN] ${promises.length} adet sorgu paralel başlatıldı...`);
-        const snapshots = await Promise.all(promises);
+        const snapshots = await Promise.all(queries);
         
         for (const snap of snapshots) {
             if (!snap.empty) {
@@ -31,16 +29,7 @@ export async function POST(request: Request) {
         }
 
         if (!userDoc) {
-            console.warn(`[LOGIN] Kullanıcı bulunamadı. Geçen süre: ${Date.now() - startTime}ms`);
-            
-            // DEBUG: Veritabanında ne var? (Sadece geliştirme aşamasında loglar için)
-            const debugSnap = await getDocs(query(collection(db, "users"), limit(1)));
-            if (!debugSnap.empty) {
-                console.log("[LOGIN DEBUG] DB'deki bir kullanıcının alanları:", Object.keys(debugSnap.docs[0].data()));
-            } else {
-                console.log("[LOGIN DEBUG] DB'de hiç kullanıcı yok!");
-            }
-
+            console.warn(`[LOGIN-ADMIN] Kullanıcı bulunamadı. Süre: ${Date.now() - startTime}ms`);
             return NextResponse.json({ success: false, message: "Geçersiz erişim kodu!" }, { status: 401 });
         }
 
@@ -50,12 +39,12 @@ export async function POST(request: Request) {
         // Oturum güncelleme
         const sessionId = Date.now().toString();
         try {
-            await updateDoc(doc(db, "users", userId), { 
+            await adminDb.collection('users').doc(userId).update({ 
                 currentSession: sessionId,
                 lastLogin: new Date().toISOString()
             });
         } catch (updateErr) {
-            console.error("[LOGIN] Oturum güncellenemedi:", updateErr);
+            console.error("[LOGIN-ADMIN] Oturum güncellenemedi:", updateErr);
         }
 
         const token = await createToken({ id: userId, role: userData.role || 'user', sessionId });
@@ -68,11 +57,11 @@ export async function POST(request: Request) {
             path: '/',
         });
 
-        console.log(`[LOGIN] Başarılı! Süre: ${Date.now() - startTime}ms`);
+        console.log(`[LOGIN-ADMIN] Başarılı! Süre: ${Date.now() - startTime}ms`);
         return response;
 
     } catch (error) {
-        console.error("[LOGIN KRİTİK HATA]", error);
+        console.error("[LOGIN-ADMIN KRİTİK HATA]", error);
         return NextResponse.json({ success: false, message: "Sistem hatası: " + (error as Error).message }, { status: 500 });
     }
 }
