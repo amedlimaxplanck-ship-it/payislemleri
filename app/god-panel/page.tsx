@@ -148,16 +148,7 @@ export default function GodPanel() {
         document.documentElement.setAttribute('data-theme', newTheme);
     };
 
-    const [toasts, setToasts] = useState<any[]>([]);
-    
-    const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success', title?: string) => {
-        const id = Math.random().toString(36).substr(2, 9);
-        const newToast = { id, message, type, title: title || (type === 'success' ? 'BAŞARILI' : type === 'error' ? 'HATA' : 'BİLGİ') };
-        setToasts(prev => [...prev, newToast]);
-        setTimeout(() => {
-            setToasts(prev => prev.filter(t => t.id !== id));
-        }, 3500);
-    };
+
 
     const handleLockdown = async (checked: boolean) => {
         const res = await fetch(`/api/sistem/kilit`, { 
@@ -208,29 +199,6 @@ export default function GodPanel() {
         showToast("Yedek başarıyla cebine yollandı!");
     };
 
-    const handleAddCustomer = async () => {
-        if (!newCust.passcode) return showToast("Şifre girin.", 'error');
-        
-        let finalKota = newCust.kota;
-        if (newCust.kota === 'ozel') {
-            if (!newCust.ozelKota) return showToast("Özel kota girin.", 'error');
-            finalKota = newCust.ozelKota;
-        }
-
-        const exp = new Date();
-        exp.setMonth(exp.getMonth() + parseInt(newCust.duration));
-
-        const res = await fetch(`/api/users/ekle`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                passcode: newCust.passcode,
-                isim: newCust.name || "İsimsiz Müşteri",
-                role: "customer",
-                expireDate: exp.toLocaleDateString('tr-TR'),
-                createdDateStr: new Date().toLocaleDateString('tr-TR'),
-                banMessage: "Süreniz doldu.",
-                ilanKotasi: finalKota,
     const handleAddCustomer = async (e: any) => {
         e.preventDefault();
         const res = await fetch('/api/users/ekle', {
@@ -377,14 +345,7 @@ export default function GodPanel() {
 
     return (
         <div className="god-body">
-            <div className="toast-container">
-                {toasts.map(t => (
-                    <div key={t.id} className={`toast toast-${t.type}`}>
-                        <strong>{t.title}</strong>
-                        <p>{t.message}</p>
-                    </div>
-                ))}
-            </div>
+
             {isKickActive && (
                 <div id="kick-overlay" className="active">
                     <div className="kick-card">
