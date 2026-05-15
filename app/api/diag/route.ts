@@ -4,33 +4,35 @@ import { collection, getDocs, limit, query } from 'firebase/firestore';
 
 export async function GET() {
     try {
-        console.log("--- DİAGNOSTİK BAŞLADI ---");
-        const q = query(collection(db, "users"), limit(1));
-        const snap = await getDocs(q);
-        
-        if (snap.empty) {
-            return NextResponse.json({ 
-                status: "error", 
-                message: "Users koleksiyonu boş veya erişilemiyor.",
-                projectId: process.env.FIREBASE_PROJECT_ID 
-            });
-        }
+        const configTest = {
+            apiKey: process.env.FIREBASE_API_KEY ? "OK (Set)" : "MISSING",
+            projectId: process.env.FIREBASE_PROJECT_ID || "MISSING",
+            appId: process.env.FIREBASE_APP_ID ? "OK (Set)" : "MISSING"
+        };
 
-        const firstUser = snap.docs[0].data();
-        const fields = Object.keys(firstUser);
+        const collectionsTested = ["users", "settings", "ilanlar"];
+        const results: any = {};
+
+        for (const col of collectionsTested) {
+            try {
+                const testSnap = await getDocs(query(collection(db, col), limit(1)));
+                results[col] = testSnap.empty ? "Empty" : "Found Data";
+            } catch (e) {
+                results[col] = "Error: " + (e as Error).message;
+            }
+        }
 
         return NextResponse.json({ 
             status: "ok", 
-            message: "Veritabanına bağlanıldı.",
-            userCount: snap.size,
-            availableFields: fields,
-            projectId: process.env.FIREBASE_PROJECT_ID
+            config: configTest,
+            collectionStatus: results,
+            message: results["users"] === "Found Data" ? "Veritabanı erişimi tam yetkiyle sağlandı." : "Bağlantı sağlandı ama 'users' boş görünüyor."
         });
     } catch (error) {
         return NextResponse.json({ 
             status: "error", 
             message: (error as Error).message,
-            stack: (error as Error).stack 
+            configCheck: process.env.FIREBASE_PROJECT_ID ? "Env Var Var" : "Env Var Yok"
         });
     }
 }
