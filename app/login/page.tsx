@@ -11,6 +11,9 @@ export default function LoginPage() {
     const router = useRouter();
 
     useEffect(() => {
+        // Force Dark Mode for Login Page
+        document.documentElement.setAttribute('data-theme', 'dark');
+        
         const timer = setInterval(() => {
             const now = new Date();
             setClock(now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
@@ -18,7 +21,9 @@ export default function LoginPage() {
         return () => clearInterval(timer);
     }, []);
 
-    const handleLogin = async () => {
+    const handleLogin = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        
         if (!code.trim()) {
             setError('Lütfen giriş anahtarını girin.');
             return;
@@ -37,7 +42,6 @@ export default function LoginPage() {
             const data = await res.json();
 
             if (data.success) {
-                // Success state handled by server-side cookies, but we redirect based on role
                 if (data.user.role === 'god') {
                     router.push('/god-panel');
                 } else {
@@ -55,244 +59,256 @@ export default function LoginPage() {
 
     return (
         <main className="login-screen">
-            <div className="tech-grid"></div>
+            <div className="bg-noise"></div>
             <div className="scanline"></div>
-            <div className="mesh"></div>
+            
+            <div className="tech-decor top-l">ID: SUPA_SYS_77</div>
+            <div className="tech-decor top-r">{clock}</div>
+            <div className="tech-decor bot-l">ENCRYPTION: AES_256_GCM</div>
+            <div className="tech-decor bot-r">LOC: IST_NODE_1</div>
 
-            {/* Teknik Detaylar (Aestetik) */}
-            <div className="corner-decor top-left">SYS_v2.4.0</div>
-            <div className="corner-decor top-right">{clock}</div>
-            <div className="corner-decor bottom-left">SECURE_PROTOCOL_ACTIVE</div>
-            <div className="corner-decor bottom-right">© 2026 SUPA_SYSTEMS</div>
-
-            <div className="login-card-container">
-                <div className="card-industrial">
-                    <div className="card-header">
-                        <div className="status-indicator">
-                            <div className="dot"></div>
-                            READY
+            <div className="login-container">
+                <form onSubmit={handleLogin} className="industrial-card">
+                    <div className="card-inner">
+                        <div className="status-badge">
+                            <span className="dot"></span>
+                            AUTHENTICATION_REQUIRED
                         </div>
-                        <h1 className="title">SUPA PANEL GİRİŞ</h1>
-                        <p className="subtitle">YETKİLİ PERSONEL ERİŞİMİ</p>
-                    </div>
 
-                    <div className="input-section">
-                        <div className="input-group-modern">
-                            <label htmlFor="access-code">PROTOCOL_KEY</label>
+                        <div className="brand">
+                            <h1>SUPA<span>PANEL</span></h1>
+                            <p>ENTER_ACCESS_PROTOCOL</p>
+                        </div>
+
+                        <div className="input-box">
+                            <label>PROTOCOL_KEY</label>
                             <input
                                 type="password"
-                                id="access-code"
                                 value={code}
                                 onChange={(e) => setCode(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
                                 placeholder="••••••••"
                                 autoComplete="off"
+                                autoFocus
                             />
                         </div>
 
-                        {error && <div className="error-msg">{error}</div>}
+                        {error && <div className="error-alert">{error}</div>}
 
-                        <button 
-                            className="btn-industrial" 
-                            onClick={handleLogin}
-                            disabled={loading}
-                        >
-                            {loading ? <div className="spinner-mini"></div> : 'OTURUMU DOĞRULA'}
+                        <button type="submit" disabled={loading} className="login-btn">
+                            {loading ? <div className="loader"></div> : 'VALIDATE_ACCESS'}
                         </button>
-                    </div>
 
-                    <div className="card-footer">
-                        <div className="security-badges">
-                            <span>AES-256</span>
-                            <span>TLS 1.3</span>
+                        <div className="security-footer">
+                            <span>TLS_1.3</span>
                             <span>MFA_READY</span>
+                            <span>S_SHIELD_ACTIVE</span>
                         </div>
                     </div>
-                </div>
+                </form>
             </div>
 
             <style jsx>{`
                 .login-screen {
                     min-height: 100vh;
+                    background: #000;
+                    color: #fff;
                     display: flex;
-                    justify-content: center;
                     align-items: center;
+                    justify-content: center;
                     position: relative;
+                    overflow: hidden;
+                    font-family: 'JetBrains Mono', monospace;
+                }
+
+                .bg-noise {
+                    position: fixed;
+                    inset: 0;
+                    background-image: url('https://grainy-gradients.vercel.app/noise.svg');
+                    opacity: 0.15;
+                    pointer-events: none;
+                }
+
+                .scanline {
+                    position: fixed;
+                    inset: 0;
+                    background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.5) 51%);
+                    background-size: 100% 4px;
+                    pointer-events: none;
+                    z-index: 100;
+                    opacity: 0.1;
+                }
+
+                .tech-decor {
+                    position: fixed;
+                    font-size: 10px;
+                    color: #333;
+                    letter-spacing: 2px;
+                    padding: 40px;
+                    font-weight: 800;
+                    z-index: 50;
+                }
+                .top-l { top: 0; left: 0; }
+                .top-r { top: 0; right: 0; color: #666; }
+                .bot-l { bottom: 0; left: 0; }
+                .bot-r { bottom: 0; right: 0; }
+
+                .login-container {
+                    position: relative;
+                    z-index: 100;
+                    width: 100%;
+                    max-width: 440px;
                     padding: 20px;
                 }
 
-                .corner-decor {
-                    position: fixed;
-                    font-family: 'JetBrains Mono', monospace;
-                    font-size: 10px;
-                    color: var(--text-dim);
-                    letter-spacing: 2px;
-                    padding: 30px;
-                    opacity: 0.6;
-                }
-                .top-left { top: 0; left: 0; }
-                .top-right { top: 0; right: 0; }
-                .bottom-left { bottom: 0; left: 0; }
-                .bottom-right { bottom: 0; right: 0; }
-
-                .login-card-container {
+                .industrial-card {
+                    background: #080808;
+                    border: 1px solid #1a1a1a;
+                    padding: 60px 40px;
                     position: relative;
-                    z-index: 10;
-                    width: 100%;
-                    max-width: 400px;
-                    animation: entrance 1s cubic-bezier(0.16, 1, 0.3, 1);
+                    box-shadow: 0 40px 100px rgba(0,0,0,0.8);
                 }
 
-                @keyframes entrance {
-                    from { opacity: 0; transform: translateY(40px) scale(0.98); }
-                    to { opacity: 1; transform: translateY(0) scale(1); }
-                }
-
-                .card-industrial {
-                    background: var(--bg-card);
-                    backdrop-filter: blur(20px);
-                    border: 1px solid var(--border);
-                    padding: 50px 40px;
-                    position: relative;
-                    box-shadow: 0 50px 100px rgba(0,0,0,0.8);
-                }
-
-                .card-industrial::before {
+                .industrial-card::before {
                     content: '';
                     position: absolute;
-                    top: -1px; left: 20px; right: 20px; height: 1px;
-                    background: linear-gradient(90deg, transparent, var(--text-main), transparent);
-                    opacity: 0.3;
+                    top: -1px; left: 10%; right: 10%; height: 1px;
+                    background: linear-gradient(90deg, transparent, #3b82f6, transparent);
                 }
 
-                .status-indicator {
-                    font-family: 'JetBrains Mono', monospace;
+                .status-badge {
                     font-size: 9px;
+                    color: #fbbf24;
+                    letter-spacing: 1.5px;
                     display: flex;
                     align-items: center;
-                    gap: 6px;
-                    color: #10b981;
-                    letter-spacing: 2px;
-                    margin-bottom: 20px;
+                    gap: 8px;
+                    margin-bottom: 40px;
                     justify-content: center;
                 }
 
-                .status-indicator .dot {
+                .status-badge .dot {
                     width: 6px; height: 6px;
-                    background: #10b981;
+                    background: #fbbf24;
                     border-radius: 50%;
-                    box-shadow: 0 0 10px #10b981;
+                    box-shadow: 0 0 10px #fbbf24;
                     animation: pulse 2s infinite;
                 }
 
-                .title {
-                    font-size: 24px;
-                    font-weight: 800;
-                    letter-spacing: 2px;
-                    margin-bottom: 6px;
-                    color: #fff;
-                    text-align: center;
+                @keyframes pulse {
+                    0% { opacity: 1; transform: scale(1); }
+                    50% { opacity: 0.5; transform: scale(0.8); }
+                    100% { opacity: 1; transform: scale(1); }
                 }
 
-                .subtitle {
-                    font-size: 11px;
-                    color: var(--text-dim);
+                .brand {
+                    text-align: center;
+                    margin-bottom: 50px;
+                }
+
+                .brand h1 {
+                    font-size: 28px;
+                    font-weight: 900;
                     letter-spacing: 4px;
-                    margin-bottom: 40px;
-                    text-align: center;
-                    font-weight: 300;
-                }
-
-                .input-group-modern {
-                    margin-bottom: 25px;
-                }
-
-                .input-group-modern label {
-                    display: block;
-                    font-family: 'JetBrains Mono', monospace;
-                    font-size: 9px;
-                    color: var(--text-dim);
-                    margin-bottom: 8px;
-                    letter-spacing: 1px;
-                }
-
-                .input-group-modern input {
-                    width: 100%;
-                    background: rgba(0,0,0,0.4);
-                    border: 1px solid var(--border);
-                    padding: 16px;
                     color: #fff;
-                    font-size: 20px;
+                }
+
+                .brand h1 span {
+                    color: #3b82f6;
+                    text-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+                }
+
+                .brand p {
+                    font-size: 10px;
+                    color: #444;
+                    margin-top: 8px;
+                    letter-spacing: 3px;
+                }
+
+                .input-box {
+                    margin-bottom: 30px;
+                }
+
+                .input-box label {
+                    display: block;
+                    font-size: 9px;
+                    color: #666;
+                    margin-bottom: 12px;
+                    letter-spacing: 2px;
+                }
+
+                .input-box input {
+                    width: 100%;
+                    background: #000;
+                    border: 1px solid #222;
+                    padding: 18px;
+                    color: #fff;
+                    font-size: 24px;
                     text-align: center;
                     outline: none;
-                    transition: all 0.3s;
-                    letter-spacing: 8px;
+                    transition: 0.3s;
+                    letter-spacing: 10px;
                 }
 
-                .input-group-modern input:focus {
-                    border-color: rgba(255,255,255,0.4);
-                    background: rgba(0,0,0,0.6);
+                .input-box input:focus {
+                    border-color: #3b82f6;
+                    background: #050505;
                 }
 
-                .btn-industrial {
+                .login-btn {
                     width: 100%;
-                    padding: 18px;
                     background: #fff;
                     color: #000;
                     border: none;
-                    font-weight: 800;
+                    padding: 20px;
+                    font-weight: 900;
                     font-size: 13px;
-                    letter-spacing: 2px;
+                    letter-spacing: 3px;
                     cursor: pointer;
-                    transition: all 0.3s;
-                    margin-top: 10px;
+                    transition: 0.3s;
                 }
 
-                .btn-industrial:hover {
-                    background: #e2e8f0;
-                    letter-spacing: 4px;
+                .login-btn:hover {
+                    background: #3b82f6;
+                    color: #fff;
+                    box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
                 }
 
-                .btn-industrial:disabled {
-                    background: #1e293b;
-                    color: #475569;
+                .login-btn:disabled {
+                    background: #111;
+                    color: #333;
                     cursor: not-allowed;
                 }
 
-                .error-msg {
+                .error-alert {
                     background: rgba(239, 68, 68, 0.1);
-                    border: 1px solid rgba(239, 68, 68, 0.2);
-                    color: #fca5a5;
+                    color: #f87171;
                     padding: 12px;
-                    font-size: 12px;
+                    font-size: 11px;
                     margin-bottom: 20px;
                     text-align: center;
+                    border: 1px solid rgba(239, 68, 68, 0.2);
                 }
 
-                .card-footer {
-                    margin-top: 40px;
-                }
-
-                .security-badges {
+                .security-footer {
+                    margin-top: 50px;
                     display: flex;
                     justify-content: center;
-                    gap: 15px;
-                    font-family: 'JetBrains Mono', monospace;
+                    gap: 20px;
                     font-size: 8px;
-                    color: var(--text-dim);
-                    opacity: 0.5;
+                    color: #222;
+                    letter-spacing: 1px;
                 }
 
-                .spinner-mini {
-                    width: 18px;
-                    height: 18px;
+                .loader {
+                    width: 20px; height: 20px;
                     border: 2px solid rgba(0,0,0,0.1);
-                    border-top: 2px solid #000;
+                    border-top-color: #000;
                     border-radius: 50%;
                     animation: spin 0.8s linear infinite;
+                    margin: 0 auto;
                 }
 
-                @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                @keyframes spin { to { transform: rotate(360deg); } }
             `}</style>
         </main>
     );

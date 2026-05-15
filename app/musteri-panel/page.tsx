@@ -54,13 +54,10 @@ export default function MusteriPanel() {
     };
 
     const fetchInitialData = async () => {
-        const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
-        if (!token) return router.push('/login');
-
         try {
             const [userRes, systemRes] = await Promise.all([
-                fetch('/api/profilim', { headers: { 'Authorization': `Bearer ${token}` } }),
-                fetch('/api/sistem/durum', { headers: { 'Authorization': `Bearer ${token}` } })
+                fetch('/api/profilim'),
+                fetch('/api/sistem/durum')
             ]);
 
             if (userRes.status === 401) return router.push('/login');

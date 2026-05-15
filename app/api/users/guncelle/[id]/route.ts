@@ -1,13 +1,18 @@
 import { NextResponse } from 'next/server';
-import { adminAuth, adminDb } from '@/lib/firebase-admin';
+import { adminDb } from '@/lib/firebase-admin';
+import { verifyToken } from '@/lib/auth';
+import { cookies } from 'next/headers';
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
     try {
-        const token = request.headers.get('Authorization')?.split('Bearer ')[1];
+        const cookieStore = await cookies();
+        const token = request.headers.get('Authorization')?.split('Bearer ')[1] || cookieStore.get('token')?.value;
         if (!token) return NextResponse.json({ status: 'error', message: 'No token' }, { status: 401 });
 
-        const decodedToken = await adminAuth.verifyIdToken(token);
-        if (decodedToken.role !== 'god' && decodedToken.uid !== params.id) {
+        const decodedToken = await verifyToken(token);
+        if (!decodedToken) return NextResponse.json({ status: 'error', message: 'Invalid token' }, { status: 401 });
+
+        if (decodedToken.role !== 'god' && decodedToken.id !== params.id) {
             return NextResponse.json({ status: 'error', message: 'Unauthorized' }, { status: 403 });
         }
 
@@ -15,9 +20,6 @@ export async function PATCH(request: Request, { params }: { params: { id: string
         const userRef = adminDb.collection('users').doc(params.id);
         
         await userRef.set(updates, { merge: true });
-
-        // If God updated the role or status, we might want to update custom claims, 
-        // but for now simple firestore update is enough for UI logic.
 
         return NextResponse.json({ success: true });
     } catch (error: any) {
