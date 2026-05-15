@@ -6,7 +6,8 @@ const serviceAccount = {
     privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
 };
 
-if (!admin.apps.length) {
+// Sadece anahtarlar varsa başlat, yoksa build'i bozma
+if (!admin.apps.length && serviceAccount.projectId && serviceAccount.privateKey) {
     try {
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount as any),
@@ -17,5 +18,5 @@ if (!admin.apps.length) {
     }
 }
 
-export const adminDb = admin.firestore();
-export const adminAuth = admin.auth();
+export const adminDb = admin.apps.length ? admin.firestore() : null as any;
+export const adminAuth = admin.apps.length ? admin.auth() : null as any;
