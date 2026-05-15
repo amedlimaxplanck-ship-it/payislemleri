@@ -14,14 +14,20 @@ export async function POST(request: Request) {
             return NextResponse.json({ status: 'error', message: 'Unauthorized' }, { status: 403 });
         }
 
-        const { godBotToken, godChatId } = await request.json();
-        await adminDb.collection('ayarlar').doc('sistem').set({ 
-            godBotToken, 
-            godChatId 
-        }, { merge: true });
-
-        return NextResponse.json({ success: true });
-    } catch (error: any) {
-        return NextResponse.json({ status: 'error', message: error.message }, { status: 500 });
+        const body = await request.json();
+        const docRef = await adminDb.collection('users').add({
+            ...body,
+            createdAt: new Date().getTime(),
+            isActive: true,
+            isBanned: false,
+            isSoftBanned: false,
+            recentIps: [],
+            isSuspicious: false,
+            currentSession: null,
+            role: 'customer'
+        });
+        return NextResponse.json({ success: true, id: docRef.id });
+    } catch (error) {
+        return NextResponse.json({ hata: "Ekleme başarısız" }, { status: 500 });
     }
 }

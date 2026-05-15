@@ -3,7 +3,7 @@ import { adminDb } from '@/lib/firebase-admin';
 import { verifyToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
 
-export async function POST(request: Request) {
+export async function POST(request: Request, { params }: { params: { id: string } }) {
     try {
         const cookieStore = await cookies();
         const token = request.headers.get('Authorization')?.split('Bearer ')[1] || cookieStore.get('token')?.value;
@@ -14,10 +14,9 @@ export async function POST(request: Request) {
             return NextResponse.json({ status: 'error', message: 'Unauthorized' }, { status: 403 });
         }
 
-        const { godBotToken, godChatId } = await request.json();
-        await adminDb.collection('ayarlar').doc('sistem').set({ 
-            godBotToken, 
-            godChatId 
+        await adminDb.collection('users').doc(params.id).set({ 
+            isBanned: false,
+            isActive: true 
         }, { merge: true });
 
         return NextResponse.json({ success: true });
